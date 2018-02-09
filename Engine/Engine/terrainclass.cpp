@@ -48,7 +48,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 			index = (m_terrainHeight * j) + i;
 
 			m_heightMap[index].x = (float)i;
-			m_heightMap[index].y = (float)m_noiseGenerator->GenerateNoise(i + 0.5, 0.5, j + 0.5);
+			m_heightMap[index].y = ((float)m_noiseGenerator->GenerateNoise(i * 0.01, 0.5, j * 0.01)*30);
 			m_heightMap[index].z = (float)j;
 
 		}
