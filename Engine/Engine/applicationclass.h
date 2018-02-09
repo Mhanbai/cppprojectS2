@@ -8,7 +8,7 @@
 /////////////
 // GLOBALS //
 /////////////
-const bool FULL_SCREEN = true;
+const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
@@ -29,6 +29,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "textclass.h"
 #include "terrainshaderclass.h"
 #include "lightclass.h"
+#include "simplexnoisegenerator.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,6 +63,7 @@ private:
 	TextClass* m_Text;
 	TerrainShaderClass* m_TerrainShader;
 	LightClass* m_Light;
+	SimplexNoiseGenerator m_NoiseGenerator;
 };
 
 #endif

@@ -11,6 +11,7 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 #include <stdio.h>
+#include "simplexnoisegenerator.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -42,7 +43,7 @@ public:
 	~TerrainClass();
 
 	bool Initialize(ID3D11Device*, char*);
-	bool InitializeTerrain(ID3D11Device*, int terrainWidth, int terrainHeight);
+	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	bool GenerateHeightMap(ID3D11Device* device, bool keydown);

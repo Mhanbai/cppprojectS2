@@ -23,7 +23,7 @@ TerrainClass::~TerrainClass()
 {
 }
 
-bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int terrainHeight)
+bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight)
 {
 	int index;
 	float height = 0.0;
@@ -48,7 +48,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 			index = (m_terrainHeight * j) + i;
 
 			m_heightMap[index].x = (float)i;
-			m_heightMap[index].y = (float)height;
+			m_heightMap[index].y = (float)m_noiseGenerator->GenerateNoise(i + 0.5, 0.0, j + 0.5);
 			m_heightMap[index].z = (float)j;
 
 		}
