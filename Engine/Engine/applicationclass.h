@@ -30,6 +30,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "terrainshaderclass.h"
 #include "lightclass.h"
 #include "simplexnoisegenerator.h"
+#include "playerclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,6 +64,7 @@ private:
 	TextClass* m_Text;
 	TerrainShaderClass* m_TerrainShader;
 	LightClass* m_Light;
+	PlayerClass* m_Player;
 	SimplexNoiseGenerator m_NoiseGenerator;
 };
 

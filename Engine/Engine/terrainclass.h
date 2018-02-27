@@ -46,12 +46,9 @@ public:
 	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
-	bool GenerateHeightMap(ID3D11Device* device, bool keydown);
 	int  GetIndexCount();
 
 private:
-	bool LoadHeightMap(char*);
-	void NormalizeHeightMap();
 	bool CalculateNormals();
 	void ShutdownHeightMap();
 

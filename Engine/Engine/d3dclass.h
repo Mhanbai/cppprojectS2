@@ -48,6 +48,8 @@ public:
 
 	void GetVideoCardInfo(char*, int&);
 
+	void DisplayWireframe();
+	void DisplayFill();
 	void TurnZBufferOn();
 	void TurnZBufferOff();
 	void TurnOnAlphaBlending();
@@ -64,7 +66,8 @@ private:
 	ID3D11Texture2D* m_depthStencilBuffer;
 	ID3D11DepthStencilState* m_depthStencilState;
 	ID3D11DepthStencilView* m_depthStencilView;
-	ID3D11RasterizerState* m_rasterState;
+	ID3D11RasterizerState* m_wireframeRasterState;
+	ID3D11RasterizerState* m_fillRasterState;
 	D3DXMATRIX m_projectionMatrix;
 	D3DXMATRIX m_worldMatrix;
 	D3DXMATRIX m_orthoMatrix;

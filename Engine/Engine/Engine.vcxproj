@@ -91,6 +91,7 @@
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="lightclass.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="playerclass.cpp" />
     <ClCompile Include="positionclass.cpp" />
     <ClCompile Include="simplexnoisegenerator.cpp" />
     <ClCompile Include="systemclass.cpp" />
@@ -110,6 +111,7 @@
     <ClInclude Include="fpsclass.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="lightclass.h" />
+    <ClInclude Include="playerclass.h" />
     <ClInclude Include="positionclass.h" />
     <ClInclude Include="simplexnoisegenerator.h" />
     <ClInclude Include="systemclass.h" />
