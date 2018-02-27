@@ -8,8 +8,7 @@
 //////////////
 // INCLUDES //
 //////////////
-#include <d3dx10math.h>
-#include "cameraclass.h"
+#include "terrainclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -22,14 +21,26 @@ public:
 	PlayerClass(const PlayerClass&);
 	~PlayerClass();
 
-	bool Initialize();
+	bool Initialize(TerrainClass* terrain_in);
 	bool Update();
+	bool Shutdown();
+
+	void SetPosition(float, float, float);
+	void SetRotation(float, float, float);
+
+	float FindSurfaceLevel();
+
+	D3DXVECTOR3 GetPosition();
+	D3DXVECTOR3 GetRotation();
 
 private:
 	float m_positionX, m_positionY, m_positionZ;
 	float m_rotationX, m_rotationY, m_rotationZ;
 
-	CameraClass* m_Camera;
+	TerrainClass* m_Terrain;
+	int terrainArraySize;
+
+	float yPosOffset = 1.0f;
 };
 
 #endif

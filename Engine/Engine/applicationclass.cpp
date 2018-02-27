@@ -71,14 +71,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	m_Player = new PlayerClass;
-	if (!m_Player)
-	{
-		return false;
-	}
-
-	m_Player->Initialize();
-
 	// Create the camera object.
 	m_Camera = new CameraClass;
 	if(!m_Camera)
@@ -112,6 +104,14 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
 		return false;
 	}
+
+	m_Player = new PlayerClass;
+	if (!m_Player)
+	{
+		return false;
+	}
+
+	m_Player->Initialize(m_Terrain);
 
 	// Create the timer object.
 	m_Timer = new TimerClass;
@@ -323,6 +323,14 @@ void ApplicationClass::Shutdown()
 		m_Input = 0;
 	}
 
+	// Release the player object.
+	if (m_Player)
+	{
+		m_Player->Shutdown();
+		delete m_Player;
+		m_Player = 0;
+	}
+
 	return;
 }
 
@@ -402,12 +410,6 @@ bool ApplicationClass::HandleInput(float frameTime)
 	keyDown = m_Input->IsDownPressed();
 	m_Position->MoveBackward(keyDown);
 
-	keyDown = m_Input->IsAPressed();
-	m_Position->MoveUpward(keyDown);
-
-	keyDown = m_Input->IsZPressed();
-	m_Position->MoveDownward(keyDown);
-
 	keyDown = m_Input->IsPgUpPressed();
 	m_Position->LookUpward(keyDown);
 
@@ -418,8 +420,13 @@ bool ApplicationClass::HandleInput(float frameTime)
 	m_Position->GetPosition(posX, posY, posZ);
 	m_Position->GetRotation(rotX, rotY, rotZ);
 
+	//Set y position to surface
+	posY = m_Player->FindSurfaceLevel();
+
 	// Set the position of the camera.
-	m_Camera->SetPosition(posX, posY, posZ);
+	m_Player->SetPosition(posX, posY, posZ);
+	m_Player->SetRotation(rotX, rotY, rotZ);
+	m_Camera->SetPosition(posX, posY + 5.0f, posZ);
 	m_Camera->SetRotation(rotX, rotY, rotZ);
 
 	// Update the position values in the text object.

@@ -99,6 +99,16 @@ int TerrainClass::GetIndexCount()
 }
 
 
+D3DXVECTOR3 TerrainClass::GetVertexPosition(int index)
+{
+	return vertices[index].position;
+}
+
+int TerrainClass::GetVertexCount()
+{
+	return m_vertexCount;
+}
+
 bool TerrainClass::CalculateNormals()
 {
 	int i, j, index1, index2, index3, index, count;
@@ -250,7 +260,6 @@ void TerrainClass::ShutdownHeightMap()
 
 bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 {
-	VertexType* vertices;
 	unsigned long* indices;
 	int index, i, j;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
@@ -487,10 +496,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 		return false;
 	}
 
-	// Release the arrays now that the buffers have been created and loaded.
-	delete [] vertices;
-	vertices = 0;
-
+	// Release the index array now that the buffers have been created and loaded.
 	delete [] indices;
 	indices = 0;
 

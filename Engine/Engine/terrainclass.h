@@ -48,6 +48,9 @@ public:
 	void Render(ID3D11DeviceContext*);
 	int  GetIndexCount();
 
+	D3DXVECTOR3 GetVertexPosition(int index);
+	int GetVertexCount();
+
 private:
 	bool CalculateNormals();
 	void ShutdownHeightMap();
@@ -62,6 +65,7 @@ private:
 	int m_vertexCount, m_indexCount;
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	HeightMapType* m_heightMap;
+	VertexType* vertices;
 };
 
 #endif
