@@ -40,7 +40,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 		return false;
 	}
 
-	// Initialise the data in the height map (flat).
+	// Initialise the data in the height map
 	for(int j=0; j<m_terrainHeight; j++)
 	{
 		for(int i=0; i<m_terrainWidth; i++)
@@ -48,44 +48,11 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 			index = (m_terrainHeight * j) + i;
 
 			m_heightMap[index].x = (float)i;
-			m_heightMap[index].y = ((float)m_noiseGenerator->GenerateNoise(i * 0.01, 0.5, j * 0.01)*30);
+			m_heightMap[index].y = ((float)m_noiseGenerator->GenerateNoise(i * 0.005, 0.5, j * 0.005)*40);
 			m_heightMap[index].z = (float)j;
 
 		}
 	}
-
-
-	//even though we are generating a flat terrain, we still need to normalise it. 
-	// Calculate the normals for the terrain data.
-	result = CalculateNormals();
-	if(!result)
-	{
-		return false;
-	}
-
-	// Initialize the vertex and index buffer that hold the geometry for the terrain.
-	result = InitializeBuffers(device);
-	if(!result)
-	{
-		return false;
-	}
-
-	return true;
-}
-bool TerrainClass::Initialize(ID3D11Device* device, char* heightMapFilename)
-{
-	bool result;
-
-
-	// Load in the height map for the terrain.
-	result = LoadHeightMap(heightMapFilename);
-	if(!result)
-	{
-		return false;
-	}
-
-	// Normalize the height of the height map.
-	NormalizeHeightMap();
 
 	// Calculate the normals for the terrain data.
 	result = CalculateNormals();
@@ -129,174 +96,6 @@ void TerrainClass::Render(ID3D11DeviceContext* deviceContext)
 int TerrainClass::GetIndexCount()
 {
 	return m_indexCount;
-}
-
-bool TerrainClass::GenerateHeightMap(ID3D11Device* device, bool keydown)
-{
-
-	bool result;
-	//the toggle is just a bool that I use to make sure this is only called ONCE when you press a key
-	//until you release the key and start again. We dont want to be generating the terrain 500
-	//times per second. 
-	if(keydown&&(!m_terrainGeneratedToggle))
-	{
-		int index;
-		float height = 0.0;
-		
-
-		//loop through the terrain and set the hieghts how we want. This is where we generate the terrain
-		//in this case I will run a sin-wave through the terrain in one axis.
-
- 		for(int j=0; j<m_terrainHeight; j++)
-		{
-			for(int i=0; i<m_terrainWidth; i++)
-			{			
-				index = (m_terrainHeight * j) + i;
-
-				m_heightMap[index].x = (float)i;
-				m_heightMap[index].y = (float)(sin((float)i/(m_terrainWidth/12))*3.0); //magic numbers ahoy, just to ramp up the height of the sin function so its visible.
-				m_heightMap[index].z = (float)j;
-			}
-		}
-
-		result = CalculateNormals();
-		if(!result)
-		{
-			return false;
-		}
-
-		// Initialize the vertex and index buffer that hold the geometry for the terrain.
-		result = InitializeBuffers(device);
-		if(!result)
-		{
-			return false;
-		}
-
-		m_terrainGeneratedToggle = true;
-	}
-	else
-	{
-		m_terrainGeneratedToggle = false;
-	}
-
-	
-
-
-	return true;
-}
-bool TerrainClass::LoadHeightMap(char* filename)
-{
-	FILE* filePtr;
-	int error;
-	unsigned int count;
-	BITMAPFILEHEADER bitmapFileHeader;
-	BITMAPINFOHEADER bitmapInfoHeader;
-	int imageSize, i, j, k, index;
-	unsigned char* bitmapImage;
-	unsigned char height;
-
-
-	// Open the height map file in binary.
-	error = fopen_s(&filePtr, filename, "rb");
-	if(error != 0)
-	{
-		return false;
-	}
-
-	// Read in the file header.
-	count = fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr);
-	if(count != 1)
-	{
-		return false;
-	}
-
-	// Read in the bitmap info header.
-	count = fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr);
-	if(count != 1)
-	{
-		return false;
-	}
-
-	// Save the dimensions of the terrain.
-	m_terrainWidth = bitmapInfoHeader.biWidth;
-	m_terrainHeight = bitmapInfoHeader.biHeight;
-
-	// Calculate the size of the bitmap image data.
-	imageSize = m_terrainWidth * m_terrainHeight * 3;
-
-	// Allocate memory for the bitmap image data.
-	bitmapImage = new unsigned char[imageSize];
-	if(!bitmapImage)
-	{
-		return false;
-	}
-
-	// Move to the beginning of the bitmap data.
-	fseek(filePtr, bitmapFileHeader.bfOffBits, SEEK_SET);
-
-	// Read in the bitmap image data.
-	count = fread(bitmapImage, 1, imageSize, filePtr);
-	if(count != imageSize)
-	{
-		return false;
-	}
-
-	// Close the file.
-	error = fclose(filePtr);
-	if(error != 0)
-	{
-		return false;
-	}
-
-	// Create the structure to hold the height map data.
-	m_heightMap = new HeightMapType[m_terrainWidth * m_terrainHeight];
-	if(!m_heightMap)
-	{
-		return false;
-	}
-
-	// Initialize the position in the image data buffer.
-	k=0;
-
-	// Read the image data into the height map.
-	for(j=0; j<m_terrainHeight; j++)
-	{
-		for(i=0; i<m_terrainWidth; i++)
-		{
-			height = bitmapImage[k];
-			
-			index = (m_terrainHeight * j) + i;
-
-			m_heightMap[index].x = (float)i;
-			m_heightMap[index].y = (float)height;
-			m_heightMap[index].z = (float)j;
-
-			k+=3;
-		}
-	}
-
-	// Release the bitmap image data.
-	delete [] bitmapImage;
-	bitmapImage = 0;
-
-	return true;
-}
-
-
-void TerrainClass::NormalizeHeightMap()
-{
-	int i, j;
-
-
-	for(j=0; j<m_terrainHeight; j++)
-	{
-		for(i=0; i<m_terrainWidth; i++)
-		{
-			m_heightMap[(m_terrainHeight * j) + i].y /= 15.0f;
-		}
-	}
-
-	return;
 }
 
 
@@ -486,48 +285,165 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 	// Load the vertex and index array with the terrain data.
 	for(j=0; j<(m_terrainHeight-1); j++)
 	{
-		for(i=0; i<(m_terrainWidth-1); i++)
+		for (i = 0; i < (m_terrainWidth - 1); i++)
 		{
 			index1 = (m_terrainHeight * j) + i;          // Bottom left.
-			index2 = (m_terrainHeight * j) + (i+1);      // Bottom right.
-			index3 = (m_terrainHeight * (j+1)) + i;      // Upper left.
-			index4 = (m_terrainHeight * (j+1)) + (i+1);  // Upper right.
+			index2 = (m_terrainHeight * j) + (i + 1);      // Bottom right.
+			index3 = (m_terrainHeight * (j + 1)) + i;      // Upper left.
+			index4 = (m_terrainHeight * (j + 1)) + (i + 1);  // Upper right.
 
-			// Upper left.
-			vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
-			vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
-			indices[index] = index;
-			index++;
+			if ((j % 2) == 0) {
+				if ((i % 2) == 0) {
+					// Upper left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					indices[index] = index;
+					index++;
 
-			// Upper right.
-			vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-			vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-			indices[index] = index;
-			index++;
+					// Upper right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					indices[index] = index;
+					index++;
 
-			// Bottom left.
-			vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-			vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-			indices[index] = index;
-			index++;
+					// Bottom left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					indices[index] = index;
+					index++;
 
-			// Bottom left.
-			vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-			vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-			indices[index] = index;
-			index++;
+					// Bottom left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					indices[index] = index;
+					index++;
 
-			// Upper right.
-			vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-			vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-			indices[index] = index;
-			index++;
+					// Upper right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					indices[index] = index;
+					index++;
 
-			// Bottom right.
-			vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
-			vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
-			indices[index] = index;
-			index++;
+					// Bottom right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					indices[index] = index;
+					index++;
+				}
+				else {
+					// Bottom left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					indices[index] = index;
+					index++;
+
+					// Upper left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					indices[index] = index;
+					index++;
+
+					// Bottom right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					indices[index] = index;
+					index++;
+
+					// Bottom right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					indices[index] = index;
+					index++;
+
+					// Upper left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					indices[index] = index;
+					index++;
+
+					// Upper right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					indices[index] = index;
+					index++;
+				}
+			}
+			else {
+				if ((i % 2) == 0) {
+					// Upper left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					indices[index] = index;
+					index++;
+
+					// Bottom right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					indices[index] = index;
+					index++;
+
+					// Bottom left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					indices[index] = index;
+					index++;
+
+					// Bottom right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					indices[index] = index;
+					index++;
+
+					// Upper left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					indices[index] = index;
+					index++;
+
+					// Upper right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					indices[index] = index;
+					index++;
+				}
+				else {
+					// Bottom left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					indices[index] = index;
+					index++;
+
+					// Upper left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					indices[index] = index;
+					index++;
+
+					// Upper right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					indices[index] = index;
+					index++;
+
+					// Upper right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					indices[index] = index;
+					index++;
+
+					// Bottom right.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					indices[index] = index;
+					index++;
+
+					// Bottom left.
+					vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					indices[index] = index;
+					index++;
+				}
+			}
 		}
 	}
 

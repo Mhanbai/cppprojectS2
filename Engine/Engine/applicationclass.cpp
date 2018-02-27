@@ -381,10 +381,6 @@ bool ApplicationClass::HandleInput(float frameTime)
 	// Set the frame time for calculating the updated position.
 	m_Position->SetFrameTime(frameTime);
 
-	// Handle the input.
-	keyDown = m_Input->IsSpacePressed();
-	m_Terrain->GenerateHeightMap(m_Direct3D->GetDevice(), keyDown);	
-
 	keyDown = m_Input->IsLeftPressed();
 	m_Position->TurnLeft(keyDown);
 
