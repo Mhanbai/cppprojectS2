@@ -65,42 +65,37 @@ float PlayerClass::FindSurfaceLevel()
 	D3DXVECTOR3 upwardVector = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
 	//Find which triangles are within range - for each vertex in the terrain...
-	for (int i = 0; i < m_Terrain->GetVertexCount(); i+=3) {
+	for (int i = 0; i < m_Terrain->m_Collision->collisionChecklist.size(); i++) {
 		//Get vertex position
-		D3DXVECTOR3 vertexPosition = m_Terrain->GetVertexPosition(i);
+		D3DXVECTOR3 trianglePosition = m_Terrain->m_Collision->collisionChecklist[i].centerPos;
 
 		//Find distance between player and vertex
 		D3DXVECTOR3 vectorBetween;
-		D3DXVec3Subtract(&vectorBetween, &myPosition, &vertexPosition);
-		float distanceFromVertex = D3DXVec3Length(&vectorBetween);
+		D3DXVec3Subtract(&vectorBetween, &myPosition, &trianglePosition);
+		float distanceFromVertex = D3DXVec3LengthSq(&vectorBetween);
 
 		//if the vertex is within collision checking range...
-		if (distanceFromVertex < 5.0f) {
-			//Define the triange to test
-			D3DXVECTOR3 triPoint2 = m_Terrain->GetVertexPosition(i);
-			D3DXVECTOR3 triPoint1 = m_Terrain->GetVertexPosition(i + 1);
-			D3DXVECTOR3 triPoint0 = m_Terrain->GetVertexPosition(i + 2);
-
+		if (distanceFromVertex < 100.0f) {
 			//Create output variables for function
 			float u;
 			float v;
 			float distFromTri;
 
 			//Cast ray downwards and recieve barycentric co-ordinates for collision
-			if (D3DXIntersectTri(&triPoint0, &triPoint1, &triPoint2, &myPosition, &downwardVector, &u, &v, &distFromTri)) {
+			if (D3DXIntersectTri(&m_Terrain->m_Collision->collisionChecklist[i].a, 
+				&m_Terrain->m_Collision->collisionChecklist[i].b, 
+				&m_Terrain->m_Collision->collisionChecklist[i].c, 
+				&myPosition, &downwardVector, &u, &v, &distFromTri)) {
 				//Use barycentric co-ordinates to find cartesian co-ordinates for collision
-				D3DXVECTOR3 result = triPoint0 + (u * (triPoint1 - triPoint0)) + (v * (triPoint2 - triPoint0));
-
-				//Return y-value
-				return result.y;
+				return m_Terrain->m_Collision->collisionChecklist[i].FindPoint(u, v).y;
 			}
 			//If no downward collision is found, the player may have moved below terrain, so check upwards
-			else if (D3DXIntersectTri(&triPoint0, &triPoint1, &triPoint2, &myPosition, &upwardVector, &u, &v, &distFromTri)) {
-				//Use barycentric co-ordinates to find cartesian co-ordinates for collision
-				D3DXVECTOR3 result = triPoint0 + (u * (triPoint1 - triPoint0)) + (v * (triPoint2 - triPoint0));
-
-				//Return y-value
-				return result.y;
+			else if (D3DXIntersectTri(&m_Terrain->m_Collision->collisionChecklist[i].a,
+					&m_Terrain->m_Collision->collisionChecklist[i].b,
+					&m_Terrain->m_Collision->collisionChecklist[i].c,
+					&myPosition, &upwardVector, &u, &v, &distFromTri)) {
+					//Use barycentric co-ordinates to find cartesian co-ordinates for collision
+					return m_Terrain->m_Collision->collisionChecklist[i].FindPoint(u, v).y;
 			}
 		}
 	}

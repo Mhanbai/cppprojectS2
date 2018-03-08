@@ -29,6 +29,7 @@ public:
 	void SetRotation(float, float, float);
 
 	float FindSurfaceLevel();
+	float FindClosestTriangle();
 
 	D3DXVECTOR3 GetPosition();
 	D3DXVECTOR3 GetRotation();

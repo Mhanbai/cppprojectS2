@@ -98,7 +98,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the terrain object.
-	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), &m_NoiseGenerator, 256, 256, 0.1f, 10.0f, L"../Engine/data/ground.dds");
+	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), &m_NoiseGenerator, 1024, 1024, L"../Engine/data/ground.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
@@ -416,12 +416,19 @@ bool ApplicationClass::HandleInput(float frameTime)
 	keyDown = m_Input->IsPgDownPressed();
 	m_Position->LookDownward(keyDown);
 	
+	keyDown = m_Input->IsAPressed();
+	m_Position->MoveUpward(keyDown);
+
+	keyDown = m_Input->IsZPressed();
+	m_Position->MoveDownward(keyDown);
+
 	// Get the view point position/rotation.
 	m_Position->GetPosition(posX, posY, posZ);
 	m_Position->GetRotation(rotX, rotY, rotZ);
 
-	//Set y position to surface
-	posY = m_Player->FindSurfaceLevel();
+	//Set y position to surface///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//posY = m_Player->FindSurfaceLevel();
+	//posY = 10.0f;
 
 	// Set the position of the camera.
 	m_Player->SetPosition(posX, posY, posZ);

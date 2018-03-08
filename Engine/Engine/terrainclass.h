@@ -12,6 +12,8 @@
 #include <d3dx10math.h>
 #include <stdio.h>
 #include "simplexnoisegenerator.h"
+#include "collisionclass.h"
+#include <time.h>
 
 ///////////////////////
 // MY CLASS INCLUDES //
@@ -21,7 +23,7 @@
 /////////////
 // GLOBALS //
 /////////////
-const int TEXTURE_REPEAT = 1;
+const int TEXTURE_REPEAT = 32;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -54,15 +56,14 @@ public:
 	TerrainClass(const TerrainClass&);
 	~TerrainClass();
 
-	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, float zoom, float scale, WCHAR* textureFilename);
+	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, WCHAR* textureFilename);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	int  GetIndexCount();
 
 	ID3D11ShaderResourceView* GetTexture();
 
-	D3DXVECTOR3 GetVertexPosition(int index);
-	int GetVertexCount();
+	CollisionClass* m_Collision;
 
 private:
 	bool CalculateNormals();

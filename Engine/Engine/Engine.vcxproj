@@ -83,6 +83,7 @@
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
+    <ClCompile Include="collisionclass.cpp" />
     <ClCompile Include="cpuclass.cpp" />
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="fontclass.cpp" />
@@ -104,6 +105,7 @@
   <ItemGroup>
     <ClInclude Include="applicationclass.h" />
     <ClInclude Include="cameraclass.h" />
+    <ClInclude Include="collisionclass.h" />
     <ClInclude Include="cpuclass.h" />
     <ClInclude Include="d3dclass.h" />
     <ClInclude Include="fontclass.h" />

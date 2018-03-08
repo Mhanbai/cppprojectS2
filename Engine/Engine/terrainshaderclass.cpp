@@ -76,6 +76,7 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
+
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
     D3D11_SAMPLER_DESC samplerDesc;

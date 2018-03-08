@@ -24,11 +24,13 @@ TerrainClass::~TerrainClass()
 {
 }
 
-bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, float zoom, float scale, WCHAR* textureFilename)
+bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, WCHAR* textureFilename)
 {
 	int index;
 	float height = 0.0;
 	bool result;
+	srand(time(NULL));
+	float random = rand() * 100.1f;
 
 	// Save the dimensions of the terrain.
 	m_terrainWidth = terrainWidth;
@@ -49,21 +51,24 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 			index = (m_terrainHeight * j) + i;
 
 			m_heightMap[index].x = (float)i;
-			m_heightMap[index].y = ((float)m_noiseGenerator->GenerateNoise(i * zoom, zoom, j * zoom)*scale);
 			m_heightMap[index].z = (float)j;
 
+			int xCo = i + random;
+			int yCo = j + random;
+			float e = ((float)m_noiseGenerator->GenerateNoise(xCo * 0.012f, 0.0f, yCo * 0.012f) + 
+									0.5f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.025f, 0.0f, yCo * 0.025f) +
+									0.25f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.05f, 0.0f, yCo * 0.025f));
+
+			m_heightMap[index].y = (float)pow(e, 1.005f) * 80.0f;
+
+			if (isnan(m_heightMap[index].y)) {
+				m_heightMap[index].y = 0.0f;
+			}
 		}
 	}
 
 	// Calculate the normals for the terrain data.
 	result = CalculateNormals();
-	if(!result)
-	{
-		return false;
-	}
-
-	// Initialize the vertex and index buffer that hold the geometry for the terrain.
-	result = InitializeBuffers(device);
 	if(!result)
 	{
 		return false;
@@ -75,6 +80,15 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 	// Load the texture.
 	result = LoadTexture(device, textureFilename);
 	if (!result)
+	{
+		return false;
+	}
+
+	m_Collision = new CollisionClass;
+
+	// Initialize the vertex and index buffer that hold the geometry for the terrain.
+	result = InitializeBuffers(device);
+	if(!result)
 	{
 		return false;
 	}
@@ -117,22 +131,11 @@ ID3D11ShaderResourceView* TerrainClass::GetTexture()
 	return m_Texture->GetTexture();
 }
 
-D3DXVECTOR3 TerrainClass::GetVertexPosition(int index)
-{
-	return vertices[index].position;
-}
-
-int TerrainClass::GetVertexCount()
-{
-	return m_vertexCount;
-}
-
 bool TerrainClass::CalculateNormals()
 {
 	int i, j, index1, index2, index3, index, count;
 	float vertex1[3], vertex2[3], vertex3[3], vector1[3], vector2[3], sum[3], length;
 	VectorType* normals;
-
 
 	// Create a temporary array to hold the un-normalized normal vectors.
 	normals = new VectorType[(m_terrainHeight-1) * (m_terrainWidth-1)];
@@ -416,7 +419,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index3].tv;
 
 					// Modify the texture coordinates to cover the top edge.
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
 					vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
@@ -429,8 +432,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index4].tv;
 
 					// Modify the texture coordinates to cover the top and right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
 					vertices[index].texture = D3DXVECTOR2(tu, tv);
@@ -457,8 +460,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index4].tv;
 
 					// Modify the texture coordinates to cover the top and right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
 					vertices[index].texture = D3DXVECTOR2(tu, tv);
@@ -470,7 +473,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tu = m_heightMap[index2].tu;
 
 					// Modify the texture coordinates to cover the right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
 					vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
@@ -490,7 +493,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index3].tv;
 
 					// Modify the texture coordinates to cover the top edge.
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
 					vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
@@ -502,7 +505,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tu = m_heightMap[index2].tu;
 
 					// Modify the texture coordinates to cover the right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
 					vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
@@ -514,7 +517,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tu = m_heightMap[index2].tu;
 
 					// Modify the texture coordinates to cover the right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
 					vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
@@ -526,7 +529,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index3].tv;
 
 					// Modify the texture coordinates to cover the top edge.
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
 					vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
@@ -539,8 +542,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index4].tv;
 
 					// Modify the texture coordinates to cover the top and right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
 					vertices[index].texture = D3DXVECTOR2(tu, tv);
@@ -555,7 +558,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index3].tv;
 
 					// Modify the texture coordinates to cover the top edge.
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
 					vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
@@ -567,7 +570,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tu = m_heightMap[index2].tu;
 
 					// Modify the texture coordinates to cover the right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
 					vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
@@ -586,7 +589,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tu = m_heightMap[index2].tu;
 
 					// Modify the texture coordinates to cover the right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
 					vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
@@ -598,7 +601,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index3].tv;
 
 					// Modify the texture coordinates to cover the top edge.
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
 					vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
@@ -611,8 +614,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index4].tv;
 
 					// Modify the texture coordinates to cover the top and right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
 					vertices[index].texture = D3DXVECTOR2(tu, tv);
@@ -632,7 +635,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index3].tv;
 
 					// Modify the texture coordinates to cover the top edge.
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
 					vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
@@ -645,8 +648,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index4].tv;
 
 					// Modify the texture coordinates to cover the top and right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
 					vertices[index].texture = D3DXVECTOR2(tu, tv);
@@ -659,8 +662,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tv = m_heightMap[index4].tv;
 
 					// Modify the texture coordinates to cover the top and right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
-					//if (tv == 1.0f) { tv = 0.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
+					if (tv == 1.0f) { tv = 0.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
 					vertices[index].texture = D3DXVECTOR2(tu, tv);
@@ -672,7 +675,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 					tu = m_heightMap[index2].tu;
 
 					// Modify the texture coordinates to cover the right edge.
-					//if (tu == 0.0f) { tu = 1.0f; }
+					if (tu == 0.0f) { tu = 1.0f; }
 
 					vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
 					vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
@@ -689,6 +692,10 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 				}
 			}
 		}
+	}
+
+	for (int c = 0; c < m_vertexCount; c += 3) {
+		m_Collision->AddToCollisionChecklist(CollisionClass::Triangle(vertices[c].position, vertices[c + 1].position, vertices[c + 2].position));
 	}
 
 	// Set up the description of the static vertex buffer.
@@ -730,6 +737,10 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 	{
 		return false;
 	}
+
+	// Release the index array now that the buffers have been created and loaded.
+	delete[] vertices;
+	vertices = 0;
 
 	// Release the index array now that the buffers have been created and loaded.
 	delete [] indices;
