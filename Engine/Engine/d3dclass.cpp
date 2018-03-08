@@ -15,6 +15,7 @@ D3DClass::D3DClass()
 	m_depthStencilView = 0;
 	m_wireframeRasterState = 0;
 	m_fillRasterState = 0;
+	m_rasterStateNoCulling = 0;
 	m_depthDisabledStencilState = 0;
 	m_alphaEnableBlendingState = 0;
 	m_alphaDisableBlendingState = 0;
@@ -48,8 +49,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	D3D11_TEXTURE2D_DESC depthBufferDesc;
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-	D3D11_RASTERIZER_DESC wireFrameRasterDesc;
-	D3D11_RASTERIZER_DESC fillRasterDesc;
+	D3D11_RASTERIZER_DESC rasterDesc;
 	D3D11_VIEWPORT viewport;
 	float fieldOfView, screenAspect;
 	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
@@ -308,38 +308,57 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
 
 	// Setup the raster description which will determine how and what polygons will be drawn.
-	wireFrameRasterDesc.AntialiasedLineEnable = false;
-	wireFrameRasterDesc.CullMode = D3D11_CULL_BACK;
-	wireFrameRasterDesc.DepthBias = 0;
-	wireFrameRasterDesc.DepthBiasClamp = 0.0f;
-	wireFrameRasterDesc.DepthClipEnable = true;
-	wireFrameRasterDesc.FillMode = D3D11_FILL_WIREFRAME;
-	wireFrameRasterDesc.FrontCounterClockwise = false;
-	wireFrameRasterDesc.MultisampleEnable = false;
-	wireFrameRasterDesc.ScissorEnable = false;
-	wireFrameRasterDesc.SlopeScaledDepthBias = 0.0f;
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
 
 	// Create the rasterizer state from the description we just filled out.
-	result = m_device->CreateRasterizerState(&wireFrameRasterDesc, &m_wireframeRasterState);
+	result = m_device->CreateRasterizerState(&rasterDesc, &m_wireframeRasterState);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
 	// Setup the raster description which will determine how and what polygons will be drawn.
-	fillRasterDesc.AntialiasedLineEnable = false;
-	fillRasterDesc.CullMode = D3D11_CULL_BACK;
-	fillRasterDesc.DepthBias = 0;
-	fillRasterDesc.DepthBiasClamp = 0.0f;
-	fillRasterDesc.DepthClipEnable = true;
-	fillRasterDesc.FillMode = D3D11_FILL_SOLID;
-	fillRasterDesc.FrontCounterClockwise = false;
-	fillRasterDesc.MultisampleEnable = false;
-	fillRasterDesc.ScissorEnable = false;
-	fillRasterDesc.SlopeScaledDepthBias = 0.0f;
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
 
 	// Create the rasterizer state from the description we just filled out.
-	result = m_device->CreateRasterizerState(&fillRasterDesc, &m_fillRasterState);
+	result = m_device->CreateRasterizerState(&rasterDesc, &m_fillRasterState);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Setup a raster description which turns off back face culling.
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+	// Create the no culling rasterizer state.
+	result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterStateNoCulling);
 	if (FAILED(result))
 	{
 		return false;
@@ -469,6 +488,12 @@ void D3DClass::Shutdown()
 	{
 		m_fillRasterState->Release();
 		m_fillRasterState = 0;
+	}
+
+	if (m_rasterStateNoCulling)
+	{
+		m_rasterStateNoCulling->Release();
+		m_rasterStateNoCulling = 0;
 	}
 
 	if(m_depthStencilView)
@@ -652,6 +677,23 @@ void D3DClass::TurnOffAlphaBlending()
 	
 	// Turn off the alpha blending.
 	m_deviceContext->OMSetBlendState(m_alphaDisableBlendingState, blendFactor, 0xffffffff);
+
+	return;
+}
+
+void D3DClass::TurnOnCulling()
+{
+	// Set the culling rasterizer state.
+	m_deviceContext->RSSetState(m_fillRasterState);
+
+	return;
+}
+
+
+void D3DClass::TurnOffCulling()
+{
+	// Set the no back face culling rasterizer state.
+	m_deviceContext->RSSetState(m_rasterStateNoCulling);
 
 	return;
 }

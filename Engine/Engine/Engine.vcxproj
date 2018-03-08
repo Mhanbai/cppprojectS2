@@ -95,6 +95,8 @@
     <ClCompile Include="playerclass.cpp" />
     <ClCompile Include="positionclass.cpp" />
     <ClCompile Include="simplexnoisegenerator.cpp" />
+    <ClCompile Include="skydomeclass.cpp" />
+    <ClCompile Include="skydomeshaderclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="terrainclass.cpp" />
     <ClCompile Include="terrainshaderclass.cpp" />
@@ -116,6 +118,8 @@
     <ClInclude Include="playerclass.h" />
     <ClInclude Include="positionclass.h" />
     <ClInclude Include="simplexnoisegenerator.h" />
+    <ClInclude Include="skydomeclass.h" />
+    <ClInclude Include="skydomeshaderclass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="terrainclass.h" />
     <ClInclude Include="terrainshaderclass.h" />
@@ -126,6 +130,8 @@
   <ItemGroup>
     <None Include="font.ps" />
     <None Include="font.vs" />
+    <None Include="skydome.ps" />
+    <None Include="skydome.vs" />
     <None Include="terrain.ps" />
     <None Include="terrain.vs" />
   </ItemGroup>

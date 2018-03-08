@@ -31,6 +31,8 @@ const float SCREEN_NEAR = 0.1f;
 #include "lightclass.h"
 #include "simplexnoisegenerator.h"
 #include "playerclass.h"
+#include "skydomeclass.h"
+#include "skydomeshaderclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,6 +68,8 @@ private:
 	LightClass* m_Light;
 	PlayerClass* m_Player;
 	SimplexNoiseGenerator m_NoiseGenerator;
+	SkyDomeClass* m_SkyDome;
+	SkyDomeShaderClass* m_SkyDomeShader;
 };
 
 #endif

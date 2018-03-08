@@ -10,7 +10,9 @@ TerrainClass::TerrainClass()
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;
 	m_heightMap = 0;
-	m_Texture = 0;
+	m_GrassTexture = 0;
+	m_SlopeTexture = 0;
+	m_RockTexture = 0;
 	m_terrainGeneratedToggle = false;
 }
 
@@ -24,7 +26,8 @@ TerrainClass::~TerrainClass()
 {
 }
 
-bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, WCHAR* textureFilename)
+bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, 
+										WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename, WCHAR* rockTextureFilename)
 {
 	int index;
 	float height = 0.0;
@@ -55,14 +58,15 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 
 			int xCo = i + random;
 			int yCo = j + random;
-			float e = ((float)m_noiseGenerator->GenerateNoise(xCo * 0.012f, 0.0f, yCo * 0.012f) + 
-									0.5f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.025f, 0.0f, yCo * 0.025f) +
-									0.25f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.05f, 0.0f, yCo * 0.025f));
+			float e = ((float)m_noiseGenerator->GenerateNoise(xCo * 0.02f, 0.0f, yCo * 0.02f) +
+				0.5f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.035f, 0.0f, yCo * 0.035f) + 									
+				0.25f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.075f, 0.0f, yCo * 0.075f));
 
-			m_heightMap[index].y = (float)pow(e, 1.005f) * 80.0f;
+
+			m_heightMap[index].y = (float)pow(e, 1.2f) * 80.0f;
 
 			if (isnan(m_heightMap[index].y)) {
-				m_heightMap[index].y = 0.0f;
+				m_heightMap[index].y = e;
 			}
 		}
 	}
@@ -77,8 +81,8 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 	// Calculate the texture coordinates.
 	CalculateTextureCoordinates();
 
-	// Load the texture.
-	result = LoadTexture(device, textureFilename);
+	// Load the textures.
+	result = LoadTextures(device, grassTextureFilename, slopeTextureFilename, rockTextureFilename);
 	if (!result)
 	{
 		return false;
@@ -100,7 +104,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 void TerrainClass::Shutdown()
 {
 	// Release the texture.
-	ReleaseTexture();
+	ReleaseTextures();
 
 	// Release the vertex and index buffer.
 	ShutdownBuffers();
@@ -126,9 +130,21 @@ int TerrainClass::GetIndexCount()
 	return m_indexCount;
 }
 
-ID3D11ShaderResourceView* TerrainClass::GetTexture()
+ID3D11ShaderResourceView* TerrainClass::GetGrassTexture()
 {
-	return m_Texture->GetTexture();
+	return m_GrassTexture->GetTexture();
+}
+
+
+ID3D11ShaderResourceView* TerrainClass::GetSlopeTexture()
+{
+	return m_SlopeTexture->GetTexture();
+}
+
+
+ID3D11ShaderResourceView* TerrainClass::GetRockTexture()
+{
+	return m_RockTexture->GetTexture();
 }
 
 bool TerrainClass::CalculateNormals()
@@ -322,20 +338,48 @@ void TerrainClass::CalculateTextureCoordinates()
 	return;
 }
 
-bool TerrainClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
+bool TerrainClass::LoadTextures(ID3D11Device* device, WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename, WCHAR* rockTextureFilename)
 {
 	bool result;
 
 
-	// Create the texture object.
-	m_Texture = new TextureClass;
-	if (!m_Texture)
+	// Create the grass texture object.
+	m_GrassTexture = new TextureClass;
+	if (!m_GrassTexture)
 	{
 		return false;
 	}
 
-	// Initialize the texture object.
-	result = m_Texture->Initialize(device, filename);
+	// Initialize the grass texture object.
+	result = m_GrassTexture->Initialize(device, grassTextureFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Create the slope texture object.
+	m_SlopeTexture = new TextureClass;
+	if (!m_SlopeTexture)
+	{
+		return false;
+	}
+
+	// Initialize the slope texture object.
+	result = m_SlopeTexture->Initialize(device, slopeTextureFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Create the rock texture object.
+	m_RockTexture = new TextureClass;
+	if (!m_RockTexture)
+	{
+		return false;
+	}
+
+	// Initialize the rock texture object.
+	result = m_RockTexture->Initialize(device, rockTextureFilename);
 	if (!result)
 	{
 		return false;
@@ -344,14 +388,28 @@ bool TerrainClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 	return true;
 }
 
-void TerrainClass::ReleaseTexture()
+void TerrainClass::ReleaseTextures()
 {
-	// Release the texture object.
-	if (m_Texture)
+	// Release the texture objects.
+	if (m_GrassTexture)
 	{
-		m_Texture->Shutdown();
-		delete m_Texture;
-		m_Texture = 0;
+		m_GrassTexture->Shutdown();
+		delete m_GrassTexture;
+		m_GrassTexture = 0;
+	}
+
+	if (m_SlopeTexture)
+	{
+		m_SlopeTexture->Shutdown();
+		delete m_SlopeTexture;
+		m_SlopeTexture = 0;
+	}
+
+	if (m_RockTexture)
+	{
+		m_RockTexture->Shutdown();
+		delete m_RockTexture;
+		m_RockTexture = 0;
 	}
 
 	return;

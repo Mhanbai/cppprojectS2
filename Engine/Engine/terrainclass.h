@@ -56,12 +56,15 @@ public:
 	TerrainClass(const TerrainClass&);
 	~TerrainClass();
 
-	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, WCHAR* textureFilename);
+	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, 
+							WCHAR* grassTexture, WCHAR* slopeTexture, WCHAR* rockTexture);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	int  GetIndexCount();
 
-	ID3D11ShaderResourceView* GetTexture();
+	ID3D11ShaderResourceView* GetGrassTexture();
+	ID3D11ShaderResourceView* GetSlopeTexture();
+	ID3D11ShaderResourceView* GetRockTexture();
 
 	CollisionClass* m_Collision;
 
@@ -70,8 +73,8 @@ private:
 	void ShutdownHeightMap();
 
 	void CalculateTextureCoordinates();
-	bool LoadTexture(ID3D11Device*, WCHAR*);
-	void ReleaseTexture();
+	bool LoadTextures(ID3D11Device*, WCHAR*, WCHAR*, WCHAR*);
+	void ReleaseTextures();
 
 	bool InitializeBuffers(ID3D11Device*);
 	void ShutdownBuffers();
@@ -84,7 +87,7 @@ private:
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	HeightMapType* m_heightMap;
 	VertexType* vertices;
-	TextureClass* m_Texture;
+	TextureClass *m_GrassTexture, *m_SlopeTexture, *m_RockTexture;
 };
 
 #endif

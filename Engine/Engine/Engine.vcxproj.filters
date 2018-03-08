@@ -75,6 +75,12 @@
     <ClCompile Include="collisionclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="skydomeclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="skydomeshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -134,6 +140,12 @@
     <ClInclude Include="collisionclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="skydomeclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skydomeshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="terrain.vs">
@@ -146,6 +158,12 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="terrain.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="skydome.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="skydome.vs">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>
