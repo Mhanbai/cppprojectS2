@@ -484,7 +484,6 @@ bool ApplicationClass::HandleInput(float frameTime)
 
 	//Set y position to surface///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//posY = m_Player->FindSurfaceLevel();
-	//posY = 10.0f;
 
 	// Set the position of the camera.
 	m_Player->SetPosition(posX, posY, posZ);

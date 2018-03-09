@@ -34,6 +34,10 @@ struct MapNodeType
 	D3DXVECTOR3 topLeft;
 	D3DXVECTOR3 topRight;
 	bool isFlat;
+	int neighbours[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+	D3DXVECTOR3 GetCenterPoint() {
+		return (bottomLeft + topRight) * 0.5f;
+	};
 };
 
 class TrackClass
