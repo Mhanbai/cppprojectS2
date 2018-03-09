@@ -89,6 +89,7 @@ bool TrackClass::InitializeTrack(HeightMapType * heightMap, int terrainWidth, in
 
 	}*/
 	
+
 	return true;
 }
 
