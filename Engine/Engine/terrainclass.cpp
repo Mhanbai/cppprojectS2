@@ -26,7 +26,7 @@ TerrainClass::~TerrainClass()
 {
 }
 
-bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, 
+bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, TrackClass* racetrack, int terrainWidth, int terrainHeight, 
 										WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename, WCHAR* rockTextureFilename)
 {
 	int index;
@@ -69,6 +69,12 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 				m_heightMap[index].y = e;
 			}
 		}
+	}
+
+	result = racetrack->InitializeTrack(m_heightMap, m_terrainWidth, m_terrainHeight);
+	if (!result)
+	{
+		return false;
 	}
 
 	// Calculate the normals for the terrain data.

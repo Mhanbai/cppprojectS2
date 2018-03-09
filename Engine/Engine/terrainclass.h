@@ -11,14 +11,15 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 #include <stdio.h>
-#include "simplexnoisegenerator.h"
-#include "collisionclass.h"
 #include <time.h>
 
 ///////////////////////
 // MY CLASS INCLUDES //
 ///////////////////////
 #include "textureclass.h"
+#include "simplexnoisegenerator.h"
+#include "collisionclass.h"
+#include "trackclass.h"
 
 /////////////
 // GLOBALS //
@@ -39,13 +40,6 @@ private:
 	    D3DXVECTOR3 normal;
 	};
 
-	struct HeightMapType 
-	{ 
-		float x, y, z;
-		float tu, tv;
-		float nx, ny, nz;
-	};
-
 	struct VectorType 
 	{ 
 		float x, y, z;
@@ -56,7 +50,7 @@ public:
 	TerrainClass(const TerrainClass&);
 	~TerrainClass();
 
-	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, 
+	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, TrackClass* racetrack, int terrainWidth, int terrainHeight, 
 							WCHAR* grassTexture, WCHAR* slopeTexture, WCHAR* rockTexture);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);

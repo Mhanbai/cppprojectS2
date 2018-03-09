@@ -21,6 +21,7 @@ ApplicationClass::ApplicationClass()
 	m_Player = 0;
 	m_SkyDome = 0;
 	m_SkyDomeShader = 0;
+	m_Racetrack = 0;
 }
 
 
@@ -99,8 +100,14 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	m_Racetrack = new TrackClass;
+	if (!m_Racetrack)
+	{
+		return false;
+	}
+
 	// Initialize the terrain object.
-	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), &m_NoiseGenerator, 1024, 1024, 
+	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), &m_NoiseGenerator, m_Racetrack, 1024, 1024, 
 											L"../Engine/data/grass.dds", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds");
 	if(!result)
 	{
