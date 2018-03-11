@@ -40,7 +40,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 	m_terrainHeight = terrainHeight;
 
 	// Create the structure to hold the terrain data.
-	m_heightMap = new HeightMapType[m_terrainWidth * m_terrainHeight];
+	m_heightMap = new GeometryType[m_terrainWidth * m_terrainHeight];
 	if(!m_heightMap)
 	{
 		return false;
@@ -63,7 +63,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 				0.25f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.075f, 0.0f, yCo * 0.075f));
 
 
-			m_heightMap[index].y = (float)pow(e, 1.2f) * 80.0f;
+			m_heightMap[index].y = (float)pow(e, 1.3f) * 80.0f;
 
 			if (isnan(m_heightMap[index].y)) {
 				m_heightMap[index].y = e;

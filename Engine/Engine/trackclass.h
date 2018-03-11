@@ -11,6 +11,7 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 #include <vector>
+#include <time.h>
 
 /////////////
 // GLOBALS //
@@ -20,7 +21,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: TrackClass
 ////////////////////////////////////////////////////////////////////////////////
-struct HeightMapType
+struct VertexType
+{
+	D3DXVECTOR3 position;
+	D3DXVECTOR2 texture;
+	D3DXVECTOR3 normal;
+};
+
+struct GeometryType
 {
 	float x, y, z;
 	float tu, tv;
@@ -30,11 +38,11 @@ struct HeightMapType
 struct MapNodeType
 {
 	D3DXVECTOR3 bottomLeft;
-	D3DXVECTOR3 bottomRight;
-	D3DXVECTOR3 topLeft;
 	D3DXVECTOR3 topRight;
-	bool isFlat;
 	int neighbours[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+	int parent;
+	int index;
+	bool isFlat;
 	D3DXVECTOR3 GetCenterPoint() {
 		return (bottomLeft + topRight) * 0.5f;
 	};
@@ -47,12 +55,18 @@ public:
 	TrackClass(const TrackClass&);
 	~TrackClass();
 
-	bool InitializeTrack(HeightMapType* heightMap, int terrainWidth, int terrainHeight);
+	bool InitializeTrack(GeometryType* heightMap, int terrainWidth, int terrainHeight);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 
+	GeometryType* m_model;
+
+	std::vector<D3DXVECTOR3> trackPoints;
+
 private:
 	std::vector<MapNodeType> nodes;
+	int CreateTrack(int node);
+	std::vector<int> nodesOnPath;
 };
 
 #endif

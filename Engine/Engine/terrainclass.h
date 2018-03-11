@@ -33,13 +33,6 @@ const int TEXTURE_REPEAT = 32;
 class TerrainClass
 {
 private:
-	struct VertexType
-	{
-		D3DXVECTOR3 position;
-		D3DXVECTOR2 texture;
-	    D3DXVECTOR3 normal;
-	};
-
 	struct VectorType 
 	{ 
 		float x, y, z;
@@ -79,7 +72,7 @@ private:
 	int m_terrainWidth, m_terrainHeight;
 	int m_vertexCount, m_indexCount;
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
-	HeightMapType* m_heightMap;
+	GeometryType* m_heightMap;
 	VertexType* vertices;
 	TextureClass *m_GrassTexture, *m_SlopeTexture, *m_RockTexture;
 };

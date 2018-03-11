@@ -86,13 +86,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	m_Camera->Render();
 	m_Camera->GetViewMatrix(baseViewMatrix);
 
-	// Set the initial position of the camera.
-	cameraX = 50.0f;
-	cameraY = 2.0f;
-	cameraZ = -7.0f;
-
-	m_Camera->SetPosition(cameraX, cameraY, cameraZ);
-
 	// Create the terrain object.
 	m_Terrain = new TerrainClass;
 	if(!m_Terrain)
@@ -114,6 +107,17 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
 		return false;
 	}
+
+	// Set the initial position of the camera.
+	cameraX = m_Racetrack->trackPoints[0].x;
+	cameraY = m_Racetrack->trackPoints[0].y;
+	cameraZ = m_Racetrack->trackPoints[0].z;
+
+	//cameraX = 0.0f;
+	//cameraY = 0.0f;
+	//cameraZ = 0.0f;
+
+	m_Camera->SetPosition(cameraX, cameraY, cameraZ);
 
 	m_Player = new PlayerClass;
 	if (!m_Player)
