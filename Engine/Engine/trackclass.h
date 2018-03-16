@@ -62,10 +62,13 @@ public:
 	GeometryType* m_model;
 
 	std::vector<D3DXVECTOR3> trackPoints;
+	void Render(ID3D11DeviceContext* deviceContext);
 
 private:
+	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	std::vector<MapNodeType> nodes;
 	int CreateTrack(int node);
+	bool InitializeBuffers(ID3D11Device*);
 	std::vector<int> nodesOnPath;
 };
 
