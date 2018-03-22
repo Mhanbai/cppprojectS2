@@ -12,6 +12,7 @@
 #include <d3dx10math.h>
 #include <vector>
 #include <time.h>
+#include "terrainclass.h"
 
 /////////////
 // GLOBALS //
@@ -21,32 +22,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: TrackClass
 ////////////////////////////////////////////////////////////////////////////////
-struct VertexType
-{
-	D3DXVECTOR3 position;
-	D3DXVECTOR2 texture;
-	D3DXVECTOR3 normal;
-};
-
-struct GeometryType
-{
-	float x, y, z;
-	float tu, tv;
-	float nx, ny, nz;
-};
-
 struct MapNodeType
 {
-	D3DXVECTOR3 bottomLeft;
-	D3DXVECTOR3 topRight;
+	D3DXVECTOR3 centerPoint;
 	int neighbours[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
-	int parent;
 	int index;
+	float distanceFromParent;
+	float distanceToGoal;
+	float distanceEstimate;
+	int parent = -1;
 	bool isFlat;
-	D3DXVECTOR3 GetCenterPoint() {
-		return (bottomLeft + topRight) * 0.5f;
-	};
 };
+
 
 class TrackClass
 {
@@ -55,21 +42,31 @@ public:
 	TrackClass(const TrackClass&);
 	~TrackClass();
 
-	bool InitializeTrack(GeometryType* heightMap, int terrainWidth, int terrainHeight);
+	bool InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in, int terrainWidth, int terrainHeight);
 	void Shutdown();
-	void Render(ID3D11DeviceContext*);
 
 	GeometryType* m_model;
 
 	std::vector<D3DXVECTOR3> trackPoints;
-	void Render(ID3D11DeviceContext* deviceContext);
+	std::vector<D3DXVECTOR3> nodesOnPath;
+	bool Render(ID3D11DeviceContext* deviceContext);
+
+	int GetIndexCount();
 
 private:
+	int startNode = 0;
+	int endNode;
+	std::vector<int> openList;
+	std::vector<int> closedList;
+	float DistanceToStart(int node);
+	bool ExplorePath(int currentNode);
+	void BuildPath(int endNode);
+
+	int index;
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	std::vector<MapNodeType> nodes;
-	int CreateTrack(int node);
 	bool InitializeBuffers(ID3D11Device*);
-	std::vector<int> nodesOnPath;
+	TerrainClass* m_Terrain;
 };
 
 #endif

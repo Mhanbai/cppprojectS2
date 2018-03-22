@@ -12,34 +12,47 @@ TrackClass::~TrackClass()
 {
 }
 
-bool TrackClass::InitializeTrack(GeometryType * heightMap, int terrainWidth, int terrainHeight)
+bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in, int terrainWidth, int terrainHeight)
 {
+	m_Terrain = terrain_in;
+
 	int index;
-	int BOX_SIZE = 8;
+	int BOX_SIZE = 16;
 	int mapNodeWidth = (terrainWidth / BOX_SIZE);
 	int nodeCount = 0;
 
-	//Check each 8x8 square in the heightmap
+	//Create Graph///////////////////////////////////////////////////////////////////////////////
+	//Check each 16x16 square in the heightmap
 	for (int j = 0; j < terrainHeight; j+=BOX_SIZE)
 	{
 		for (int i = 0; i < terrainWidth; i+=BOX_SIZE)
 		{
+			float lowest = 0.0f;
+			float highest = 0.0f;
+
 			//If any point in the 8x8 square is over zero, square is not flat
 			bool flat = true;
 			for (int h = j; h < (j + BOX_SIZE); h++) {
 				for (int w = i; w < (i + BOX_SIZE); w++) {
 					index = (terrainHeight * h) + w;
-					if (heightMap[index].y > 0.0f) {
-						flat = false;
+					if (m_Terrain->GetHeightMap()[index].y > highest) {
+						highest = m_Terrain->GetHeightMap()[index].y;
+					}
+					if (m_Terrain->GetHeightMap()[index].y < lowest) {
+						lowest = m_Terrain->GetHeightMap()[index].y;
 					}
 				}
+			}
+
+			float diff = highest - lowest;
+			if (diff > 1.0f) {
+				flat = false;
 			}
 
 			//Create a new node
 			MapNodeType node;
 			//Define boundaries
-			node.bottomLeft = D3DXVECTOR3((float)i, 0.0f, (float)j);
-			node.topRight = D3DXVECTOR3((float)i + (float)BOX_SIZE, 0.0f, (float)j + (float)BOX_SIZE);
+			node.centerPoint = (D3DXVECTOR3((float)i, 0.0f, (float)j) + D3DXVECTOR3((float)i + (float)BOX_SIZE, 0.0f, (float)j + (float)BOX_SIZE)) * 0.5f;
 			//Is node flat?
 			node.isFlat = flat;
 			//Assign index
@@ -75,81 +88,122 @@ bool TrackClass::InitializeTrack(GeometryType * heightMap, int terrainWidth, int
 				node.neighbours[5] = -1;
 				node.neighbours[6] = -1;
 			}
+
+			node.distanceEstimate = 9999999999.0f;
+			node.parent = -1;
+
 			//Add to node list
 			nodes.push_back(node);
+
 			//Increment node count
 			nodeCount++;
 		}
 	}
 
 	//Seed random with time
-	srand(time(NULL));
-	//Variable to store how long the generated track is
-	int trackLength = 0;
+	//srand(time(NULL));
 
-	//Track must be over 19 nodes long in order to be used
-	while (trackLength < 20) {
-		//Start in random position
-		int startingNode = rand() % (nodes.size() + 1);
-		//Call the create track function
-		trackLength = CreateTrack(startingNode);
+	//Find Path///////////////////////////////////////////////////////////////////////////////
+	while (nodesOnPath.size() < 60) {
+		nodesOnPath.clear();
+		closedList.clear();
+		openList.clear();
+		for (MapNodeType node : nodes) {
+			node.parent = -1;
+			node.distanceEstimate = 99999999999.9f;
+		}
+
+		int startNode = rand() % nodes.size();
+		while (nodes[startNode].isFlat == false) {
+			startNode = rand() % nodes.size();
+		}
+
+		nodes[startNode].distanceEstimate = 0;
+
+		//Add starting node to visited list
+		closedList.push_back(startNode);
+
+		endNode = rand() % nodes.size();
+		while (nodes[endNode].isFlat == false) {
+			endNode = rand() % nodes.size();
+		}
+
+		while (ExplorePath(startNode) == false) {
+			closedList.clear();
+			openList.clear();
+			closedList.push_back(startNode);
+			endNode = rand() % nodes.size();
+			while (nodes[endNode].isFlat == false) {
+				endNode = rand() % nodes.size();
+			}
+		}
+
+		BuildPath(endNode);
 	}
 
-	int validNodes = nodesOnPath.size() - (nodesOnPath.size() % 4);
-
-	//If our list is a multiple of 4, find catmul rom spline between points to use for the track
-	for (int i = 0; i < validNodes; i += 4) {
+	//Find catmul rom spline between points to use for the track///////////////////////////////////////////////
+	for (int i = 0; i < nodesOnPath.size() - 3; i++) {
 			D3DXVECTOR3 pointToAdd;
-			D3DXVECTOR3 point1 = nodes[nodesOnPath[i]].GetCenterPoint();
-			D3DXVECTOR3 point2 = nodes[nodesOnPath[i + 1]].GetCenterPoint();
-			D3DXVECTOR3 point3 = nodes[nodesOnPath[i + 2]].GetCenterPoint();
-			D3DXVECTOR3 point4 = nodes[nodesOnPath[i + 3]].GetCenterPoint();
+			D3DXVECTOR3 point1 = nodesOnPath[i];
+			D3DXVECTOR3 point2 = nodesOnPath[i + 1];
+			D3DXVECTOR3 point3 = nodesOnPath[i + 2];
+			D3DXVECTOR3 point4 = nodesOnPath[i + 3];
 
-			for (float inc = 0.0f; inc < 1.0f; inc += 0.2f) {
+			for (float inc = 0.0f; inc < 1.0f; inc += 0.25f) {
 				D3DXVec3CatmullRom(&pointToAdd, &point1, &point2, &point3, &point4, inc);
 				trackPoints.push_back(pointToAdd);
 			}
 	}
 
+	//Find indices for road model///////////////////////////////////////////////////////////////////////////////
 	m_model = new GeometryType[trackPoints.size() * 4];
 	D3DXVECTOR3 vectorToNextPoint;
 
+	float ROAD_WIDTH = 4.0f;
+	float ROAD_HEIGHT = 0.2f;
+
 	for (int i = 0; i < trackPoints.size(); i++) {
+		//Dont do this if we're on the last node
 		if (i != (trackPoints.size() - 1)) {
+			//Find forward vector for node
 			vectorToNextPoint = trackPoints[i + 1] - trackPoints[i];
 			D3DXVec3Normalize(&vectorToNextPoint, &vectorToNextPoint);
 		}
 
+		//Find left and right vectors for node
 		D3DXVECTOR3 right = D3DXVECTOR3(vectorToNextPoint.z, vectorToNextPoint.y, -vectorToNextPoint.x);
 		D3DXVECTOR3 left = -right;
 
-		D3DXVECTOR3 bottomRight = trackPoints[i] + (right * 4.0f);
-		D3DXVECTOR3 topRight = bottomRight + D3DXVECTOR3(0.0f, 2.0f, 0.0f);
-		D3DXVECTOR3 bottomLeft = trackPoints[i] + (left * 4.0f);
-		D3DXVECTOR3 topLeft = bottomLeft + D3DXVECTOR3(0.0f, 2.0f, 0.0f);
+		//Find indices for track
+		D3DXVECTOR3 bottomRight = trackPoints[i] + (right * ROAD_WIDTH);
+		D3DXVECTOR3 topRight = bottomRight + (left * 0.5f) + D3DXVECTOR3(0.0f, ROAD_HEIGHT, 0.0f);
+		D3DXVECTOR3 bottomLeft = trackPoints[i] + (left * ROAD_WIDTH);
+		D3DXVECTOR3 topLeft = bottomLeft + (right * 0.5f) + D3DXVECTOR3(0.0f, ROAD_HEIGHT, 0.0f);
 
-		m_model[i].x = bottomLeft.x;
-		m_model[i].y = bottomLeft.y;
-		m_model[i].z = bottomLeft.z;
+		int m_Pos = i * 4;
 
-		m_model[i + 1].x = topLeft.x;
-		m_model[i + 1].y = topLeft.y;
-		m_model[i + 1].z = topLeft.z;
+		m_model[m_Pos].x = bottomLeft.x;
+		m_model[m_Pos].y = bottomLeft.y;
+		m_model[m_Pos].z = bottomLeft.z;
 
-		m_model[i + 2].x = topRight.x;
-		m_model[i + 2].y = topRight.y;
-		m_model[i + 2].z = topRight.z;
+		m_model[m_Pos + 1].x = topLeft.x;
+		m_model[m_Pos + 1].y = topLeft.y;
+		m_model[m_Pos + 1].z = topLeft.z;
 
-		m_model[i + 3].x = bottomRight.x;
-		m_model[i + 3].y = bottomRight.y;
-		m_model[i + 3].z = bottomRight.z;
+		m_model[m_Pos + 2].x = topRight.x;
+		m_model[m_Pos + 2].y = topRight.y;
+		m_model[m_Pos + 2].z = topRight.z;
+
+		m_model[m_Pos + 3].x = bottomRight.x;
+		m_model[m_Pos + 3].y = bottomRight.y;
+		m_model[m_Pos + 3].z = bottomRight.z;
 	}
 
 	//Clean up the vectors used
 	nodes.clear();
 	nodes.shrink_to_fit();
-	nodesOnPath.clear();
-	nodesOnPath.shrink_to_fit();
+
+	InitializeBuffers(device);
 
 	return true;
 }
@@ -158,11 +212,7 @@ void TrackClass::Shutdown()
 {
 }
 
-void TrackClass::Render(ID3D11DeviceContext *)
-{
-}
-
-void TrackClass::Render(ID3D11DeviceContext* deviceContext)
+bool TrackClass::Render(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride;
 	unsigned int offset;
@@ -181,37 +231,118 @@ void TrackClass::Render(ID3D11DeviceContext* deviceContext)
 	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	return;
+	return true;
 }
 
-int TrackClass::CreateTrack(int node)
+int TrackClass::GetIndexCount()
 {
-	//Add current node to the node list
-	nodesOnPath.push_back(node);
+	return index;
+}
 
-	//For the next neighboring node
+float TrackClass::DistanceToStart(int node)
+{
+	float totalDistance = 0.0f;
+	int currentNode = node;
+
+	while (currentNode != -1) {
+		totalDistance += nodes[currentNode].distanceFromParent;
+		currentNode = nodes[currentNode].parent;
+	}
+
+	return totalDistance;
+}
+
+bool TrackClass::ExplorePath(int currentNode)
+{
+	//For each node that neighbors the current node
 	for (int i = 0; i < 8; i++) {
-		//If it exists and is flat...
-		if ((nodes[node].neighbours[i] != -1) && (nodes[nodes[node].neighbours[i]].isFlat)) {
-			//...and has not already been used
-			if (std::find(nodesOnPath.begin(), nodesOnPath.end(), nodes[node].neighbours[i]) == nodesOnPath.end()) {
-				//Then move the path on to this node
-				CreateTrack(nodes[node].neighbours[i]);
-				//If there are no valid nodes left, return the size of the track
-				return nodesOnPath.size();
+		//If it is not on the closed list
+		if (std::find(closedList.begin(), closedList.end(), nodes[currentNode].neighbours[i]) == closedList.end()) {
+			//If it is the goal
+			if (nodes[currentNode].neighbours[i] == endNode) {
+				//Update its parent and add it to the closed list
+				nodes[nodes[currentNode].neighbours[i]].parent = currentNode;
+				closedList.push_back(nodes[currentNode].neighbours[i]);
+				break;
+			}
+			//If it is a valid node and is not already on the open list
+			else if ((nodes[currentNode].neighbours[i] != -1) && (std::find(openList.begin(), openList.end(), nodes[currentNode].neighbours[i]) == openList.end())) {
+				if (nodes[nodes[currentNode].neighbours[i]].isFlat) {
+					//Its parent node becomes the current node
+					nodes[nodes[currentNode].neighbours[i]].parent = currentNode;
+					//Calculate its distance from the parent
+					D3DXVECTOR3 vecFromParent = nodes[nodes[nodes[currentNode].neighbours[i]].parent].centerPoint - nodes[nodes[currentNode].neighbours[i]].centerPoint;
+					nodes[nodes[currentNode].neighbours[i]].distanceFromParent = D3DXVec3Length(&vecFromParent);
+					//Calculate its distance to the endGoal
+					D3DXVECTOR3 vecToEndPoint = nodes[currentNode].centerPoint - nodes[nodes[currentNode].neighbours[i]].centerPoint;
+					nodes[nodes[currentNode].neighbours[i]].distanceToGoal = D3DXVec3Length(&vecToEndPoint);
+					//Calculate Distance Estimate
+					nodes[nodes[currentNode].neighbours[i]].distanceEstimate = DistanceToStart(nodes[currentNode].neighbours[i]) + nodes[nodes[currentNode].neighbours[i]].distanceToGoal;
+					//Add to the open list
+					openList.push_back(nodes[currentNode].neighbours[i]);
+				}
+			}
+			//If it is a valid node and IS on the open list
+			else if (nodes[currentNode].neighbours[i] != -1) {
+				//Store the nodes current parent
+				int tempParent = nodes[nodes[currentNode].neighbours[i]].parent;
+				//Make the nodes parent the current node
+				nodes[nodes[currentNode].neighbours[i]].parent = currentNode;
+				//Check if distance using the old parent is more than distance using the new parent
+				if (nodes[nodes[currentNode].neighbours[i]].distanceEstimate > (DistanceToStart(nodes[currentNode].neighbours[i]) + nodes[nodes[currentNode].neighbours[i]].distanceToGoal)) {
+					//If so, save the new distance score
+					nodes[nodes[currentNode].neighbours[i]].distanceEstimate = DistanceToStart(nodes[currentNode].neighbours[i]) + nodes[nodes[currentNode].neighbours[i]].distanceToGoal;
+				}
+				else {
+					//If not, reset back to the old parent
+					nodes[nodes[currentNode].neighbours[i]].parent = tempParent;
+				}
 			}
 		}
 	}
 
-	//If there are no valid nodes left, return the size of the track
-	return nodesOnPath.size();
+	if (std::find(closedList.begin(), closedList.end(), endNode) == closedList.end()) {
+		if (openList.size() > 0) {
+			int nextNode = -1;
+			for (int nodeOnList : openList) {
+				if (nextNode == -1) {
+					nextNode = nodeOnList;
+				}
+				else {
+					if (nodes[nextNode].distanceEstimate > nodes[nodeOnList].distanceEstimate) {
+						nextNode = nodeOnList;
+					}
+				}
+			}
+
+			openList.erase(std::find(openList.begin(), openList.end(), nextNode));
+			closedList.push_back(nextNode);
+			ExplorePath(nextNode);
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return true;
+	}
+}
+
+void TrackClass::BuildPath(int endNode)
+{
+	int currentNode = endNode;
+
+	while (currentNode != -1) {
+		nodesOnPath.push_back(nodes[currentNode].centerPoint);
+		currentNode = nodes[currentNode].parent;
+	}
 }
 
 bool TrackClass::InitializeBuffers(ID3D11Device* device)
 {
 	unsigned long* indices;
 	VertexType* vertices;
-	int index, i, j;
+	int i, j;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
@@ -221,7 +352,7 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 
 
 	// Calculate the number of vertices in the terrain mesh.
-	m_vertexCount = 12 + (12 * (trackPoints.size() - 1));
+	m_vertexCount = 24 * trackPoints.size();
 
 	// Set the index count to the same as the vertex count.
 	m_indexCount = m_vertexCount;
@@ -243,42 +374,116 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 	// Initialize the index to the vertex buffer.
 	index = 0;
 
+	for (int i = 0; i < ((trackPoints.size() - 1) * 4); i+=4) {
+		int BL1 = i;		//Bottom Left first point
+		int BL2 = BL1 + 4;	//Bottom Left second point
+		int TL1 = i + 1;	//Top Left first point
+		int TL2 = TL1 + 4;	//Top Left second point
+		int TR1 = i + 2;	//Top Right first point
+		int TR2 = TR1 + 4;	//Top Right second point
+		int BR1 = i + 3;	//Bottom Right first point
+		int BR2 = BR1 + 4;	//Bottom Right second point
 
+		//Left Side
+		vertices[index].position = D3DXVECTOR3(m_model[BL1].x, m_model[BL1].y, m_model[BL1].z);
+		indices[index] = index;
+		index++;
 
-	// Load the vertex and index array with the terrain data.
-	/*index1 = (m_terrainHeight * j) + i;          // Bottom left.
-	index2 = (m_terrainHeight * j) + (i + 1);      // Bottom right.
-	index3 = (m_terrainHeight * (j + 1)) + i;      // Upper left.
-	index4 = (m_terrainHeight * (j + 1)) + (i + 1);  // Upper right.
+		vertices[index].position = D3DXVECTOR3(m_model[BL2].x, m_model[BL2].y, m_model[BL2].z);
+		indices[index] = index;
+		index++;
 
-	// Upper left.
-	vertices[index].position = D3DXVECTOR3(m_model[index3].x, m_model[index3].y, m_model[index3].z);
-	indices[index] = index;
-	index++;
+		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
+		indices[index] = index;
+		index++;
 
-	// Upper right.
-	vertices[index].position = D3DXVECTOR3(m_model[index4].x, m_model[index4].y, m_model[index4].z);
-	indices[index] = index;
-	index++;
+		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
+		indices[index] = index;
+		index++;
 
-	// Bottom left.
-	vertices[index].position = D3DXVECTOR3(m_model[index1].x, m_model[index1].y, m_model[index1].z);
-	indices[index] = index;
-	index++;
+		vertices[index].position = D3DXVECTOR3(m_model[BL2].x, m_model[BL2].y, m_model[BL2].z);
+		indices[index] = index;
+		index++;
 
-	// Bottom left.
-	vertices[index].position = D3DXVECTOR3(m_model[index1].x, m_model[index1].y, m_model[index1].z);
-	indices[index] = index;
-	index++;
+		vertices[index].position = D3DXVECTOR3(m_model[TL2].x, m_model[TL2].y, m_model[TL2].z);
+		indices[index] = index;
+		index++;
 
-	// Upper right.
-	vertices[index].position = D3DXVECTOR3(m_model[index4].x, m_model[index4].y, m_model[index4].z);
-	indices[index] = index;
-	index++;
+		//Top Side
+		vertices[index].position = D3DXVECTOR3(m_model[TL2].x, m_model[TL2].y, m_model[TL2].z);
+		indices[index] = index;
+		index++;
 
-	vertices[index].position = D3DXVECTOR3(m_model[index2].x, m_model[index2].y, m_model[index2].z);
-	indices[index] = index;
-	index++;*/
+		vertices[index].position = D3DXVECTOR3(m_model[TR2].x, m_model[TR2].y, m_model[TR2].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[TR2].x, m_model[TR2].y, m_model[TR2].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[TR1].x, m_model[TR1].y, m_model[TR1].z);
+		indices[index] = index;
+		index++;
+
+		//Right Side
+		vertices[index].position = D3DXVECTOR3(m_model[TR1].x, m_model[TR1].y, m_model[TR1].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[BR2].x, m_model[BR2].y, m_model[BR2].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[BR1].x, m_model[BR1].y, m_model[BR1].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[TR1].x, m_model[TR1].y, m_model[TR1].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[TR2].x, m_model[TR2].y, m_model[TR2].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[BR2].x, m_model[BR2].y, m_model[BR2].z);
+		indices[index] = index;
+		index++;
+
+		//Bottom Side
+		vertices[index].position = D3DXVECTOR3(m_model[BL2].x, m_model[BL2].y, m_model[BL2].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[BR2].x, m_model[BR2].y, m_model[BR2].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[BL1].x, m_model[BL1].y, m_model[BL1].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[BL1].x, m_model[BL1].y, m_model[BL1].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[BR2].x, m_model[BR2].y, m_model[BR2].z);
+		indices[index] = index;
+		index++;
+
+		vertices[index].position = D3DXVECTOR3(m_model[BR1].x, m_model[BR1].y, m_model[BR1].z);
+		indices[index] = index;
+		index++;
+	}
 
 	// Set up the description of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;

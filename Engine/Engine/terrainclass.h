@@ -19,7 +19,6 @@
 #include "textureclass.h"
 #include "simplexnoisegenerator.h"
 #include "collisionclass.h"
-#include "trackclass.h"
 
 /////////////
 // GLOBALS //
@@ -30,20 +29,33 @@ const int TEXTURE_REPEAT = 32;
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: TerrainClass
 ////////////////////////////////////////////////////////////////////////////////
+struct VectorType
+{
+	float x, y, z;
+};
+
+struct VertexType
+{
+	D3DXVECTOR3 position;
+	D3DXVECTOR2 texture;
+	D3DXVECTOR3 normal;
+};
+
+struct GeometryType
+{
+	float x, y, z;
+	float tu, tv;
+	float nx, ny, nz;
+};
+
 class TerrainClass
 {
-private:
-	struct VectorType 
-	{ 
-		float x, y, z;
-	};
-
 public:
 	TerrainClass();
 	TerrainClass(const TerrainClass&);
 	~TerrainClass();
 
-	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, TrackClass* racetrack, int terrainWidth, int terrainHeight, 
+	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, 
 							WCHAR* grassTexture, WCHAR* slopeTexture, WCHAR* rockTexture);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
@@ -53,6 +65,7 @@ public:
 	ID3D11ShaderResourceView* GetSlopeTexture();
 	ID3D11ShaderResourceView* GetRockTexture();
 
+	GeometryType* GetHeightMap();
 	CollisionClass* m_Collision;
 
 private:

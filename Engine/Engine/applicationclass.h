@@ -34,6 +34,9 @@ const float SCREEN_NEAR = 0.1f;
 #include "skydomeclass.h"
 #include "skydomeshaderclass.h"
 #include "trackclass.h"
+#include "colorshaderclass.h"
+#include "lightshaderclass.h"
+#include "modelclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,6 +75,9 @@ private:
 	SkyDomeClass* m_SkyDome;
 	SkyDomeShaderClass* m_SkyDomeShader;
 	TrackClass* m_Racetrack;
+	ColorShaderClass* m_ColorShader;
+	ModelClass* m_Model;
+	LightShaderClass* m_LightShader;
 };
 
 #endif

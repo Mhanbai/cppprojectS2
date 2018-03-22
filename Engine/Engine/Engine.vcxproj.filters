@@ -84,6 +84,15 @@
     <ClCompile Include="trackclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="colorshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="modelclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lightshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -152,6 +161,15 @@
     <ClInclude Include="trackclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="colorshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="modelclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lightshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="terrain.vs">
@@ -170,6 +188,18 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="skydome.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="color.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="color.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="light.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="light.vs">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

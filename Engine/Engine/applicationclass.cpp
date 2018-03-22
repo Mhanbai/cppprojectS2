@@ -22,6 +22,8 @@ ApplicationClass::ApplicationClass()
 	m_SkyDome = 0;
 	m_SkyDomeShader = 0;
 	m_Racetrack = 0;
+	m_ColorShader = 0;
+	m_LightShader = 0;
 }
 
 
@@ -93,19 +95,32 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	// Initialize the terrain object.
+	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), &m_NoiseGenerator, 1024, 1024, 
+											L"../Engine/data/grass.dds", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds");
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
+		return false;
+	}
+
 	m_Racetrack = new TrackClass;
 	if (!m_Racetrack)
 	{
 		return false;
 	}
 
-	// Initialize the terrain object.
-	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), &m_NoiseGenerator, m_Racetrack, 1024, 1024, 
-											L"../Engine/data/grass.dds", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds");
-	if(!result)
+	result = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024);
+	if (!result)
 	{
-		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
 		return false;
+	}
+
+	m_Model = new ModelClass[m_Racetrack->trackPoints.size()];
+	int inc = 0;
+	for (D3DXVECTOR3 pos : m_Racetrack->trackPoints) {
+		m_Model[inc].Initialize(m_Direct3D->GetDevice(), "../Engine/data/cube.txt", L"../Engine/data/seafloor.dds");
+		inc++;
 	}
 
 	// Set the initial position of the camera.
@@ -184,6 +199,36 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the font shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the font shader object.
+	m_ColorShader = new ColorShaderClass;
+	if (!m_ColorShader)
+	{
+		return false;
+	}
+
+	// Initialize the font shader object.
+	result = m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the font shader object.
+	m_LightShader = new LightShaderClass;
+	if (!m_LightShader)
+	{
+		return false;
+	}
+
+	// Initialize the font shader object.
+	result = m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -276,6 +321,22 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 void ApplicationClass::Shutdown()
 {
+	// Release the sky dome shader object.
+	if (m_LightShader)
+	{
+		m_LightShader->Shutdown();
+		delete m_LightShader;
+		m_LightShader = 0;
+	}
+
+	// Release the sky dome shader object.
+	if (m_ColorShader)
+	{
+		m_ColorShader->Shutdown();
+		delete m_ColorShader;
+		m_ColorShader = 0;
+	}
+
 	// Release the sky dome shader object.
 	if (m_SkyDomeShader)
 	{
@@ -567,6 +628,36 @@ bool ApplicationClass::RenderGraphics()
 	if(!result)
 	{
 		return false;
+	}
+
+	m_Direct3D->DisplayWireframe();
+
+	result = m_Racetrack->Render(m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Racetrack->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_Direct3D->DisplayFill();
+
+	for (int i = 0; i < m_Racetrack->trackPoints.size(); i++) {
+		D3DXMATRIX pos = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
+									0.0f, 1.0f, 0.0f, 0.0f,
+									0.0f, 0.0f, 1.0f, 0.0f,
+									m_Racetrack->trackPoints[i].x, m_Racetrack->trackPoints[i].y, m_Racetrack->trackPoints[i].z, 1.0f);
+
+		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+		m_Model[i].Render(m_Direct3D->GetDeviceContext());
+
+		// Render the model using the light shader.
+		result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model[i].GetIndexCount(), pos, viewMatrix, projectionMatrix,
+			m_Model[i].GetTexture(), m_Light->GetDirection(), m_Light->GetDiffuseColor());
 	}
 
 	// Turn off the Z buffer to begin all 2D rendering.

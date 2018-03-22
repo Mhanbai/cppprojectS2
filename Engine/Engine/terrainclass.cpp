@@ -26,13 +26,13 @@ TerrainClass::~TerrainClass()
 {
 }
 
-bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, TrackClass* racetrack, int terrainWidth, int terrainHeight, 
+bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, 
 										WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename, WCHAR* rockTextureFilename)
 {
 	int index;
 	float height = 0.0;
 	bool result;
-	srand(time(NULL));
+	//srand(time(NULL));
 	float random = rand() * 100.1f;
 
 	// Save the dimensions of the terrain.
@@ -58,23 +58,17 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 
 			int xCo = i + random;
 			int yCo = j + random;
-			float e = ((float)m_noiseGenerator->GenerateNoise(xCo * 0.02f, 0.0f, yCo * 0.02f) +
-				0.5f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.035f, 0.0f, yCo * 0.035f) + 									
-				0.25f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.075f, 0.0f, yCo * 0.075f));
+			float e = ((float)m_noiseGenerator->GenerateNoise(xCo * 0.01f, 0.0f, yCo * 0.01f) +
+				0.5f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.0175f, 0.0f, yCo * 0.0175f) + 									
+				0.25f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.0375f, 0.0f, yCo * 0.0375f));
 
 
-			m_heightMap[index].y = (float)pow(e, 1.3f) * 80.0f;
+			m_heightMap[index].y = (float)pow(e, 1.2f) * 120.0f;
 
 			if (isnan(m_heightMap[index].y)) {
 				m_heightMap[index].y = e;
 			}
 		}
-	}
-
-	result = racetrack->InitializeTrack(m_heightMap, m_terrainWidth, m_terrainHeight);
-	if (!result)
-	{
-		return false;
 	}
 
 	// Calculate the normals for the terrain data.
@@ -151,6 +145,11 @@ ID3D11ShaderResourceView* TerrainClass::GetSlopeTexture()
 ID3D11ShaderResourceView* TerrainClass::GetRockTexture()
 {
 	return m_RockTexture->GetTexture();
+}
+
+GeometryType* TerrainClass::GetHeightMap()
+{
+	return m_heightMap;
 }
 
 bool TerrainClass::CalculateNormals()
