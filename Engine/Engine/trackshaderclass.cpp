@@ -50,14 +50,15 @@ void TrackShaderClass::Shutdown()
 }
 
 
-bool TrackShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
-								D3DXMATRIX projectionMatrix, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection)
+bool TrackShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
+	D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColor,
+	D3DXVECTOR4 diffuseColor)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ambientColor, diffuseColor, lightDirection);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, ambientColor, diffuseColor, lightDirection);
 	if(!result)
 	{
 		return false;
@@ -76,7 +77,7 @@ bool TrackShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
     D3D11_SAMPLER_DESC samplerDesc;
 	D3D11_BUFFER_DESC matrixBufferDesc;
@@ -91,6 +92,7 @@ bool TrackShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
     // Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "TrackVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
 								   &vertexShaderBuffer, &errorMessage, NULL);
+
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have writen something to the error message.
@@ -109,7 +111,7 @@ bool TrackShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 
     // Compile the pixel shader code.
 	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "TrackPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-								   &pixelShaderBuffer, &errorMessage, NULL);/////////////////////////////////////////////////////////////////
+								   &pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have writen something to the error message.
@@ -149,20 +151,27 @@ bool TrackShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[0].InstanceDataStepRate = 0;
 
-	polygonLayout[1].SemanticName = "NORMAL";
+	polygonLayout[1].SemanticName = "TEXCOORD";
 	polygonLayout[1].SemanticIndex = 0;
-	polygonLayout[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
 	polygonLayout[1].InputSlot = 0;
 	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
+	polygonLayout[2].SemanticName = "NORMAL";
+	polygonLayout[2].SemanticIndex = 0;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[2].InputSlot = 0;
+	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[2].InstanceDataStepRate = 0;
+
 	// Get a count of the elements in the layout.
     numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	// Create the vertex input layout.
-	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), 
-									   &m_layout);
+	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &m_layout);
 	if(FAILED(result))
 	{
 		return false;
@@ -317,7 +326,7 @@ void TrackShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 
 
 bool TrackShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
-											 D3DXMATRIX projectionMatrix, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection)
+											 D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection)
 {
 	HRESULT result;
     D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -354,6 +363,9 @@ bool TrackShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D
 
 	// Now set the constant buffer in the vertex shader with the updated values.
     deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
+
+	// Set shader texture resource in the pixel shader.
+	deviceContext->PSSetShaderResources(0, 1, &texture);
 
 	// Lock the light constant buffer so it can be written to.
 	result = deviceContext->Map(m_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

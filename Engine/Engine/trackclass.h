@@ -42,7 +42,7 @@ public:
 	TrackClass(const TrackClass&);
 	~TrackClass();
 
-	bool InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in, int terrainWidth, int terrainHeight);
+	bool InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in, int terrainWidth, int terrainHeight, WCHAR* textureFilename);
 	void Shutdown();
 
 	GeometryType* m_model;
@@ -52,6 +52,7 @@ public:
 	bool Render(ID3D11DeviceContext* deviceContext);
 
 	int GetIndexCount();
+	TextureClass* GetTexture();
 
 private:
 	int startNode = 0;
@@ -62,12 +63,15 @@ private:
 	bool ExplorePath(int currentNode);
 	void BuildPath(int endNode);
 	D3DXVECTOR3 CalculateNormal(D3DXVECTOR3 triPoint1, D3DXVECTOR3 triPoint2, D3DXVECTOR3 triPoint3);
+	void CalculateTextureCoords();
 
 	int index;
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	std::vector<MapNodeType> nodes;
 	bool InitializeBuffers(ID3D11Device*);
 	TerrainClass* m_Terrain;
+	TextureClass* m_Texture;
+	bool LoadTexture(ID3D11Device* device, WCHAR* textureFilename);
 };
 
 #endif

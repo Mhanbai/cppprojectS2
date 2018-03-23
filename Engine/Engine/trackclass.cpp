@@ -2,6 +2,7 @@
 
 TrackClass::TrackClass()
 {
+	m_Terrain = 0;
 }
 
 TrackClass::TrackClass(const TrackClass &)
@@ -12,7 +13,7 @@ TrackClass::~TrackClass()
 {
 }
 
-bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in, int terrainWidth, int terrainHeight)
+bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in, int terrainWidth, int terrainHeight, WCHAR* textureFilename)
 {
 	m_Terrain = terrain_in;
 
@@ -203,6 +204,8 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 	nodes.clear();
 	nodes.shrink_to_fit();
 
+	//Calculate Texture Co-ordinates
+	LoadTexture(device, textureFilename);
 	InitializeBuffers(device);
 
 	return true;
@@ -237,6 +240,11 @@ bool TrackClass::Render(ID3D11DeviceContext* deviceContext)
 int TrackClass::GetIndexCount()
 {
 	return index;
+}
+
+TextureClass* TrackClass::GetTexture()
+{
+	return m_Texture;
 }
 
 float TrackClass::DistanceToStart(int node)
@@ -347,6 +355,59 @@ D3DXVECTOR3 TrackClass::CalculateNormal(D3DXVECTOR3 triPoint1, D3DXVECTOR3 triPo
 	D3DXVec3Normalize(&normal, &normal);
 
 	return normal;
+}
+
+void TrackClass::CalculateTextureCoords()
+{
+	int incrementCount, i, j, tuCount, tvCount;
+	float incrementValue, tuCoordinate, tvCoordinate;
+
+	// Calculate how much to increment the texture coordinates by.
+	incrementValue = (float)TEXTURE_REPEAT / (float)m_terrainWidth;
+
+	// Calculate how many times to repeat the texture.
+	incrementCount = m_terrainWidth / TEXTURE_REPEAT;
+
+	// Initialize the tu and tv coordinate values.
+	tuCoordinate = 0.0f;
+	tvCoordinate = 1.0f;
+
+	// Initialize the tu and tv coordinate indexes.
+	tuCount = 0;
+	tvCount = 0;
+
+	// Loop through the entire height map and calculate the tu and tv texture coordinates for each vertex.
+	for (j = 0; j<m_terrainHeight; j++)
+	{
+		for (i = 0; i<m_terrainWidth; i++)
+		{
+			// Store the texture coordinate in the height map.
+			m_heightMap[(m_terrainHeight * j) + i].tu = tuCoordinate;
+			m_heightMap[(m_terrainHeight * j) + i].tv = tvCoordinate;
+
+			// Increment the tu texture coordinate by the increment value and increment the index by one.
+			tuCoordinate += incrementValue;
+			tuCount++;
+
+			// Check if at the far right end of the texture and if so then start at the beginning again.
+			if (tuCount == incrementCount)
+			{
+				tuCoordinate = 0.0f;
+				tuCount = 0;
+			}
+		}
+
+		// Increment the tv texture coordinate by the increment value and increment the index by one.
+		tvCoordinate -= incrementValue;
+		tvCount++;
+
+		// Check if at the top of the texture and if so then start at the bottom again.
+		if (tvCount == incrementCount)
+		{
+			tvCoordinate = 1.0f;
+			tvCount = 0;
+		}
+	}
 }
 
 bool TrackClass::InitializeBuffers(ID3D11Device* device)
@@ -587,4 +648,20 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 	indices = 0;
 
 	return true;
+}
+
+bool TrackClass::LoadTexture(ID3D11Device* device, WCHAR* textureFilename)
+{
+	m_Texture = new TextureClass;
+	if (!m_Texture)
+	{
+		return false;
+	}
+
+	// Initialize the grass texture object.
+	bool result = m_Texture->Initialize(device, textureFilename);
+	if (!result)
+	{
+		return false;
+	}
 }

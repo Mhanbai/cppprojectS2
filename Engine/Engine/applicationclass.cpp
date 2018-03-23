@@ -110,7 +110,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	result = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024);
+	result = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"../Engine/data/rock.dds");
 	if (!result)
 	{
 		return false;
@@ -623,6 +623,8 @@ bool ApplicationClass::RenderGraphics()
 		return false;
 	}
 
+	m_Direct3D->DisplayWireframe();
+
 	result = m_Racetrack->Render(m_Direct3D->GetDeviceContext());
 	if (!result)
 	{
@@ -630,11 +632,13 @@ bool ApplicationClass::RenderGraphics()
 	}
 
 	result = m_TrackShader->Render(m_Direct3D->GetDeviceContext(), m_Racetrack->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-									m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection());
+									m_Racetrack->GetTexture()->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
 	if (!result)
 	{
 		return false;
 	}
+
+	m_Direct3D->DisplayFill();
 
 	// Turn off the Z buffer to begin all 2D rendering.
 	m_Direct3D->TurnZBufferOff();
