@@ -338,6 +338,17 @@ void TrackClass::BuildPath(int endNode)
 	}
 }
 
+D3DXVECTOR3 TrackClass::CalculateNormal(D3DXVECTOR3 triPoint1, D3DXVECTOR3 triPoint2, D3DXVECTOR3 triPoint3)
+{
+	D3DXVECTOR3 lineOne = triPoint2 - triPoint1;
+	D3DXVECTOR3 lineTwo = triPoint3 - triPoint1;
+	D3DXVECTOR3 normal;
+	D3DXVec3Cross(&normal, &lineOne, &lineTwo);
+	D3DXVec3Normalize(&normal, &normal);
+
+	return normal;
+}
+
 bool TrackClass::InitializeBuffers(ID3D11Device* device)
 {
 	unsigned long* indices;
@@ -374,6 +385,8 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 	// Initialize the index to the vertex buffer.
 	index = 0;
 
+	D3DXVECTOR3 normal;
+
 	for (int i = 0; i < ((trackPoints.size() - 1) * 4); i+=4) {
 		int BL1 = i;		//Bottom Left first point
 		int BL2 = BL1 + 4;	//Bottom Left second point
@@ -397,6 +410,11 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		indices[index] = index;
 		index++;
 
+		normal = CalculateNormal(vertices[index - 3].position, vertices[index - 2].position, vertices[index - 1].position);
+		vertices[index - 3].normal = normal;
+		vertices[index - 2].normal = normal;
+		vertices[index - 1].normal = normal;
+
 		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
 		indices[index] = index;
 		index++;
@@ -408,6 +426,11 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		vertices[index].position = D3DXVECTOR3(m_model[TL2].x, m_model[TL2].y, m_model[TL2].z);
 		indices[index] = index;
 		index++;
+
+		normal = CalculateNormal(vertices[index - 3].position, vertices[index - 2].position, vertices[index - 1].position);
+		vertices[index - 3].normal = normal;
+		vertices[index - 2].normal = normal;
+		vertices[index - 1].normal = normal;
 
 		//Top Side
 		vertices[index].position = D3DXVECTOR3(m_model[TL2].x, m_model[TL2].y, m_model[TL2].z);
@@ -422,6 +445,11 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		indices[index] = index;
 		index++;
 
+		normal = CalculateNormal(vertices[index - 3].position, vertices[index - 2].position, vertices[index - 1].position);
+		vertices[index - 3].normal = normal;
+		vertices[index - 2].normal = normal;
+		vertices[index - 1].normal = normal;
+
 		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
 		indices[index] = index;
 		index++;
@@ -433,6 +461,11 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		vertices[index].position = D3DXVECTOR3(m_model[TR1].x, m_model[TR1].y, m_model[TR1].z);
 		indices[index] = index;
 		index++;
+
+		normal = CalculateNormal(vertices[index - 3].position, vertices[index - 2].position, vertices[index - 1].position);
+		vertices[index - 3].normal = normal;
+		vertices[index - 2].normal = normal;
+		vertices[index - 1].normal = normal;
 
 		//Right Side
 		vertices[index].position = D3DXVECTOR3(m_model[TR1].x, m_model[TR1].y, m_model[TR1].z);
@@ -447,6 +480,11 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		indices[index] = index;
 		index++;
 
+		normal = CalculateNormal(vertices[index - 3].position, vertices[index - 2].position, vertices[index - 1].position);
+		vertices[index - 3].normal = normal;
+		vertices[index - 2].normal = normal;
+		vertices[index - 1].normal = normal;
+
 		vertices[index].position = D3DXVECTOR3(m_model[TR1].x, m_model[TR1].y, m_model[TR1].z);
 		indices[index] = index;
 		index++;
@@ -458,6 +496,11 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		vertices[index].position = D3DXVECTOR3(m_model[BR2].x, m_model[BR2].y, m_model[BR2].z);
 		indices[index] = index;
 		index++;
+
+		normal = CalculateNormal(vertices[index - 3].position, vertices[index - 2].position, vertices[index - 1].position);
+		vertices[index - 3].normal = normal;
+		vertices[index - 2].normal = normal;
+		vertices[index - 1].normal = normal;
 
 		//Bottom Side
 		vertices[index].position = D3DXVECTOR3(m_model[BL2].x, m_model[BL2].y, m_model[BL2].z);
@@ -472,6 +515,11 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		indices[index] = index;
 		index++;
 
+		normal = CalculateNormal(vertices[index - 3].position, vertices[index - 2].position, vertices[index - 1].position);
+		vertices[index - 3].normal = normal;
+		vertices[index - 2].normal = normal;
+		vertices[index - 1].normal = normal;
+
 		vertices[index].position = D3DXVECTOR3(m_model[BL1].x, m_model[BL1].y, m_model[BL1].z);
 		indices[index] = index;
 		index++;
@@ -483,6 +531,11 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		vertices[index].position = D3DXVECTOR3(m_model[BR1].x, m_model[BR1].y, m_model[BR1].z);
 		indices[index] = index;
 		index++;
+
+		normal = CalculateNormal(vertices[index - 3].position, vertices[index - 2].position, vertices[index - 1].position);
+		vertices[index - 3].normal = normal;
+		vertices[index - 2].normal = normal;
+		vertices[index - 1].normal = normal;
 	}
 
 	// Set up the description of the static vertex buffer.

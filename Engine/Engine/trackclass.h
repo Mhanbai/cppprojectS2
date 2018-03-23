@@ -61,6 +61,7 @@ private:
 	float DistanceToStart(int node);
 	bool ExplorePath(int currentNode);
 	void BuildPath(int endNode);
+	D3DXVECTOR3 CalculateNormal(D3DXVECTOR3 triPoint1, D3DXVECTOR3 triPoint2, D3DXVECTOR3 triPoint3);
 
 	int index;
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
