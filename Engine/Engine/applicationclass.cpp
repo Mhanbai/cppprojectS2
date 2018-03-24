@@ -110,7 +110,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	result = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"../Engine/data/rock.dds");
+	result = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"../Engine/data/track.dds");
 	if (!result)
 	{
 		return false;
@@ -602,6 +602,8 @@ bool ApplicationClass::RenderGraphics()
 	m_SkyDomeShader->Render(m_Direct3D->GetDeviceContext(), m_SkyDome->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
 		m_SkyDome->GetApexColor(), m_SkyDome->GetCenterColor());
 
+	m_Direct3D->DisplayWireframe();
+
 	// Turn back face culling back on.
 	m_Direct3D->TurnOnCulling();
 
@@ -623,8 +625,6 @@ bool ApplicationClass::RenderGraphics()
 		return false;
 	}
 
-	m_Direct3D->DisplayWireframe();
-
 	result = m_Racetrack->Render(m_Direct3D->GetDeviceContext());
 	if (!result)
 	{
@@ -637,8 +637,6 @@ bool ApplicationClass::RenderGraphics()
 	{
 		return false;
 	}
-
-	m_Direct3D->DisplayFill();
 
 	// Turn off the Z buffer to begin all 2D rendering.
 	m_Direct3D->TurnZBufferOff();

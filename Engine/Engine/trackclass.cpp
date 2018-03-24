@@ -156,6 +156,10 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 			}
 	}
 
+	//Calculate length of track to use for texturing
+	D3DXVECTOR3 nodeSpaceVector = trackPoints[1] - trackPoints[0];
+	nodeLength = D3DXVec3Length(&nodeSpaceVector);
+
 	//Find indices for road model///////////////////////////////////////////////////////////////////////////////
 	m_model = new GeometryType[trackPoints.size() * 4];
 	D3DXVECTOR3 vectorToNextPoint;
@@ -204,7 +208,6 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 	nodes.clear();
 	nodes.shrink_to_fit();
 
-	//Calculate Texture Co-ordinates
 	LoadTexture(device, textureFilename);
 	InitializeBuffers(device);
 
@@ -357,59 +360,6 @@ D3DXVECTOR3 TrackClass::CalculateNormal(D3DXVECTOR3 triPoint1, D3DXVECTOR3 triPo
 	return normal;
 }
 
-void TrackClass::CalculateTextureCoords()
-{
-	int incrementCount, i, j, tuCount, tvCount;
-	float incrementValue, tuCoordinate, tvCoordinate;
-
-	// Calculate how much to increment the texture coordinates by.
-	incrementValue = (float)TEXTURE_REPEAT / (float)m_terrainWidth;
-
-	// Calculate how many times to repeat the texture.
-	incrementCount = m_terrainWidth / TEXTURE_REPEAT;
-
-	// Initialize the tu and tv coordinate values.
-	tuCoordinate = 0.0f;
-	tvCoordinate = 1.0f;
-
-	// Initialize the tu and tv coordinate indexes.
-	tuCount = 0;
-	tvCount = 0;
-
-	// Loop through the entire height map and calculate the tu and tv texture coordinates for each vertex.
-	for (j = 0; j<m_terrainHeight; j++)
-	{
-		for (i = 0; i<m_terrainWidth; i++)
-		{
-			// Store the texture coordinate in the height map.
-			m_heightMap[(m_terrainHeight * j) + i].tu = tuCoordinate;
-			m_heightMap[(m_terrainHeight * j) + i].tv = tvCoordinate;
-
-			// Increment the tu texture coordinate by the increment value and increment the index by one.
-			tuCoordinate += incrementValue;
-			tuCount++;
-
-			// Check if at the far right end of the texture and if so then start at the beginning again.
-			if (tuCount == incrementCount)
-			{
-				tuCoordinate = 0.0f;
-				tuCount = 0;
-			}
-		}
-
-		// Increment the tv texture coordinate by the increment value and increment the index by one.
-		tvCoordinate -= incrementValue;
-		tvCount++;
-
-		// Check if at the top of the texture and if so then start at the bottom again.
-		if (tvCount == incrementCount)
-		{
-			tvCoordinate = 1.0f;
-			tvCount = 0;
-		}
-	}
-}
-
 bool TrackClass::InitializeBuffers(ID3D11Device* device)
 {
 	unsigned long* indices;
@@ -447,6 +397,7 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 	index = 0;
 
 	D3DXVECTOR3 normal;
+	int vInc = 0;
 
 	for (int i = 0; i < ((trackPoints.size() - 1) * 4); i+=4) {
 		int BL1 = i;		//Bottom Left first point
@@ -460,14 +411,17 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 
 		//Left Side
 		vertices[index].position = D3DXVECTOR3(m_model[BL1].x, m_model[BL1].y, m_model[BL1].z);
+		vertices[index].texture = D3DXVECTOR2(0.0f, vInc * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[BL2].x, m_model[BL2].y, m_model[BL2].z);
+		vertices[index].texture = D3DXVECTOR2(0.0f, (vInc + 1) * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
+		vertices[index].texture = D3DXVECTOR2(0.075f, vInc * 0.25f);
 		indices[index] = index;
 		index++;
 
@@ -477,14 +431,17 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		vertices[index - 1].normal = normal;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
+		vertices[index].texture = D3DXVECTOR2(0.075f, vInc * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[BL2].x, m_model[BL2].y, m_model[BL2].z);
+		vertices[index].texture = D3DXVECTOR2(0.0f, (vInc + 1) * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TL2].x, m_model[TL2].y, m_model[TL2].z);
+		vertices[index].texture = D3DXVECTOR2(0.075f, (vInc + 1) * 0.25f);
 		indices[index] = index;
 		index++;
 
@@ -495,14 +452,17 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 
 		//Top Side
 		vertices[index].position = D3DXVECTOR3(m_model[TL2].x, m_model[TL2].y, m_model[TL2].z);
+		vertices[index].texture = D3DXVECTOR2(0.075f, (vInc + 1) * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TR2].x, m_model[TR2].y, m_model[TR2].z);
+		vertices[index].texture = D3DXVECTOR2(0.925f, (vInc + 1) * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
+		vertices[index].texture = D3DXVECTOR2(0.075f, vInc * 0.25f);
 		indices[index] = index;
 		index++;
 
@@ -512,14 +472,17 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		vertices[index - 1].normal = normal;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TL1].x, m_model[TL1].y, m_model[TL1].z);
+		vertices[index].texture = D3DXVECTOR2(0.075f, vInc * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TR2].x, m_model[TR2].y, m_model[TR2].z);
+		vertices[index].texture = D3DXVECTOR2(0.925f, (vInc + 1) * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TR1].x, m_model[TR1].y, m_model[TR1].z);
+		vertices[index].texture = D3DXVECTOR2(0.925f, vInc * 0.25f);
 		indices[index] = index;
 		index++;
 
@@ -530,14 +493,17 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 
 		//Right Side
 		vertices[index].position = D3DXVECTOR3(m_model[TR1].x, m_model[TR1].y, m_model[TR1].z);
+		vertices[index].texture = D3DXVECTOR2(0.925f, vInc * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[BR2].x, m_model[BR2].y, m_model[BR2].z);
+		vertices[index].texture = D3DXVECTOR2(1.0f, (vInc + 1) * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[BR1].x, m_model[BR1].y, m_model[BR1].z);
+		vertices[index].texture = D3DXVECTOR2(1.0f, vInc * 0.25f);
 		indices[index] = index;
 		index++;
 
@@ -547,14 +513,17 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		vertices[index - 1].normal = normal;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TR1].x, m_model[TR1].y, m_model[TR1].z);
+		vertices[index].texture = D3DXVECTOR2(0.925f, vInc * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[TR2].x, m_model[TR2].y, m_model[TR2].z);
+		vertices[index].texture = D3DXVECTOR2(0.925f, (vInc + 1) * 0.25f);
 		indices[index] = index;
 		index++;
 
 		vertices[index].position = D3DXVECTOR3(m_model[BR2].x, m_model[BR2].y, m_model[BR2].z);
+		vertices[index].texture = D3DXVECTOR2(1.0f, (vInc + 1) * 0.25f);
 		indices[index] = index;
 		index++;
 
@@ -597,6 +566,11 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 		vertices[index - 3].normal = normal;
 		vertices[index - 2].normal = normal;
 		vertices[index - 1].normal = normal;
+
+		vInc++;
+		if (vInc == 4) {
+			vInc = 0;
+		}
 	}
 
 	// Set up the description of the static vertex buffer.
