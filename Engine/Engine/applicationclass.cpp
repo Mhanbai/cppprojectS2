@@ -22,7 +22,7 @@ ApplicationClass::ApplicationClass()
 	m_SkyDome = 0;
 	m_SkyDomeShader = 0;
 	m_Racetrack = 0;
-	m_TrackShader = 0;
+	m_ModelShader = 0;
 	m_LightShader = 0;
 }
 
@@ -45,7 +45,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	char videoCard[128];
 	int videoMemory;
 
-	
 	// Create the input object.  The input object will be used to handle reading the keyboard and mouse input from the user.
 	m_Input = new InputClass;
 	if(!m_Input)
@@ -135,6 +134,23 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Player->Initialize(m_Terrain);
 
+	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
+	m_PlayerCar = new Car;
+	if (!m_PlayerCar)
+	{
+		return false;
+	}
+
+	// Initialize the input object.
+	result = m_PlayerCar->Initialize("data/c_main.txt", L"data/cars.dds", m_PlayerCarModel, m_Direct3D->GetDevice());
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_PlayerCar->m_Model->Transform(m_Racetrack->trackPoints[0], 0.0f);
+
 	// Create the timer object.
 	m_Timer = new TimerClass;
 	if(!m_Timer)
@@ -195,18 +211,18 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	// Create the font shader object.
-	m_TrackShader = new TrackShaderClass;
-	if (!m_TrackShader)
+	// Create the model shader object.
+	m_ModelShader = new ModelShaderClass;
+	if (!m_ModelShader)
 	{
 		return false;
 	}
 
 	// Initialize the font shader object.
-	result = m_TrackShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	result = m_ModelShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 	if (!result)
 	{
-		MessageBox(hwnd, L"Could not initialize the track shader object.", L"Error", MB_OK);
+		MessageBox(hwnd, L"Could not initialize the model shader object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -323,11 +339,11 @@ void ApplicationClass::Shutdown()
 	}
 
 	// Release the sky dome shader object.
-	if (m_TrackShader)
+	if (m_ModelShader)
 	{
-		m_TrackShader->Shutdown();
-		delete m_TrackShader;
-		m_TrackShader = 0;
+		m_ModelShader->Shutdown();
+		delete m_ModelShader;
+		m_ModelShader = 0;
 	}
 
 	// Release the sky dome shader object.
@@ -445,6 +461,8 @@ void ApplicationClass::Shutdown()
 		m_Player = 0;
 	}
 
+	//Shutdown for car
+
 	return;
 }
 
@@ -498,6 +516,8 @@ bool ApplicationClass::Frame()
 	{
 		return false;
 	}
+
+	m_PlayerCar->Frame(m_Timer->GetTime());
 
 	return result;
 }
@@ -631,8 +651,17 @@ bool ApplicationClass::RenderGraphics()
 		return false;
 	}
 
-	result = m_TrackShader->Render(m_Direct3D->GetDeviceContext(), m_Racetrack->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
+	result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_Racetrack->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
 									m_Racetrack->GetTexture()->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+	if (!result)
+	{
+		return false;
+	}
+
+	m_PlayerCarModel->Render(m_Direct3D->GetDeviceContext());
+
+	result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_PlayerCarModel->GetIndexCount(), m_PlayerCarModel->GetWorldMatrix(), viewMatrix, projectionMatrix,
+									m_PlayerCarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
 	if (!result)
 	{
 		return false;

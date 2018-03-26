@@ -21,7 +21,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -83,6 +83,7 @@
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
+    <ClCompile Include="car.cpp" />
     <ClCompile Include="collisionclass.cpp" />
     <ClCompile Include="cpuclass.cpp" />
     <ClCompile Include="d3dclass.cpp" />
@@ -106,11 +107,12 @@
     <ClCompile Include="textureclass.cpp" />
     <ClCompile Include="timerclass.cpp" />
     <ClCompile Include="trackclass.cpp" />
-    <ClCompile Include="trackshaderclass.cpp" />
+    <ClCompile Include="modelshaderclass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h" />
     <ClInclude Include="cameraclass.h" />
+    <ClInclude Include="car.h" />
     <ClInclude Include="collisionclass.h" />
     <ClInclude Include="cpuclass.h" />
     <ClInclude Include="d3dclass.h" />
@@ -133,7 +135,7 @@
     <ClInclude Include="textureclass.h" />
     <ClInclude Include="timerclass.h" />
     <ClInclude Include="trackclass.h" />
-    <ClInclude Include="trackshaderclass.h" />
+    <ClInclude Include="modelshaderclass.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="font.ps" />
@@ -144,8 +146,8 @@
     <None Include="skydome.vs" />
     <None Include="terrain.ps" />
     <None Include="terrain.vs" />
-    <None Include="track.ps" />
-    <None Include="track.vs" />
+    <None Include="model.ps" />
+    <None Include="model.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

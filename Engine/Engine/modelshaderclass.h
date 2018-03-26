@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: trackshaderclass.h
+// Filename: modelshaderclass.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _TRACKSHADERCLASS_H_
-#define _TRACKSHADERCLASS_H_
+#ifndef _MODELSHADERCLASS_H_
+#define _MODELSHADERCLASS_H_
 
 
 //////////////
@@ -16,9 +16,9 @@ using namespace std;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: TrackShaderClass
+// Class name: ModelShaderClass
 ////////////////////////////////////////////////////////////////////////////////
-class TrackShaderClass
+class ModelShaderClass
 {
 private:
 	struct MatrixBufferType
@@ -37,9 +37,9 @@ private:
 	};
 
 public:
-	TrackShaderClass();
-	TrackShaderClass(const TrackShaderClass&);
-	~TrackShaderClass();
+	ModelShaderClass();
+	ModelShaderClass(const ModelShaderClass&);
+	~ModelShaderClass();
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();

@@ -90,7 +90,10 @@
     <ClCompile Include="lightshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="trackshaderclass.cpp">
+    <ClCompile Include="car.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="modelshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -158,16 +161,19 @@
     <ClInclude Include="skydomeshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="trackclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="modelclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lightshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="trackshaderclass.h">
+    <ClInclude Include="car.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="modelshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trackclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -196,10 +202,10 @@
     <None Include="light.vs">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="track.ps">
+    <None Include="model.ps">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="track.vs">
+    <None Include="model.vs">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

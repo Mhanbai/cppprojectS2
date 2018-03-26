@@ -52,6 +52,9 @@ public:
 	int GetIndexCount();
 	ID3D11ShaderResourceView* GetTexture();
 
+	D3DXMATRIX GetWorldMatrix();
+	void Transform(D3DXVECTOR3 position_in, float angle_in);
+
 
 private:
 	bool InitializeBuffers(ID3D11Device*);
@@ -69,6 +72,7 @@ private:
 	int m_vertexCount, m_indexCount;
 	TextureClass* m_Texture;
 	ModelType* m_model;
+	D3DXMATRIX worldMatrix;
 };
 
 #endif

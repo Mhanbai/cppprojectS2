@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: trackshaderclass.cpp
+// Filename: modelshaderclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
-#include "trackshaderclass.h"
+#include "modelshaderclass.h"
 
 
-TrackShaderClass::TrackShaderClass()
+ModelShaderClass::ModelShaderClass()
 {
 	m_vertexShader = 0;
 	m_pixelShader = 0;
@@ -15,23 +15,23 @@ TrackShaderClass::TrackShaderClass()
 }
 
 
-TrackShaderClass::TrackShaderClass(const TrackShaderClass& other)
+ModelShaderClass::ModelShaderClass(const ModelShaderClass& other)
 {
 }
 
 
-TrackShaderClass::~TrackShaderClass()
+ModelShaderClass::~ModelShaderClass()
 {
 }
 
 
-bool TrackShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
+bool ModelShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/track.vs", L"../Engine/track.ps");
+	result = InitializeShader(device, hwnd, L"../Engine/model.vs", L"../Engine/model.ps");
 	if(!result)
 	{
 		return false;
@@ -41,7 +41,7 @@ bool TrackShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 }
 
 
-void TrackShaderClass::Shutdown()
+void ModelShaderClass::Shutdown()
 {
 	// Shutdown the vertex and pixel shaders as well as the related objects.
 	ShutdownShader();
@@ -50,7 +50,7 @@ void TrackShaderClass::Shutdown()
 }
 
 
-bool TrackShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
+bool ModelShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 	D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColor,
 	D3DXVECTOR4 diffuseColor)
 {
@@ -71,7 +71,7 @@ bool TrackShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount
 }
 
 
-bool TrackShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+bool ModelShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -90,7 +90,7 @@ bool TrackShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	pixelShaderBuffer = 0;
 
     // Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "TrackVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "ModelVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
 								   &vertexShaderBuffer, &errorMessage, NULL);
 
 	if(FAILED(result))
@@ -110,7 +110,7 @@ bool TrackShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	}
 
     // Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "TrackPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "ModelPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
 								   &pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -241,7 +241,7 @@ bool TrackShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 }
 
 
-void TrackShaderClass::ShutdownShader()
+void ModelShaderClass::ShutdownShader()
 {
 	// Release the light constant buffer.
 	if(m_lightBuffer)
@@ -289,7 +289,7 @@ void TrackShaderClass::ShutdownShader()
 }
 
 
-void TrackShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void ModelShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
@@ -325,7 +325,7 @@ void TrackShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 }
 
 
-bool TrackShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
+bool ModelShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
 											 D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection)
 {
 	HRESULT result;
@@ -396,7 +396,7 @@ bool TrackShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D
 }
 
 
-void TrackShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void ModelShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(m_layout);

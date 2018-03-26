@@ -10,6 +10,7 @@ ModelClass::ModelClass()
 	m_indexBuffer = 0;
 	m_Texture = 0;
 	m_model = 0;
+	D3DXMatrixIdentity(&worldMatrix);
 }
 
 
@@ -86,6 +87,23 @@ int ModelClass::GetIndexCount()
 ID3D11ShaderResourceView* ModelClass::GetTexture()
 {
 	return m_Texture->GetTexture();
+}
+
+D3DXMATRIX ModelClass::GetWorldMatrix()
+{
+	return worldMatrix;
+}
+
+void ModelClass::Transform(D3DXVECTOR3 position_in, float angle_in)
+{
+	D3DXMATRIX transform;
+	D3DXQUATERNION rotation;
+	D3DXVECTOR3 yAxis = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	
+	D3DXQuaternionRotationAxis(&rotation, &yAxis, angle_in);
+	D3DXMatrixTransformation(&transform, NULL, NULL, NULL, NULL, &rotation, &position_in);
+
+	D3DXMatrixMultiply(&worldMatrix, &worldMatrix, &transform);
 }
 
 
