@@ -183,12 +183,10 @@ void Car::TurnRight(bool set)
 	}
 }
 
-void Car::SetPosition(float xPos, float yPos, float zPos, float rotation)
+void Car::SetPosition(D3DXVECTOR3 position_in, float angle_in)
 {
-	position.x = xPos;
-	position.y = yPos;
-	position.z = zPos;
-	graphicsAngle = rotation;
+	position = position_in;
+	m_Model->Transform(position, angle_in);
 }
 
 D3DXVECTOR3 Car::GetForwardVector()

@@ -48,7 +48,7 @@ public:
 	void BreakReverse(bool);
 	void TurnLeft(bool);
 	void TurnRight(bool);
-	void SetPosition(float xPos, float yPos, float zPos, float rotation);
+	void SetPosition(D3DXVECTOR3 position_in, float angle_in);
 	D3DXVECTOR3 GetForwardVector();
 	D3DXVECTOR3 GetPosition();
 

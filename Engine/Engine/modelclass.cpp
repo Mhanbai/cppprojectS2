@@ -97,12 +97,30 @@ D3DXMATRIX ModelClass::GetWorldMatrix()
 void ModelClass::Transform(D3DXVECTOR3 position_in, float angle_in)
 {
 	D3DXMATRIX transform;
-	D3DXQUATERNION rotation;
+	D3DXMATRIX rotation;
+	D3DXVECTOR3 positionTransform;
 	D3DXVECTOR3 yAxis = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-	
-	D3DXQuaternionRotationAxis(&rotation, &yAxis, angle_in);
-	D3DXMatrixTransformation(&transform, NULL, NULL, NULL, NULL, &rotation, &position_in);
 
+	//Find rotation matrix
+	D3DXMatrixRotationY(&rotation, angle_in);
+	D3DXMATRIX toOrigin = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
+										0.0f, 1.0f, 0.0f, 0.0f,
+										0.0f, 0.0f, 1.0f, 0.0f,
+										-position.x, -position.y, -position.z, 1.0f);
+	D3DXMatrixMultiply(&worldMatrix, &worldMatrix, &toOrigin);
+	D3DXMatrixMultiply(&worldMatrix, &worldMatrix, &rotation);
+	D3DXMATRIX toPosition = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
+										0.0f, 1.0f, 0.0f, 0.0f,
+										0.0f, 0.0f, 1.0f, 0.0f,
+										position.x, position.y, position.z, 1.0f);
+	D3DXMatrixMultiply(&worldMatrix, &worldMatrix, &toPosition);
+
+	//Find transform matrix
+	positionTransform = position_in - position;
+	D3DXMatrixTransformation(&transform, NULL, NULL, NULL, NULL, NULL, &positionTransform);
+	position = position_in;
+
+	//Multiply world matrix by transform and rotation matrices
 	D3DXMatrixMultiply(&worldMatrix, &worldMatrix, &transform);
 }
 
@@ -341,4 +359,9 @@ void ModelClass::ReleaseModel()
 	}
 
 	return;
+}
+
+D3DXVECTOR3 ModelClass::GetPosition()
+{
+	return position;
 }

@@ -22,7 +22,6 @@ const float SCREEN_NEAR = 0.1f;
 #include "cameraclass.h"
 #include "terrainclass.h"
 #include "timerclass.h"
-#include "positionclass.h"
 #include "fpsclass.h"
 #include "cpuclass.h"
 #include "fontshaderclass.h"
@@ -64,7 +63,6 @@ private:
 	CameraClass* m_Camera;
 	TerrainClass* m_Terrain;
 	TimerClass* m_Timer;
-	PositionClass* m_Position;
 	FpsClass* m_Fps;
 	CpuClass* m_Cpu;
 	FontShaderClass* m_FontShader;

@@ -66,6 +66,7 @@ private:
 
 	bool LoadModel(char*);
 	void ReleaseModel();
+	D3DXVECTOR3 GetPosition();
 
 private:
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
@@ -73,6 +74,7 @@ private:
 	TextureClass* m_Texture;
 	ModelType* m_model;
 	D3DXMATRIX worldMatrix;
+	D3DXVECTOR3 position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 };
 
 #endif
