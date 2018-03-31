@@ -10,8 +10,8 @@ Car::Car()
 	graphicsAngle = 0.0f;
 	startAccelerationFactor = 10.0f;
 	gear = 0.5f;
-	startingForwardVector = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
-	forwardVector = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+	startingForwardVector = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	forwardVector = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
 	upVector = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	acceleration = D3DXVECTOR3 (0.0f, 0.0f, 0.0f);
 	velocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -136,11 +136,8 @@ void Car::Frame(float deltaTime)
 	//Apply velocity to car position
 	position = position + velocity * deltaTime;
 
-	//Calculate angle car is facing for graphics
-	graphicsAngle = atan2(forwardVector.z, forwardVector.x) - atan2(startingForwardVector.z, startingForwardVector.x);
-
 	//Set the position of the cars model
-	m_Model->Transform(position, graphicsAngle);
+	m_Model->Transform(position, steerAngle);
 }
 
 void Car::Accelerate(bool set)
