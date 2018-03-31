@@ -27,6 +27,7 @@ public:
 	D3DXVECTOR3 GetPosition();
 	D3DXVECTOR3 GetRotation();
 
+	void Follow(D3DXVECTOR3 followTarget, D3DXVECTOR3 targetForwardVector, float deltaTime);
 	void Render();
 	void GetViewMatrix(D3DXMATRIX&);
 
@@ -34,6 +35,13 @@ private:
 	float m_positionX, m_positionY, m_positionZ;
 	float m_rotationX, m_rotationY, m_rotationZ;
 	D3DXMATRIX m_viewMatrix;
+	D3DXVECTOR3 up = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	D3DXVECTOR3 carPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3	velocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	float distance;
+	float height;
+	float springConstant;
+	float dampConstant;
 };
 
 #endif

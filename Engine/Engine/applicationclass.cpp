@@ -513,22 +513,20 @@ bool ApplicationClass::HandleInput(float frameTime)
 
 	keyDown = m_Input->IsLeftPressed();
 	m_PlayerCar->TurnLeft(keyDown);
-	//m_Position->TurnLeft(keyDown);
 
 	keyDown = m_Input->IsRightPressed();
 	m_PlayerCar->TurnRight(keyDown);
-	//m_Position->TurnRight(keyDown);
 
 	keyDown = m_Input->IsUpPressed();
 	m_PlayerCar->Accelerate(keyDown);
-	//m_Position->MoveForward(keyDown);
 
 	keyDown = m_Input->IsDownPressed();
 	m_PlayerCar->BreakReverse(keyDown);
-	//m_Position->MoveBackward(keyDown);
 
-	m_Camera->SetPosition(m_PlayerCar->GetPosition().x, m_PlayerCar->GetPosition().y + 100.0f, m_PlayerCar->GetPosition().z);
-	m_Camera->SetRotation(90.0f, 0.0f, 0.0f);
+	m_Camera->Follow(m_PlayerCar->GetPosition(), m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
+
+	//m_Camera->SetPosition(m_PlayerCar->GetPosition().x, m_PlayerCar->GetPosition().y + 100.0f, m_PlayerCar->GetPosition().z);
+	//m_Camera->SetRotation(90.0f, 0.0f, 0.0f);
 
 	//keyDown = m_Input->IsPgUpPressed();
 	//m_Position->LookUpward(keyDown);
