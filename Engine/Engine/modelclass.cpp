@@ -124,6 +124,16 @@ void ModelClass::Transform(D3DXVECTOR3 position_in, float angle_in)
 	D3DXMatrixMultiply(&worldMatrix, &worldMatrix, &transform);
 }
 
+void ModelClass::Scale(float scale)
+{
+	D3DXMATRIX scaleMatrix;
+	D3DXVECTOR3 scaleFactor = D3DXVECTOR3(scale, scale, scale);
+
+	D3DXMatrixTransformation(&scaleMatrix, NULL, NULL, &scaleFactor, NULL, NULL, NULL);
+	
+	D3DXMatrixMultiply(&worldMatrix, &worldMatrix, &scaleMatrix);
+}
+
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {

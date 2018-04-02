@@ -77,6 +77,8 @@ private:
 	float steerFactor;
 	float steerAngle;
 	float steeringScalar;
+	float topSpeed;
+	float gearRange;
 
 	//Values for lateral velocity
 	D3DXVECTOR3 lateralVelocity;

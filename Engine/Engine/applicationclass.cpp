@@ -23,6 +23,8 @@ ApplicationClass::ApplicationClass()
 	m_Racetrack = 0;
 	m_ModelShader = 0;
 	m_LightShader = 0;
+	m_TextureShader = 0;
+	m_Bitmap = 0;
 }
 
 
@@ -40,7 +42,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 {
 	bool result;
 	float cameraX, cameraY, cameraZ;
-	D3DXMATRIX baseViewMatrix;
 	char videoCard[128];
 	int videoMemory;
 
@@ -81,11 +82,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	// Initialize a base view matrix with the camera for 2D user interface rendering.
-	m_Camera->SetPosition(0.0f, 0.0f, -1.0f);
-	m_Camera->Render();
-	m_Camera->GetViewMatrix(baseViewMatrix);
-
 	// Create the terrain object.
 	m_Terrain = new TerrainClass;
 	if(!m_Terrain)
@@ -118,10 +114,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	cameraX = m_Racetrack->trackPoints[0].x;
 	cameraY = m_Racetrack->trackPoints[0].y;
 	cameraZ = m_Racetrack->trackPoints[0].z;
-
-	//cameraX = 0.0f;
-	//cameraY = 0.0f;
-	//cameraZ = 0.0f;
 
 	m_Camera->SetPosition(cameraX, cameraY, cameraZ);
 	m_Camera->SetRotation(0.0f, 0.0f, 0.0f);
@@ -208,7 +200,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	// Initialize the font shader object.
+	// Initialize the model shader object.
 	result = m_ModelShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 	if (!result)
 	{
@@ -216,18 +208,33 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	// Create the font shader object.
+	// Create the light shader object.
 	m_LightShader = new LightShaderClass;
 	if (!m_LightShader)
 	{
 		return false;
 	}
 
-	// Initialize the font shader object.
+	// Initialize the light shader object.
 	result = m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 	if (!result)
 	{
-		MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
+		MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the texture shader object.
+	m_TextureShader = new TextureShaderClass;
+	if (!m_TextureShader)
+	{
+		return false;
+	}
+
+	// Initialize the texture shader object.
+	result = m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -239,7 +246,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the text object.
-	result = m_Text->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseViewMatrix);
+	result = m_Text->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, screenViewMatrix);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the text object.", L"Error", MB_OK);
@@ -314,13 +321,44 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	// Create the bitmap object.
+	m_Bitmap = new BitmapClass;
+	if (!m_Bitmap)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/seafloor.dds", 256, 256);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 
 void ApplicationClass::Shutdown()
 {
-	// Release the sky dome shader object.
+	// Release the bitmap object.
+	if (m_Bitmap)
+	{
+		m_Bitmap->Shutdown();
+		delete m_Bitmap;
+		m_Bitmap = 0;
+	}
+
+	// Release the texture shader object.
+	if (m_TextureShader)
+	{
+		m_TextureShader->Shutdown();
+		delete m_TextureShader;
+		m_TextureShader = 0;
+	}
+
+	// Release the light shader object.
 	if (m_LightShader)
 	{
 		m_LightShader->Shutdown();
@@ -328,7 +366,7 @@ void ApplicationClass::Shutdown()
 		m_LightShader = 0;
 	}
 
-	// Release the sky dome shader object.
+	// Release the model shader object.
 	if (m_ModelShader)
 	{
 		m_ModelShader->Shutdown();
@@ -486,8 +524,10 @@ bool ApplicationClass::Frame()
 		return false;
 	}
 
+	m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
+
 	// Do the frame input processing.
-	result = HandleInput(m_Timer->GetTime());
+	result = HandleInput(m_Timer->GetTime() / 1000);
 	if(!result)
 	{
 		return false;
@@ -499,8 +539,6 @@ bool ApplicationClass::Frame()
 	{
 		return false;
 	}
-
-	m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
 
 	return result;
 }
@@ -525,47 +563,14 @@ bool ApplicationClass::HandleInput(float frameTime)
 
 	m_Camera->Follow(m_PlayerCar->GetPosition(), m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
 
-	//m_Camera->SetPosition(m_PlayerCar->GetPosition().x, m_PlayerCar->GetPosition().y + 100.0f, m_PlayerCar->GetPosition().z);
-	//m_Camera->SetRotation(90.0f, 0.0f, 0.0f);
-
-	//keyDown = m_Input->IsPgUpPressed();
-	//m_Position->LookUpward(keyDown);
-
-	//keyDown = m_Input->IsPgDownPressed();
-	//m_Position->LookDownward(keyDown);
-	
-	//keyDown = m_Input->IsAPressed();
-	//m_Position->MoveUpward(keyDown);
-
-	//keyDown = m_Input->IsZPressed();
-	//m_Position->MoveDownward(keyDown);
-
-	// Get the view point position/rotation.
-	//m_Position->GetPosition(posX, posY, posZ);
-	//m_Position->GetRotation(rotX, rotY, rotZ);
-
-	//Set y position to surface///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//posY = m_Player->FindSurfaceLevel();
-
-	// Set the position of the camera.
-	//m_Player->SetPosition(posX, posY, posZ);
-	//m_Player->SetRotation(rotX, rotY, rotZ);
-	//m_Camera->SetPosition(posX, posY + 5.0f, posZ);
-	//m_Camera->SetRotation(rotX, rotY, rotZ);
+	D3DXVECTOR3 camPos = -m_Camera->GetPosition();
 
 	// Update the position values in the text object.
-	/*result = m_Text->SetCameraPosition(posX, posY, posZ, m_Direct3D->GetDeviceContext());
-	if(!result)
+	result = m_Text->SetCameraPosition(camPos.x, camPos.y, camPos.z, m_Direct3D->GetDeviceContext());
+	if (!result)
 	{
 		return false;
 	}
-
-	// Update the rotation values in the text object.
-	result = m_Text->SetCameraRotation(rotX, rotY, rotZ, m_Direct3D->GetDeviceContext());
-	if(!result)
-	{
-		return false;
-	}*/
 
 	return true;
 }
@@ -573,7 +578,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 
 bool ApplicationClass::RenderGraphics()
 {
-	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, bitmapViewMatrix;
 	D3DXVECTOR3 cameraPosition;
 	bool result;
 
@@ -588,12 +593,16 @@ bool ApplicationClass::RenderGraphics()
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+	D3DXMatrixIdentity(&bitmapViewMatrix);
 
 	// Get the position of the camera.
 	cameraPosition = m_Camera->GetPosition();
 
 	// Translate the sky dome to be centered around the camera position.
-	D3DXMatrixTranslation(&worldMatrix, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+	worldMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		-cameraPosition.x, -cameraPosition.y, -cameraPosition.z, 1.0f);
 
 	// Turn off back face culling.
 	m_Direct3D->TurnOffCulling();
@@ -605,8 +614,6 @@ bool ApplicationClass::RenderGraphics()
 	m_SkyDome->Render(m_Direct3D->GetDeviceContext());
 	m_SkyDomeShader->Render(m_Direct3D->GetDeviceContext(), m_SkyDome->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
 		m_SkyDome->GetApexColor(), m_SkyDome->GetCenterColor());
-
-	m_Direct3D->DisplayWireframe();
 
 	// Turn back face culling back on.
 	m_Direct3D->TurnOnCulling();
@@ -653,7 +660,21 @@ bool ApplicationClass::RenderGraphics()
 
 	// Turn off the Z buffer to begin all 2D rendering.
 	m_Direct3D->TurnZBufferOff();
-		
+
+	// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 300, 300);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the bitmap with the texture shader.
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_Bitmap->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
+
 	// Turn on the alpha blending before rendering the text.
 	m_Direct3D->TurnOnAlphaBlending();
 

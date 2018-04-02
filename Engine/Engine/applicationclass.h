@@ -37,6 +37,8 @@ const float SCREEN_NEAR = 0.1f;
 #include "lightshaderclass.h"
 #include "modelclass.h"
 #include "car.h"
+#include "bitmapclass.h"
+#include "textureshaderclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,6 +81,12 @@ private:
 	LightShaderClass* m_LightShader;
 	Car* m_PlayerCar;
 	ModelClass* m_PlayerCarModel;
+	BitmapClass* m_Bitmap;
+	TextureShaderClass* m_TextureShader;
+	D3DXMATRIX screenViewMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, -4.0f, 4.0f, 1.0f);
 };
 
 #endif

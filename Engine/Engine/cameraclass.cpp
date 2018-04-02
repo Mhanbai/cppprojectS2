@@ -14,9 +14,9 @@ CameraClass::CameraClass()
 	m_rotationY = 0.0f;
 	m_rotationZ = 0.0f;
 
-	distance = 14.0f; //Distance to keep from car
-	height = 4.0f; //Height from ground
-	springConstant = 80.0f; //How much the camera should try to get to its ideal position
+	distance = 6.0f; //Distance to keep from car
+	height = 2.0f; //Height from ground
+	springConstant = 160.0f; //How much the camera should try to get to its ideal position
 	dampConstant = 2.0f * sqrt(springConstant); //Dampening factor for the springyness
 }
 
@@ -52,12 +52,6 @@ void CameraClass::SetRotation(float x, float y, float z)
 D3DXVECTOR3 CameraClass::GetPosition()
 {
 	return D3DXVECTOR3(m_positionX, m_positionY, m_positionZ);
-}
-
-
-D3DXVECTOR3 CameraClass::GetRotation()
-{
-	return D3DXVECTOR3(m_rotationX, m_rotationY, m_rotationZ);
 }
 
 

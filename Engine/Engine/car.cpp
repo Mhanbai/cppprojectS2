@@ -5,17 +5,19 @@ Car::Car()
 	m_Model = 0;
 
 	// Set up gameplay variables
+	topSpeed = 25.0f;
 	accelerationInput = 0.0f;
 	steerInput = 0.0f;
 	graphicsAngle = 0.0f;
-	startAccelerationFactor = 10.0f;
-	gear = 0.5f;
+	startAccelerationFactor = 2.0f;
+	gear = 1.0f;
 	startingForwardVector = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
 	forwardVector = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
 	upVector = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	acceleration = D3DXVECTOR3 (0.0f, 0.0f, 0.0f);
 	velocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	gearRange = topSpeed / 5.0f;
 	isAccelerating = false;
 	isTurningLeft = false;
 	isTurningRight = false;
@@ -23,7 +25,7 @@ Car::Car()
 
 	//Car handling
 	frictionFactor = 0.5f;
-	lateralFrictionFactor = 3.0f;
+	lateralFrictionFactor = 2.0f;
 	steerFactor = 1.1f;
 }
 
@@ -41,6 +43,7 @@ bool Car::Initialize(char* modelFilename, WCHAR* textureFilename, ModelClass* &m
 
 	m_Model = new ModelClass;
 	m_Model->Initialize(device, modelFilename, textureFilename);
+	m_Model->Scale(0.3f);
 
 	model_in = m_Model;
 
@@ -58,13 +61,19 @@ void Car::Frame(float deltaTime)
 	speed = (D3DXVec3Length(&velocity));
 
 	//This handles both gear changing and car noise
-	if (speed < 30.0f) {
-		gear = 0.5f;
+	if (speed < (gearRange)) {
+		gear = 0.2f;
 	}
-	else if ((speed >= 30.0f) && (speed < 60.0f)) {
-		gear = 0.75f;
+	else if ((speed >= (gearRange)) && (speed < (gearRange * 2))) {
+		gear = 0.4f;
 	}
-	else {
+	else if ((speed >= (gearRange * 2)) && (speed < (gearRange * 3))) {
+		gear = 0.6f;
+	}
+	else if ((speed >= (gearRange * 3)) && (speed < (gearRange * 4))) {
+		gear = 0.8f;
+	}
+	else  {
 		gear = 1.0f;
 	}
 
@@ -106,7 +115,7 @@ void Car::Frame(float deltaTime)
 	steerAngle = steerInput * steerFactor * deltaTime;
 
 	//Divide the angle by speed divided by 100. This stops the car from being able to turn on the spot
-	steerAngle = steerAngle * (speed / 100.0f);
+	steerAngle = steerAngle * (speed / topSpeed);
 
 	//Calculate new forward vector
 	D3DXMatrixRotationY(&rotation, steerAngle); //Create a matrix for rotation around Y from angle of steering
@@ -129,7 +138,7 @@ void Car::Frame(float deltaTime)
 	velocity += (friction + lateralFriction) * deltaTime;
 
 	//Increase velocity by acceleration
-	if (speed < 100.0f) {
+	if (speed < topSpeed) {
 		velocity += acceleration * deltaTime;
 	}
 

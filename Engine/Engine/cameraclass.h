@@ -25,7 +25,6 @@ public:
 	void SetRotation(float, float, float);
 
 	D3DXVECTOR3 GetPosition();
-	D3DXVECTOR3 GetRotation();
 
 	void Follow(D3DXVECTOR3 followTarget, D3DXVECTOR3 targetForwardVector, float deltaTime);
 	void Render();
