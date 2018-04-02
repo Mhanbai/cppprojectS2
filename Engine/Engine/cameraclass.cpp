@@ -15,7 +15,7 @@ CameraClass::CameraClass()
 	m_rotationZ = 0.0f;
 
 	distance = 6.0f; //Distance to keep from car
-	height = 2.0f; //Height from ground
+	height = 1.0f; //Height from ground
 	springConstant = 160.0f; //How much the camera should try to get to its ideal position
 	dampConstant = 2.0f * sqrt(springConstant); //Dampening factor for the springyness
 }
@@ -39,16 +39,6 @@ void CameraClass::SetPosition(float x, float y, float z)
 	return;
 }
 
-
-void CameraClass::SetRotation(float x, float y, float z)
-{
-	m_rotationX = x;
-	m_rotationY = y;
-	m_rotationZ = z;
-	return;
-}
-
-
 D3DXVECTOR3 CameraClass::GetPosition()
 {
 	return D3DXVECTOR3(m_positionX, m_positionY, m_positionZ);
@@ -63,8 +53,11 @@ void CameraClass::Render()
 	position.y = m_positionY;
 	position.z = m_positionZ;
 
+	D3DXVECTOR3 lookAt;
+	lookAt = carPos + up * height;
+
 	// View matrix generated from the position of the camera, the position of the car, and the 'up' vector
-	D3DXMatrixLookAtLH(&m_viewMatrix, &-position, &carPos, &up);
+	D3DXMatrixLookAtLH(&m_viewMatrix, &-position, &lookAt, &up);
 
 	return;
 }
@@ -74,6 +67,24 @@ void CameraClass::GetViewMatrix(D3DXMATRIX& viewMatrix)
 {
 	viewMatrix = m_viewMatrix;
 	return;
+}
+
+void CameraClass::GetReverseViewMatrix(D3DXMATRIX &viewMatrix)
+{
+	//Find Camera position
+	D3DXVECTOR3 position;
+	position = -GetPosition();
+
+	//Find vector between camera and car
+	D3DXVECTOR3 lookAt;
+	D3DXVec3Subtract(&lookAt, &carPos, &position);
+	//Find a 'lookat' vector behind the camera by subtracting vector to car from camera postion
+	lookAt = position - lookAt;
+	//Subtract camera height from 'lookat' vector
+	lookAt = lookAt - up * height;
+
+	//Construct new viewing matrix
+	D3DXMatrixLookAtLH(&viewMatrix, &position, &lookAt, &up);
 }
 
 void CameraClass::Follow(D3DXVECTOR3 followTarget, D3DXVECTOR3 targetForwardVector, float deltaTime)

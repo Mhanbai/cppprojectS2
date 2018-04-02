@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: bitmapclass.h
+// Filename: screenobjectclass.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _BITMAPCLASS_H_
-#define _BITMAPCLASS_H_
+#ifndef _SCREENOBJECTCLASS_H_
+#define _SCREENOBJECTCLASS_H_
 
 
 //////////////
@@ -19,9 +19,9 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: BitmapClass
+// Class name: ScreenObjectClass
 ////////////////////////////////////////////////////////////////////////////////
-class BitmapClass
+class ScreenObjectClass
 {
 private:
 	struct VertexType
@@ -31,16 +31,20 @@ private:
 	};
 
 public:
-	BitmapClass();
-	BitmapClass(const BitmapClass&);
-	~BitmapClass();
+	ScreenObjectClass();
+	ScreenObjectClass(const ScreenObjectClass&);
+	~ScreenObjectClass();
 
 	bool Initialize(ID3D11Device*, int, int, WCHAR*, int, int);
+	bool Initialize(ID3D11Device*, int, int, int, int);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext*, int, int);
 
 	int GetIndexCount();
 	ID3D11ShaderResourceView* GetTexture();
+
+	int GetWidth();
+	int GetHeight();
 
 private:
 	bool InitializeBuffers(ID3D11Device*);
@@ -56,8 +60,9 @@ private:
 	int m_vertexCount, m_indexCount;
 	TextureClass* m_Texture;
 	int m_screenWidth, m_screenHeight;
-	int m_bitmapWidth, m_bitmapHeight;
+	int m_screenobjectWidth, m_screenobjectHeight;
 	int m_previousPosX, m_previousPosY;
+	int m_width, m_height;
 };
 
 #endif

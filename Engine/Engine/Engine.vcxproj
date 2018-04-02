@@ -82,7 +82,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp" />
-    <ClCompile Include="bitmapclass.cpp" />
+    <ClCompile Include="screenobjectclass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
     <ClCompile Include="car.cpp" />
     <ClCompile Include="collisionclass.cpp" />
@@ -97,6 +97,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="playerclass.cpp" />
+    <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="simplexnoisegenerator.cpp" />
     <ClCompile Include="skydomeclass.cpp" />
     <ClCompile Include="skydomeshaderclass.cpp" />
@@ -112,7 +113,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h" />
-    <ClInclude Include="bitmapclass.h" />
+    <ClInclude Include="screenobjectclass.h" />
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="car.h" />
     <ClInclude Include="collisionclass.h" />
@@ -126,6 +127,7 @@
     <ClInclude Include="lightshaderclass.h" />
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="playerclass.h" />
+    <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="simplexnoisegenerator.h" />
     <ClInclude Include="skydomeclass.h" />
     <ClInclude Include="skydomeshaderclass.h" />

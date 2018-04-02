@@ -8,7 +8,7 @@
 /////////////
 // GLOBALS //
 /////////////
-const bool FULL_SCREEN = false;
+const bool FULL_SCREEN = true;
 const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
@@ -37,8 +37,9 @@ const float SCREEN_NEAR = 0.1f;
 #include "lightshaderclass.h"
 #include "modelclass.h"
 #include "car.h"
-#include "bitmapclass.h"
+#include "screenobjectclass.h"
 #include "textureshaderclass.h"
+#include "rendertextureclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -58,6 +59,8 @@ public:
 private:
 	bool HandleInput(float);
 	bool RenderGraphics();
+	bool RenderToTexture();
+	bool RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix);
 
 private:
 	InputClass* m_Input;
@@ -81,12 +84,17 @@ private:
 	LightShaderClass* m_LightShader;
 	Car* m_PlayerCar;
 	ModelClass* m_PlayerCarModel;
-	BitmapClass* m_Bitmap;
+	ScreenObjectClass* m_WingMirror;
 	TextureShaderClass* m_TextureShader;
 	D3DXMATRIX screenViewMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, -4.0f, 4.0f, 1.0f);
+	RenderTextureClass* m_RenderTexture;
+	ScreenObjectClass* m_RearView;
+
+	int m_screenWidth;
+	int m_screenHeight;
 };
 
 #endif

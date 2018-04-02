@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: bitmapclass.cpp
+// Filename: screenobjectclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
-#include "bitmapclass.h"
+#include "screenobjectclass.h"
 
-BitmapClass::BitmapClass()
+ScreenObjectClass::ScreenObjectClass()
 {
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;
@@ -11,17 +11,17 @@ BitmapClass::BitmapClass()
 }
 
 
-BitmapClass::BitmapClass(const BitmapClass& other)
+ScreenObjectClass::ScreenObjectClass(const ScreenObjectClass& other)
 {
 }
 
 
-BitmapClass::~BitmapClass()
+ScreenObjectClass::~ScreenObjectClass()
 {
 }
 
 
-bool BitmapClass::Initialize(ID3D11Device* device, int screenWidth, int screenHeight, WCHAR* textureFilename, int bitmapWidth, int bitmapHeight)
+bool ScreenObjectClass::Initialize(ID3D11Device* device, int screenWidth, int screenHeight, WCHAR* textureFilename, int screenobjectWidth, int screenobjectHeight)
 {
 	bool result;
 
@@ -29,9 +29,12 @@ bool BitmapClass::Initialize(ID3D11Device* device, int screenWidth, int screenHe
 	m_screenWidth = screenWidth;
 	m_screenHeight = screenHeight;
 
-	// Store the size in pixels that this bitmap should be rendered at.
-	m_bitmapWidth = bitmapWidth;
-	m_bitmapHeight = bitmapHeight;
+	m_width = screenobjectWidth;
+	m_height = screenobjectHeight;
+
+	// Store the size in pixels that this screenobject should be rendered at.
+	m_screenobjectWidth = screenobjectWidth;
+	m_screenobjectHeight = screenobjectHeight;
 
 	// Initialize the previous rendering position to negative one.
 	m_previousPosX = -1;
@@ -54,7 +57,36 @@ bool BitmapClass::Initialize(ID3D11Device* device, int screenWidth, int screenHe
 	return true;
 }
 
-void BitmapClass::Shutdown()
+bool ScreenObjectClass::Initialize(ID3D11Device* device, int screenWidth, int screenHeight, int screenobjectWidth, int screenobjectHeight)
+{
+	bool result;
+
+	// Store the screen size.
+	m_screenWidth = screenWidth;
+	m_screenHeight = screenHeight;
+
+	// Store the size in pixels that this screenobject should be rendered at.
+	m_screenobjectWidth = screenobjectWidth;
+	m_screenobjectHeight = screenobjectHeight;
+
+	m_width = screenobjectWidth;
+	m_height = screenobjectHeight;
+
+	// Initialize the previous rendering position to negative one.
+	m_previousPosX = -1;
+	m_previousPosY = -1;
+
+	// Initialize the vertex and index buffers.
+	result = InitializeBuffers(device);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void ScreenObjectClass::Shutdown()
 {
 	// Release the model texture.
 	ReleaseTexture();
@@ -65,7 +97,7 @@ void BitmapClass::Shutdown()
 	return;
 }
 
-bool BitmapClass::Render(ID3D11DeviceContext* deviceContext, int positionX, int positionY)
+bool ScreenObjectClass::Render(ID3D11DeviceContext* deviceContext, int positionX, int positionY)
 {
 	bool result;
 
@@ -83,18 +115,28 @@ bool BitmapClass::Render(ID3D11DeviceContext* deviceContext, int positionX, int 
 	return true;
 }
 
-int BitmapClass::GetIndexCount()
+int ScreenObjectClass::GetIndexCount()
 {
 	return m_indexCount;
 }
 
-ID3D11ShaderResourceView* BitmapClass::GetTexture()
+ID3D11ShaderResourceView* ScreenObjectClass::GetTexture()
 {
 	return m_Texture->GetTexture();
 }
 
+int ScreenObjectClass::GetWidth()
+{
+	return m_width;
+}
 
-bool BitmapClass::InitializeBuffers(ID3D11Device* device)
+int ScreenObjectClass::GetHeight()
+{
+	return m_height;
+}
+
+
+bool ScreenObjectClass::InitializeBuffers(ID3D11Device* device)
 {
 	VertexType* vertices;
 	unsigned long* indices;
@@ -182,7 +224,7 @@ bool BitmapClass::InitializeBuffers(ID3D11Device* device)
 	return true;
 }
 
-void BitmapClass::ShutdownBuffers()
+void ScreenObjectClass::ShutdownBuffers()
 {
 	// Release the index buffer.
 	if (m_indexBuffer)
@@ -201,7 +243,7 @@ void BitmapClass::ShutdownBuffers()
 	return;
 }
 
-bool BitmapClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int positionX, int positionY)
+bool ScreenObjectClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int positionX, int positionY)
 {
 	float left, right, top, bottom;
 	VertexType* vertices;
@@ -209,7 +251,7 @@ bool BitmapClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int position
 	VertexType* verticesPtr;
 	HRESULT result;
 
-	// If the position we are rendering this bitmap to has not changed then don't update the vertex buffer since it
+	// If the position we are rendering this screenobject to has not changed then don't update the vertex buffer since it
 	// currently has the correct parameters.
 	if ((positionX == m_previousPosX) && (positionY == m_previousPosY))
 	{
@@ -220,17 +262,17 @@ bool BitmapClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int position
 	m_previousPosX = positionX;
 	m_previousPosY = positionY;
 
-	// Calculate the screen coordinates of the left side of the bitmap.
+	// Calculate the screen coordinates of the left side of the screenobject.
 	left = (float)((m_screenWidth / 2) * -1) + (float)positionX;
 
-	// Calculate the screen coordinates of the right side of the bitmap.
-	right = left + (float)m_bitmapWidth;
+	// Calculate the screen coordinates of the right side of the screenobject.
+	right = left + (float)m_screenobjectWidth;
 
-	// Calculate the screen coordinates of the top of the bitmap.
+	// Calculate the screen coordinates of the top of the screenobject.
 	top = (float)(m_screenHeight / 2) - (float)positionY;
 
-	// Calculate the screen coordinates of the bottom of the bitmap.
-	bottom = top - (float)m_bitmapHeight;
+	// Calculate the screen coordinates of the bottom of the screenobject.
+	bottom = top - (float)m_screenobjectHeight;
 
 	// Create the vertex array.
 	vertices = new VertexType[m_vertexCount];
@@ -283,7 +325,7 @@ bool BitmapClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int position
 	return true;
 }
 
-void BitmapClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
+void ScreenObjectClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride;
 	unsigned int offset;
@@ -305,7 +347,7 @@ void BitmapClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	return;
 }
 
-bool BitmapClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
+bool ScreenObjectClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 {
 	bool result;
 
@@ -327,7 +369,7 @@ bool BitmapClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 	return true;
 }
 
-void BitmapClass::ReleaseTexture()
+void ScreenObjectClass::ReleaseTexture()
 {
 	// Release the texture object.
 	if (m_Texture)

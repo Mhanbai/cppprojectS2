@@ -93,10 +93,13 @@
     <ClCompile Include="modelshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bitmapclass.cpp">
+    <ClCompile Include="textureshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="textureshaderclass.cpp">
+    <ClCompile Include="rendertextureclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="screenobjectclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -176,10 +179,13 @@
     <ClInclude Include="trackclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bitmapclass.h">
+    <ClInclude Include="textureshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="textureshaderclass.h">
+    <ClInclude Include="rendertextureclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="screenobjectclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

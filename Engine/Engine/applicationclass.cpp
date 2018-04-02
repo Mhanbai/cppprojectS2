@@ -24,7 +24,9 @@ ApplicationClass::ApplicationClass()
 	m_ModelShader = 0;
 	m_LightShader = 0;
 	m_TextureShader = 0;
-	m_Bitmap = 0;
+	m_WingMirror = 0;
+	m_RenderTexture = 0;
+	m_RearView = 0;
 }
 
 
@@ -44,6 +46,9 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	float cameraX, cameraY, cameraZ;
 	char videoCard[128];
 	int videoMemory;
+
+	m_screenWidth = screenWidth;
+	m_screenHeight = screenHeight;
 
 	// Create the input object.  The input object will be used to handle reading the keyboard and mouse input from the user.
 	m_Input = new InputClass;
@@ -115,8 +120,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	cameraY = m_Racetrack->trackPoints[0].y;
 	cameraZ = m_Racetrack->trackPoints[0].z;
 
-	m_Camera->SetPosition(cameraX, cameraY, cameraZ);
-	m_Camera->SetRotation(0.0f, 0.0f, 0.0f);
+	m_Camera->SetPosition(-cameraX, -cameraY, -cameraZ);
 
 	m_Player = new PlayerClass;
 	if (!m_Player)
@@ -322,17 +326,46 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Create the bitmap object.
-	m_Bitmap = new BitmapClass;
-	if (!m_Bitmap)
+	m_WingMirror = new ScreenObjectClass;
+	if (!m_WingMirror)
 	{
 		return false;
 	}
 
-	// Initialize the bitmap object.
-	result = m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/seafloor.dds", 256, 256);
+	// Initialize the bitmap object.////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	result = m_WingMirror->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/wingmirror.dds", screenWidth / 2.5f, screenHeight / 5.6f);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the render to texture object.
+	m_RenderTexture = new RenderTextureClass;
+	if (!m_RenderTexture)
+	{
+		return false;
+	}
+
+	// Initialize the render to texture object.
+	result = m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Create the debug window object.////////////////////////////////////////////////////////////////////////////////////////////////////////
+	m_RearView = new ScreenObjectClass;
+	if (!m_RearView)
+	{
+		return false;
+	}
+
+	// Initialize the debug window object.////////////////////////////////////////////////////////////////////////////////////////////////////
+	result = m_RearView->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, screenWidth / 2.67f, screenHeight / 6.0f);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -342,12 +375,28 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 void ApplicationClass::Shutdown()
 {
-	// Release the bitmap object.
-	if (m_Bitmap)
+	// Release the debug window object.///////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (m_RearView)
 	{
-		m_Bitmap->Shutdown();
-		delete m_Bitmap;
-		m_Bitmap = 0;
+		m_RearView->Shutdown();
+		delete m_RearView;
+		m_RearView = 0;
+	}
+
+	// Release the render to texture object.
+	if (m_RenderTexture)
+	{
+		m_RenderTexture->Shutdown();
+		delete m_RenderTexture;
+		m_RenderTexture = 0;
+	}
+
+	// Release the bitmap object.
+	if (m_WingMirror)
+	{
+		m_WingMirror->Shutdown();
+		delete m_WingMirror;
+		m_WingMirror = 0;
 	}
 
 	// Release the texture shader object.
@@ -578,22 +627,130 @@ bool ApplicationClass::HandleInput(float frameTime)
 
 bool ApplicationClass::RenderGraphics()
 {
-	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, bitmapViewMatrix;
+	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	D3DXVECTOR3 cameraPosition;
 	bool result;
 
+	// Generate the view matrix based on the camera's position.
+	m_Camera->Render();
+
+	// Render the entire scene to the texture first.
+	result = RenderToTexture();
+	if (!result)
+	{
+		return false;
+	}
+
 	// Clear the scene.
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+
+	// Render the scene as normal to the back buffer.
+	result = RenderScene(viewMatrix, projectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Turn off the Z buffer to begin all 2D rendering.
+	m_Direct3D->TurnZBufferOff();
+
+	// Get the world, and ortho matrices for 2D rendering
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	int text = m_RearView->GetWidth();
+
+	// Turn on the alpha blending before rendering the text.
+	m_Direct3D->TurnOnAlphaBlending();
+
+	// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = m_WingMirror->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_WingMirror->GetWidth() / 2), 20);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the wingmirror with the texture shader.
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_WingMirror->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_WingMirror->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
+
+	result = m_RearView->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_RearView->GetWidth() / 2), 25);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the debug window using the texture shader.
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_RearView->GetIndexCount(), worldMatrix,
+		screenViewMatrix, orthoMatrix, m_RenderTexture->GetShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the text user interface elements.
+	result = m_Text->Render(m_Direct3D->GetDeviceContext(), m_FontShader, worldMatrix, orthoMatrix);
+	if(!result)
+	{
+		return false;
+	}
+
+	// Turn off alpha blending after rendering the text.
+	m_Direct3D->TurnOffAlphaBlending();
+
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	m_Direct3D->TurnZBufferOn();
+
+	// Present the rendered scene to the screen.
+	m_Direct3D->EndScene();
+
+	return true;
+}
+
+bool ApplicationClass::RenderToTexture()
+{
+	bool result;
+	D3DXMATRIX viewMatrix, projectionMatrix;
+
+	m_Camera->GetReverseViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+
+	// Set the render target to be the render to texture.
+	m_RenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView());
+
+	// Clear the render to texture.
+	m_RenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+
+	// Render the scene now and it will draw to the render to texture instead of the back buffer.
+	result = RenderScene(viewMatrix, projectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	return true;
+}
+
+bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
+{
+	D3DXMATRIX worldMatrix;
+	D3DXVECTOR3 cameraPosition;
+	bool result;
 
 	// Generate the view matrix based on the camera's position.
 	m_Camera->Render();
 
 	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
 	m_Direct3D->GetWorldMatrix(worldMatrix);
-	m_Camera->GetViewMatrix(viewMatrix);
-	m_Direct3D->GetProjectionMatrix(projectionMatrix);
-	m_Direct3D->GetOrthoMatrix(orthoMatrix);
-	D3DXMatrixIdentity(&bitmapViewMatrix);
 
 	// Get the position of the camera.
 	cameraPosition = m_Camera->GetPosition();
@@ -628,10 +785,10 @@ bool ApplicationClass::RenderGraphics()
 	m_Terrain->Render(m_Direct3D->GetDeviceContext());
 
 	// Render the terrain using the terrain shader.
-	result = m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-									 m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetGrassTexture(),
-										m_Terrain->GetSlopeTexture(), m_Terrain->GetRockTexture());
-	if(!result)
+	result = m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetGrassTexture(),
+		m_Terrain->GetSlopeTexture(), m_Terrain->GetRockTexture());
+	if (!result)
 	{
 		return false;
 	}
@@ -642,8 +799,8 @@ bool ApplicationClass::RenderGraphics()
 		return false;
 	}
 
-	result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_Racetrack->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-									m_Racetrack->GetTexture()->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+	result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_Racetrack->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_Racetrack->GetTexture()->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
 	if (!result)
 	{
 		return false;
@@ -652,47 +809,11 @@ bool ApplicationClass::RenderGraphics()
 	m_PlayerCarModel->Render(m_Direct3D->GetDeviceContext());
 
 	result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_PlayerCarModel->GetIndexCount(), m_PlayerCarModel->GetWorldMatrix(), viewMatrix, projectionMatrix,
-									m_PlayerCarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+		m_PlayerCarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
 	if (!result)
 	{
 		return false;
 	}
-
-	// Turn off the Z buffer to begin all 2D rendering.
-	m_Direct3D->TurnZBufferOff();
-
-	// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 300, 300);
-	if (!result)
-	{
-		return false;
-	}
-
-	// Render the bitmap with the texture shader.
-	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_Bitmap->GetTexture());
-	if (!result)
-	{
-		return false;
-	}
-
-	// Turn on the alpha blending before rendering the text.
-	m_Direct3D->TurnOnAlphaBlending();
-
-	// Render the text user interface elements.
-	result = m_Text->Render(m_Direct3D->GetDeviceContext(), m_FontShader, worldMatrix, orthoMatrix);
-	if(!result)
-	{
-		return false;
-	}
-
-	// Turn off alpha blending after rendering the text.
-	m_Direct3D->TurnOffAlphaBlending();
-
-	// Turn the Z buffer back on now that all 2D rendering has completed.
-	m_Direct3D->TurnZBufferOn();
-
-	// Present the rendered scene to the screen.
-	m_Direct3D->EndScene();
 
 	return true;
 }
