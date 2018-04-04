@@ -15,6 +15,8 @@
 #include <vector>
 #include "d3dclass.h"
 #include "modelclass.h"
+#include "textclass.h"
+#include "d3dclass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: Car
@@ -40,19 +42,25 @@ public:
 	Car();
 	Car(const Car&);
 	~Car();
-	bool Initialize(char* modelFilename, WCHAR* textureFilename, ModelClass* &model_in, ID3D11Device* device);
+	bool Initialize(char* modelFilename, WCHAR* textureFilename, ModelClass* &model_in, ID3D11Device* device, D3DXVECTOR3 startingDirection, TextClass* text_in, ID3D11DeviceContext* deviceContext_in);
 	void Shutdown();
 	void Frame(float deltaTime);
+	void OpponentFrame(float deltaTime);
+	void SetRacingLine(std::vector<D3DXVECTOR3> racingLine);
 
 	void Accelerate(bool);
 	void BreakReverse(bool);
 	void TurnLeft(bool);
 	void TurnRight(bool);
-	void SetPosition(D3DXVECTOR3 position_in, float angle_in);
+	void SetPosition(D3DXVECTOR3 position_in);
 	D3DXVECTOR3 GetForwardVector();
 	D3DXVECTOR3 GetPosition();
 
 	ModelClass* m_Model;
+	TextClass* m_Text;
+	ID3D11DeviceContext* deviceContext;
+
+	D3DXVECTOR3 debug[2];
 
 private:
 	//Useful vectors for determining positions
@@ -62,6 +70,14 @@ private:
 	D3DXVECTOR3 forwardVectorNormalized;
 	D3DXVECTOR3 rightVector;
 	D3DXVECTOR3 upVector;
+
+	std::vector<D3DXVECTOR3> m_RacingLine;
+	float DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 rightCheck, D3DXVECTOR3 leftCheck);
+	D3DXVECTOR3 CalculateLine(D3DXVECTOR3 point1, D3DXVECTOR3 point2);
+	D3DXVECTOR3 FindIntersectionPoint(D3DXVECTOR3 line1, D3DXVECTOR3 line2);
+	int checkPoint = 0;
+	float integral = 0.0f;
+	float previousError = 0.0f;
 
 	//Velocity, friction, steering etc...
 	D3DXVECTOR3 velocity;
@@ -90,7 +106,7 @@ private:
 
 	//Position of model for graphics & game
 	D3DXVECTOR3 position;
-	float graphicsAngle;
+	float angleOffset;
 
 	//Booleans for user input
 	bool isAccelerating;

@@ -621,22 +621,15 @@ bool TextClass::SetCameraPosition(float posX, float posY, float posZ, ID3D11Devi
 }
 
 
-bool TextClass::SetCameraRotation(float rotX, float rotY, float rotZ, ID3D11DeviceContext* deviceContext)
+bool TextClass::DisplayInfo(float info1, float info2, float info3, ID3D11DeviceContext* deviceContext)
 {
-	int rotationX, rotationY, rotationZ;
 	char tempString[16];
 	char dataString[16];
 	bool result;
 
-
-	// Convert the rotation from floating point to integer.
-	rotationX = (int)rotX;
-	rotationY = (int)rotY;
-	rotationZ = (int)rotZ;
-
-	// Setup the X rotation string.
-	_itoa_s(rotationX, tempString, 10);
-	strcpy_s(dataString, "rX: ");
+	// Update info 1
+	_itoa_s(info1, tempString, 10);
+	strcpy_s(dataString, "");
 	strcat_s(dataString, tempString);
 
 	result = UpdateSentence(m_sentence8, dataString, 10, 210, 0.0f, 1.0f, 0.0f, deviceContext);
@@ -645,9 +638,9 @@ bool TextClass::SetCameraRotation(float rotX, float rotY, float rotZ, ID3D11Devi
 		return false;
 	}
 
-	// Setup the Y rotation string.
-	_itoa_s(rotationY, tempString, 10);
-	strcpy_s(dataString, "rY: ");
+	// Update info 2
+	_itoa_s(info2, tempString, 10);
+	strcpy_s(dataString, "");
 	strcat_s(dataString, tempString);
 
 	result = UpdateSentence(m_sentence9, dataString, 10, 230, 0.0f, 1.0f, 0.0f, deviceContext);
@@ -656,9 +649,9 @@ bool TextClass::SetCameraRotation(float rotX, float rotY, float rotZ, ID3D11Devi
 		return false;
 	}
 
-	// Setup the Z rotation string.
-	_itoa_s(rotationZ, tempString, 10);
-	strcpy_s(dataString, "rZ: ");
+	// Update info 3
+	_itoa_s(info3, tempString, 10);
+	strcpy_s(dataString, "");
 	strcat_s(dataString, tempString);
 
 	result = UpdateSentence(m_sentence10, dataString, 10, 250, 0.0f, 1.0f, 0.0f, deviceContext);
@@ -666,6 +659,5 @@ bool TextClass::SetCameraRotation(float rotX, float rotY, float rotZ, ID3D11Devi
 	{
 		return false;
 	}
-
 	return true;
 }

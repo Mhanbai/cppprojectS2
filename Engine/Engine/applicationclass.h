@@ -8,7 +8,7 @@
 /////////////
 // GLOBALS //
 /////////////
-const bool FULL_SCREEN = true;
+const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
@@ -29,7 +29,6 @@ const float SCREEN_NEAR = 0.1f;
 #include "terrainshaderclass.h"
 #include "lightclass.h"
 #include "simplexnoisegenerator.h"
-#include "playerclass.h"
 #include "skydomeclass.h"
 #include "skydomeshaderclass.h"
 #include "trackclass.h"
@@ -74,16 +73,16 @@ private:
 	TextClass* m_Text;
 	TerrainShaderClass* m_TerrainShader;
 	LightClass* m_Light;
-	PlayerClass* m_Player;
 	SimplexNoiseGenerator m_NoiseGenerator;
 	SkyDomeClass* m_SkyDome;
 	SkyDomeShaderClass* m_SkyDomeShader;
 	TrackClass* m_Racetrack;
 	ModelShaderClass* m_ModelShader;
-	ModelClass* m_Model;
 	LightShaderClass* m_LightShader;
 	Car* m_PlayerCar;
 	ModelClass* m_PlayerCarModel;
+	Car* m_AICar;
+	ModelClass* m_AICarModel;
 	ScreenObjectClass* m_WingMirror;
 	TextureShaderClass* m_TextureShader;
 	D3DXMATRIX screenViewMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
@@ -92,6 +91,9 @@ private:
 		0.0f, -4.0f, 4.0f, 1.0f);
 	RenderTextureClass* m_RenderTexture;
 	ScreenObjectClass* m_RearView;
+
+	int debugCount = 2;
+	ModelClass* m_Model[2];
 
 	int m_screenWidth;
 	int m_screenHeight;

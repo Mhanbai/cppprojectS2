@@ -54,6 +54,10 @@ public:
 	int GetIndexCount();
 	TextureClass* GetTexture();
 
+	D3DXVECTOR3 playerStartPos;
+	std::vector<D3DXVECTOR3> opponentRacingLine;
+	D3DXVECTOR3 carsStartDirection;
+
 private:
 	int startNode = 0;
 	int endNode;

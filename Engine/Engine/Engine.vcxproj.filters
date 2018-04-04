@@ -66,9 +66,6 @@
     <ClCompile Include="simplexnoisegenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="playerclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="collisionclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -150,9 +147,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="simplexnoisegenerator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="playerclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="collisionclass.h">

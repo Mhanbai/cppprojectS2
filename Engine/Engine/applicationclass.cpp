@@ -17,7 +17,6 @@ ApplicationClass::ApplicationClass()
 	m_Text = 0;
 	m_TerrainShader = 0;
 	m_Light = 0;
-	m_Player = 0;
 	m_SkyDome = 0;
 	m_SkyDomeShader = 0;
 	m_Racetrack = 0;
@@ -27,6 +26,10 @@ ApplicationClass::ApplicationClass()
 	m_WingMirror = 0;
 	m_RenderTexture = 0;
 	m_RearView = 0;
+	m_PlayerCar = 0;
+	m_PlayerCarModel = 0;
+	m_AICar = 0;
+	m_AICarModel = 0;
 }
 
 
@@ -116,36 +119,11 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Set the initial position of the camera.
-	cameraX = m_Racetrack->trackPoints[0].x;
-	cameraY = m_Racetrack->trackPoints[0].y;
-	cameraZ = m_Racetrack->trackPoints[0].z;
+	cameraX = m_Racetrack->trackPoints[1].x;
+	cameraY = m_Racetrack->trackPoints[1].y;
+	cameraZ = m_Racetrack->trackPoints[1].z;
 
 	m_Camera->SetPosition(-cameraX, -cameraY, -cameraZ);
-
-	m_Player = new PlayerClass;
-	if (!m_Player)
-	{
-		return false;
-	}
-
-	m_Player->Initialize(m_Terrain);
-
-	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
-	m_PlayerCar = new Car;
-	if (!m_PlayerCar)
-	{
-		return false;
-	}
-
-	// Initialize the input object.
-	result = m_PlayerCar->Initialize("data/c_main.txt", L"data/cars.dds", m_PlayerCarModel, m_Direct3D->GetDevice());
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
-		return false;
-	}
-
-	m_PlayerCar->SetPosition(m_Racetrack->trackPoints[0], 0.0f);
 
 	// Create the timer object.
 	m_Timer = new TimerClass;
@@ -256,6 +234,58 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		MessageBox(hwnd, L"Could not initialize the text object.", L"Error", MB_OK);
 		return false;
 	}
+
+	for (int i = 0; i < debugCount; i++) {
+		// Create the debug model objects. 
+		m_Model[i] = new ModelClass;
+		if (!m_Model[i])
+		{
+			return false;
+		}
+
+		// Initialize the input object.
+		result = m_Model[i]->Initialize(m_Direct3D->GetDevice(), "data/cube.txt", L"data/cars.dds");
+		if (!result)
+		{
+			MessageBox(hwnd, L"Could not initialize the debug model object.", L"Error", MB_OK);
+			return false;
+		}
+	}
+
+	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
+	m_PlayerCar = new Car;
+	if (!m_PlayerCar)
+	{
+		return false;
+	}
+
+	// Initialize the input object.
+	result = m_PlayerCar->Initialize("data/c_main.txt", L"data/cars.dds", m_PlayerCarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos);
+
+	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
+	m_AICar = new Car;
+	if (!m_AICar)
+	{
+		return false;
+	}
+
+	// Initialize the input object.
+	result = m_AICar->Initialize("data/c_main.txt", L"data/cars.dds", m_AICarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_AICar->SetPosition(m_Racetrack->opponentRacingLine[1]);
+	m_AICar->SetRacingLine(m_Racetrack->opponentRacingLine);
 
 	// Retrieve the video card information.
 	m_Direct3D->GetVideoCardInfo(videoCard, videoMemory);
@@ -375,6 +405,20 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 void ApplicationClass::Shutdown()
 {
+	if (m_AICar)
+	{
+		m_AICar->Shutdown();
+		delete m_AICar;
+		m_AICar = 0;
+	}
+
+	if (m_PlayerCar)
+	{
+		m_PlayerCar->Shutdown();
+		delete m_PlayerCar;
+		m_PlayerCar = 0;
+	}
+
 	// Release the debug window object.///////////////////////////////////////////////////////////////////////////////////////////////////////
 	if (m_RearView)
 	{
@@ -523,16 +567,6 @@ void ApplicationClass::Shutdown()
 		m_Input = 0;
 	}
 
-	// Release the player object.
-	if (m_Player)
-	{
-		m_Player->Shutdown();
-		delete m_Player;
-		m_Player = 0;
-	}
-
-	//Shutdown for car
-
 	return;
 }
 
@@ -574,6 +608,7 @@ bool ApplicationClass::Frame()
 	}
 
 	m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
+	m_AICar->OpponentFrame(m_Timer->GetTime() / 1000);
 
 	// Do the frame input processing.
 	result = HandleInput(m_Timer->GetTime() / 1000);
@@ -813,6 +848,31 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 	if (!result)
 	{
 		return false;
+	}
+
+	m_AICarModel->Render(m_Direct3D->GetDeviceContext());
+
+	result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_AICarModel->GetIndexCount(), m_AICarModel->GetWorldMatrix(), viewMatrix, projectionMatrix,
+		m_AICarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+	if (!result)
+	{
+		return false;
+	}
+
+	for (int i = 0; i < 2; i++) {
+		worldMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
+								0.0f, 1.0f, 0.0f, 0.0f,
+								0.0f, 0.0f, 1.0f, 0.0f,
+								m_AICar->debug[i].x, m_AICar->debug[i].y, m_AICar->debug[i].z, 1.0f);
+
+		m_Model[i]->Render(m_Direct3D->GetDeviceContext());
+
+		result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_Model[i]->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+			m_AICarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+		if (!result)
+		{
+			return false;
+		}
 	}
 
 	return true;

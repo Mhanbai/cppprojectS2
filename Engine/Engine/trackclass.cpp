@@ -179,6 +179,17 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 		D3DXVECTOR3 right = D3DXVECTOR3(vectorToNextPoint.z, vectorToNextPoint.y, -vectorToNextPoint.x);
 		D3DXVECTOR3 left = -right;
 
+		//Find starting position for player and starting direction
+		if (i == 0) {
+			playerStartPos = trackPoints[1] + left * 2.0f;
+		}
+		else if (i == 1) {
+			carsStartDirection = vectorToNextPoint;
+		}
+
+		//Find racing line for opponent
+		opponentRacingLine.push_back(trackPoints[i] + right * 2.0f);
+
 		//Find indices for track
 		D3DXVECTOR3 bottomRight = trackPoints[i] + (right * ROAD_WIDTH);
 		D3DXVECTOR3 topRight = bottomRight + (left * 0.5f) + D3DXVECTOR3(0.0f, ROAD_HEIGHT, 0.0f);

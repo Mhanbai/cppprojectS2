@@ -44,7 +44,7 @@ public:
 	bool SetFps(int, ID3D11DeviceContext*);
 	bool SetCpu(int, ID3D11DeviceContext*);
 	bool SetCameraPosition(float, float, float, ID3D11DeviceContext*);
-	bool SetCameraRotation(float, float, float, ID3D11DeviceContext*);
+	bool DisplayInfo (float info1, float info2, float info3, ID3D11DeviceContext* deviceContext);
 
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);

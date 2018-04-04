@@ -96,7 +96,6 @@
     <ClCompile Include="lightshaderclass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modelclass.cpp" />
-    <ClCompile Include="playerclass.cpp" />
     <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="simplexnoisegenerator.cpp" />
     <ClCompile Include="skydomeclass.cpp" />
@@ -126,7 +125,6 @@
     <ClInclude Include="lightclass.h" />
     <ClInclude Include="lightshaderclass.h" />
     <ClInclude Include="modelclass.h" />
-    <ClInclude Include="playerclass.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="simplexnoisegenerator.h" />
     <ClInclude Include="skydomeclass.h" />
