@@ -645,7 +645,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 	keyDown = m_Input->IsDownPressed();
 	m_PlayerCar->BreakReverse(keyDown);
 
-	m_Camera->Follow(m_PlayerCar->GetPosition(), m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
+	m_Camera->Follow(m_AICar->GetPosition(), m_AICar->GetForwardVector(), m_Timer->GetTime() / 1000);
 
 	D3DXVECTOR3 camPos = -m_Camera->GetPosition();
 

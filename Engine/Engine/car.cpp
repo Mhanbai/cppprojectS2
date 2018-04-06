@@ -164,16 +164,36 @@ void Car::Frame(float deltaTime)
 void Car::OpponentFrame(float deltaTime)
 {
 	accelerationInput = 1.0f;
+	D3DXVECTOR3 tangentLine = D3DXVECTOR3(forwardVector.z, forwardVector.y, -forwardVector.x);
 
-	//Find distance from racing line
+	for (int i = 0; i < m_RacingLine.size(); i++) {
+		node = i;
+		if (IsLeft(position, position + tangentLine, m_RacingLine[i])) {
+			D3DXVECTOR3 distance = m_RacingLine[i] - position;
+			if (D3DXVec3Length(&distance) < 8.0f) {
+				D3DXVECTOR3 idealForwardVector = m_RacingLine[i] - position;
+				D3DXVec3Normalize(&idealForwardVector, &idealForwardVector);
+
+				steerAngle = atan2(idealForwardVector.x, idealForwardVector.z) - atan2(forwardVector.x, forwardVector.z);
+				break;
+			}
+		}
+
+		if (i == m_RacingLine.size() - 1) {
+			steerAngle = 0.0f;
+			break;
+		}
+	}
+
+	debug[0] = m_RacingLine[node];
+	debug[1] = position + tangentLine;
+
+	/*//Find distance from racing line
 	////Calculate vectors from left and right of car
-	D3DXVECTOR3 right = D3DXVECTOR3(forwardVector.z, forwardVector.y, -forwardVector.x);
-	D3DXVECTOR3 left = -right;
-	right = position + (right * 20.0f);
-	left = position + (left * 20.0f);
+	D3DXVECTOR3 tangentLine = D3DXVECTOR3(forwardVector.z, forwardVector.y, -forwardVector.x);
+	tangentLine = position + tangentLine;
 	////Find distance to racing line
-	float distance = DistanceFromLine(position, right, left);
-	//m_Text->DisplayInfo(distance, 0.0f, 0.0f, deviceContext);
+	float distance = DistanceFromLine(position, tangentLine);
 
 	//Calculate error
 	float error = distance;
@@ -190,21 +210,24 @@ void Car::OpponentFrame(float deltaTime)
 	}
 
 	//Calculate derivative
-	float derivative = ((error - previousError) / deltaTime);
+	float derivative = ((error - previousError) * deltaTime);
 	previousError = error;
 
 	//Steering angle equals error + inegral + derivative clamped between 1 and -1
-	steerAngle = error + integral + derivative;
+	steerAngle = (error * kp) + (integral * ki) + (derivative * kd);
 
 	if (steerAngle < -1.0f) {
 		steerAngle = -1.0f;
 	}
 	else if (steerAngle > 1.0f) {
 		steerAngle = 1.0f;
-	}
+	}*/
 
 	//The speed of the car is equivalent to the magnitude of the velocity vector
 	speed = (D3DXVec3Length(&velocity));
+
+	//Divide the angle by speed divided by 100. This stops the car from being able to turn on the spot
+	steerAngle = steerAngle * (speed / topSpeed);
 
 	//This handles both gear changing and car noise
 	if (speed < (gearRange)) {
@@ -256,6 +279,8 @@ void Car::OpponentFrame(float deltaTime)
 
 	//Set the position of the cars model
 	m_Model->Transform(position, steerAngle);
+
+	m_Text->DisplayInfo(steerAngle, steerAngle, steerAngle, deviceContext);
 }
 
 void Car::SetRacingLine(std::vector<D3DXVECTOR3> racingLine)
@@ -319,41 +344,39 @@ D3DXVECTOR3 Car::GetPosition()
 	return position;
 }
 
-float Car::DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 rightCheck, D3DXVECTOR3 leftCheck)
+/*float Car::DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 horizontalLine)
 {
 	//Find A, B and C for lines
-	D3DXVECTOR3 rightLine = CalculateLine(position, rightCheck);
-	D3DXVECTOR3 leftLine = CalculateLine(position, leftCheck);
+	D3DXVECTOR3 horLine = CalculateLine(position, horizontalLine);
 
 	//Check against each unpassed point on racing line
-	for (int i = checkPoint; i < m_RacingLine.size() - 1; i++) {
-		//Update checkpoint so passed nodes are disregarded
-		checkPoint = i;
-
+	for (int i = 0; i < m_RacingLine.size() - 1; i++) {
 		//Check against 2 current nodes
-		D3DXVECTOR3 trackPoint1 = m_RacingLine[checkPoint];
-		D3DXVECTOR3 trackPoint2 = m_RacingLine[checkPoint + 1];
+		D3DXVECTOR3 trackPoint1 = m_RacingLine[i];
+		D3DXVECTOR3 trackPoint2 = m_RacingLine[i + 1];
 
 		//Find A, B and C for current 2 trackpoints
 		D3DXVECTOR3 trackLine = CalculateLine(trackPoint1, trackPoint2);
 
 		//Find where car lines intersect with track line
-		D3DXVECTOR3 rightIntersectionPoint = FindIntersectionPoint(rightLine, trackLine);
-		D3DXVECTOR3 leftIntersectionPoint = FindIntersectionPoint(leftLine, trackLine);
+		D3DXVECTOR3 intersectionPoint = FindIntersectionPoint(horLine, trackLine);
 
-		debug[0] = rightIntersectionPoint;
-		debug[1] = leftIntersectionPoint;
+		m_Text->DisplayInfo(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z, deviceContext);
+		debug[0] = intersectionPoint;
 
 		//If intersection point is on either right or left line, return distance to point
-		if ((rightIntersectionPoint.x >= trackPoint1.x) && (rightIntersectionPoint.x <= trackPoint2.x) &&
-			(rightIntersectionPoint.z >= trackPoint1.z) && (rightIntersectionPoint.z <= trackPoint2.z)) {
-			D3DXVECTOR3 vectorFromLine = rightIntersectionPoint - position;
-			return D3DXVec3Length(&vectorFromLine);
+		if ((intersectionPoint.x == position.x) && (intersectionPoint.z == position.z)) {
+			return 0.0f;
 		}
-		else if ((leftIntersectionPoint.x >= trackPoint1.x) && (leftIntersectionPoint.x <= trackPoint2.x) &&
-			(leftIntersectionPoint.z >= trackPoint1.z) && (leftIntersectionPoint.z <= trackPoint2.z)) {
-			D3DXVECTOR3 vectorFromLine = leftIntersectionPoint - position;
-			return -D3DXVec3Length(&vectorFromLine);
+		else if ((intersectionPoint.x >= trackPoint2.x) && (intersectionPoint.x <= trackPoint1.x) &&
+			(intersectionPoint.z >= trackPoint2.z) && (intersectionPoint.z <= trackPoint1.z)) {
+			if (GetLateralPosition(intersectionPoint, position, position + (forwardVector))) {
+				D3DXVECTOR3 vectorFromLine = intersectionPoint - position;
+				return -D3DXVec3Length(&vectorFromLine);
+			} else if (GetLateralPosition(intersectionPoint, position, position + (forwardVector))) {
+				D3DXVECTOR3 vectorFromLine = intersectionPoint - position;
+				return D3DXVec3Length(&vectorFromLine);
+			}
 		}
 	}
 
@@ -379,16 +402,9 @@ D3DXVECTOR3 Car::FindIntersectionPoint(D3DXVECTOR3 line1, D3DXVECTOR3 line2)
 	float z = ((line1.x * line2.z) - (line2.x * line1.z)) / det;
 
 	return D3DXVECTOR3(x, 0.0f, z);
-}
+}*/
 
-bool Car::GetLateralPosition(D3DXVECTOR3 toTest, D3DXVECTOR3 linePoint1, D3DXVECTOR3 linePoint2)
+bool Car::IsLeft(D3DXVECTOR3 pointA, D3DXVECTOR3 pointB, D3DXVECTOR3 pointC)
 {
-	//This calculation returns a negative number if 'toTest' is to the left of the two line points, and a positive number or zero if it is to the right
-	float orientation = ((linePoint2.x - linePoint1.x) * (toTest.z - linePoint1.z)) - ((linePoint2.z - linePoint1.z) * (toTest.x - linePoint1.x));
-	if (orientation >= 0.0f) {
-		return true; //Point is to the right
-	}
-	else {
-		return false; //Point is to the left
-	}
+	return ((pointB.x - pointA.x)*(pointC.y - pointA.y) - (pointB.y - pointC.y*(pointC.x - pointA.x)) > 0);
 }

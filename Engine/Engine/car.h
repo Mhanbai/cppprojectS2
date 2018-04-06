@@ -72,12 +72,16 @@ private:
 	D3DXVECTOR3 upVector;
 
 	std::vector<D3DXVECTOR3> m_RacingLine;
-	float DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 rightCheck, D3DXVECTOR3 leftCheck);
+	int node = 0;
+	/*float DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 horizontalLine);
 	D3DXVECTOR3 CalculateLine(D3DXVECTOR3 point1, D3DXVECTOR3 point2);
 	D3DXVECTOR3 FindIntersectionPoint(D3DXVECTOR3 line1, D3DXVECTOR3 line2);
 	int checkPoint = 0;
 	float integral = 0.0f;
 	float previousError = 0.0f;
+	float kp = 0.06f;
+	float ki = 0.03f;
+	float kd = 0.03f;*/
 
 	//Velocity, friction, steering etc...
 	D3DXVECTOR3 velocity;
@@ -115,7 +119,7 @@ private:
 	bool isBreakReversing;
 
 	//Functions, lists and variables used to help with checking the car is on the track
-	bool GetLateralPosition(D3DXVECTOR3 toTest, D3DXVECTOR3 linePoint1, D3DXVECTOR3 linePoint2);
+	bool IsLeft(D3DXVECTOR3 pointA, D3DXVECTOR3 pointB, D3DXVECTOR3 pointC);
 };
 
 #endif

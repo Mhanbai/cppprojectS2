@@ -623,12 +623,12 @@ bool TextClass::SetCameraPosition(float posX, float posY, float posZ, ID3D11Devi
 
 bool TextClass::DisplayInfo(float info1, float info2, float info3, ID3D11DeviceContext* deviceContext)
 {
-	char tempString[16];
-	char dataString[16];
+	char tempString[32];
+	char dataString[32];
 	bool result;
 
 	// Update info 1
-	_itoa_s(info1, tempString, 10);
+	_itoa_s(info1, tempString, 20);
 	strcpy_s(dataString, "");
 	strcat_s(dataString, tempString);
 
@@ -639,7 +639,7 @@ bool TextClass::DisplayInfo(float info1, float info2, float info3, ID3D11DeviceC
 	}
 
 	// Update info 2
-	_itoa_s(info2, tempString, 10);
+	_itoa_s(info2, tempString, 20);
 	strcpy_s(dataString, "");
 	strcat_s(dataString, tempString);
 
@@ -650,7 +650,7 @@ bool TextClass::DisplayInfo(float info1, float info2, float info3, ID3D11DeviceC
 	}
 
 	// Update info 3
-	_itoa_s(info3, tempString, 10);
+	_itoa_s(info3, tempString, 20);
 	strcpy_s(dataString, "");
 	strcat_s(dataString, tempString);
 
