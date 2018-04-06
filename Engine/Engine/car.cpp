@@ -163,7 +163,7 @@ void Car::Frame(float deltaTime)
 
 void Car::OpponentFrame(float deltaTime)
 {
-	Accelerate(true);
+	accelerationInput = 1.0f;
 
 	//Find distance from racing line
 	////Calculate vectors from left and right of car
@@ -174,8 +174,6 @@ void Car::OpponentFrame(float deltaTime)
 	////Find distance to racing line
 	float distance = DistanceFromLine(position, right, left);
 	//m_Text->DisplayInfo(distance, 0.0f, 0.0f, deviceContext);
-
-	Frame(deltaTime);
 
 	//Calculate error
 	float error = distance;
@@ -198,7 +196,12 @@ void Car::OpponentFrame(float deltaTime)
 	//Steering angle equals error + inegral + derivative clamped between 1 and -1
 	steerAngle = error + integral + derivative;
 
-	m_Text->DisplayInfo(steerAngle, 0.0f, 0.0f, deviceContext);
+	if (steerAngle < -1.0f) {
+		steerAngle = -1.0f;
+	}
+	else if (steerAngle > 1.0f) {
+		steerAngle = 1.0f;
+	}
 
 	//The speed of the car is equivalent to the magnitude of the velocity vector
 	speed = (D3DXVec3Length(&velocity));
@@ -338,14 +341,17 @@ float Car::DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 rightCheck, D3DXVE
 		D3DXVECTOR3 rightIntersectionPoint = FindIntersectionPoint(rightLine, trackLine);
 		D3DXVECTOR3 leftIntersectionPoint = FindIntersectionPoint(leftLine, trackLine);
 
+		debug[0] = rightIntersectionPoint;
+		debug[1] = leftIntersectionPoint;
+
 		//If intersection point is on either right or left line, return distance to point
-		if ((rightIntersectionPoint.x >= position.x) && (rightIntersectionPoint.x <= rightCheck.x) &&
-			(rightIntersectionPoint.z >= position.z) && (rightIntersectionPoint.z <= rightCheck.z)) {
+		if ((rightIntersectionPoint.x >= trackPoint1.x) && (rightIntersectionPoint.x <= trackPoint2.x) &&
+			(rightIntersectionPoint.z >= trackPoint1.z) && (rightIntersectionPoint.z <= trackPoint2.z)) {
 			D3DXVECTOR3 vectorFromLine = rightIntersectionPoint - position;
 			return D3DXVec3Length(&vectorFromLine);
 		}
-		else if ((leftIntersectionPoint.x >= position.x) && (leftIntersectionPoint.x <= leftCheck.x) &&
-			(leftIntersectionPoint.z >= position.z) && (leftIntersectionPoint.z <= leftCheck.z)) {
+		else if ((leftIntersectionPoint.x >= trackPoint1.x) && (leftIntersectionPoint.x <= trackPoint2.x) &&
+			(leftIntersectionPoint.z >= trackPoint1.z) && (leftIntersectionPoint.z <= trackPoint2.z)) {
 			D3DXVECTOR3 vectorFromLine = leftIntersectionPoint - position;
 			return -D3DXVec3Length(&vectorFromLine);
 		}
