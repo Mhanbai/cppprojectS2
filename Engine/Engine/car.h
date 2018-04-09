@@ -67,6 +67,7 @@ private:
 	D3DXVECTOR3 startingForwardVector;
 	D3DXVECTOR3 forwardVector;
 	D3DXVECTOR4 nextForwardVector;
+	D3DXVECTOR3 oppNextForwardVector;
 	D3DXVECTOR3 forwardVectorNormalized;
 	D3DXVECTOR3 rightVector;
 	D3DXVECTOR3 upVector;

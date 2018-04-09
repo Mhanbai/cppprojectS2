@@ -88,8 +88,6 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator
 		return false;
 	}
 
-	m_Collision = new CollisionClass;
-
 	// Initialize the vertex and index buffer that hold the geometry for the terrain.
 	result = InitializeBuffers(device);
 	if(!result)
@@ -757,9 +755,22 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 		}
 	}
 
-	for (int c = 0; c < m_vertexCount; c += 3) {
-		m_Collision->AddToCollisionChecklist(CollisionClass::Triangle(vertices[c].position, vertices[c + 1].position, vertices[c + 2].position));
+	/*for (int i = 0; i < m_vertexCount; i++) {
+		float X = vertices[i].position.x;
+		float Z = vertices[i].position.z;
+
+		if ((X < bottomLeft.x) && (Z < bottomLeft.z)) {
+			bottomLeft = vertices[i].position;
+		}
+		if ((X > topRight.x) && (Z > topRight.z)) {
+			topRight = vertices[i].position;
+		}
 	}
+
+	topRight = D3DXVECTOR3(topRight.x, 0.0f, topRight.z);
+	bottomLeft = D3DXVECTOR3(bottomLeft.x, 0.0f, bottomLeft.z);
+	topLeft = D3DXVECTOR3(bottomLeft.x, 0.0f, topRight.z);
+	bottomRight = D3DXVECTOR3(topRight.x, 0.0f, bottomLeft.z);*/
 
 	// Set up the description of the static vertex buffer.
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;

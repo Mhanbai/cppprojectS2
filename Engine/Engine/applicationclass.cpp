@@ -30,6 +30,7 @@ ApplicationClass::ApplicationClass()
 	m_PlayerCarModel = 0;
 	m_AICar = 0;
 	m_AICarModel = 0;
+	m_Collision = 0;
 }
 
 
@@ -396,6 +397,18 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_Collision = new CollisionClass;
+	if (!m_Collision) {
+		return false;
+	}
+
+	result = m_Collision->Initialize();
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the collision object.", L"Error", MB_OK);
 		return false;
 	}
 

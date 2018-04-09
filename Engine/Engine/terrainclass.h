@@ -18,7 +18,6 @@
 ///////////////////////
 #include "textureclass.h"
 #include "simplexnoisegenerator.h"
-#include "collisionclass.h"
 
 /////////////
 // GLOBALS //
@@ -66,7 +65,10 @@ public:
 	ID3D11ShaderResourceView* GetRockTexture();
 
 	GeometryType* GetHeightMap();
-	CollisionClass* m_Collision;
+	/*D3DXVECTOR3 bottomLeft = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 bottomRight = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 topRight = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 topLeft = D3DXVECTOR3(0.0f, 0.0f, 0.0f);*/
 
 private:
 	bool CalculateNormals();

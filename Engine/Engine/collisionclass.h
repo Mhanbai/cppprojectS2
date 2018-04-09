@@ -40,6 +40,8 @@ public:
 	CollisionClass(const CollisionClass&);
 	~CollisionClass();
 
+	bool Initialize();
+
 	std::vector<Triangle> collisionChecklist;
 	void AddToCollisionChecklist(Triangle toAdd);
 };

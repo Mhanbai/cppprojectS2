@@ -39,6 +39,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "screenobjectclass.h"
 #include "textureshaderclass.h"
 #include "rendertextureclass.h"
+#include "collisionclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -91,6 +92,7 @@ private:
 		0.0f, -4.0f, 4.0f, 1.0f);
 	RenderTextureClass* m_RenderTexture;
 	ScreenObjectClass* m_RearView;
+	CollisionClass* m_Collision;
 
 	int debugCount = 2;
 	ModelClass* m_Model[2];
