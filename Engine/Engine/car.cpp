@@ -47,6 +47,7 @@ bool Car::Initialize(char* modelFilename, WCHAR* textureFilename, ModelClass* &m
 
 	startingForwardVector = startingDirection;
 	forwardVector = startingDirection;
+	previousForwardVector = startingDirection;
 
 	//Find starting direction for model
 	angleOffset = atan2(forwardVector.z, forwardVector.x) - atan2(-1.0f, 0.0f);
@@ -163,34 +164,25 @@ void Car::Frame(float deltaTime)
 
 void Car::OpponentFrame(float deltaTime)
 {
-	char n1Buffer[32];
-	sprintf_s(n1Buffer, "N1: X:%.0f Z:%.0f", m_RacingLine[currentNode - 1].x,  m_RacingLine[currentNode - 1].z);
-	m_Text->UpdateSentence(m_Text->m_sentence8, n1Buffer, 10.0f, 210.0f, 0.0f, 1.0f, 0.0f, deviceContext);
+	float pid;
+	float speed = 3.0f;
 
-	char n2Buffer[32];
-	sprintf_s(n2Buffer, "N1: X:%.0f Z:%.0f", m_RacingLine[currentNode].x, m_RacingLine[currentNode].z);
-	m_Text->UpdateSentence(m_Text->m_sentence9, n2Buffer, 10.0f, 230.0f, 0.0f, 1.0f, 0.0f, deviceContext);
+	D3DXVec3Subtract(&forwardVector, &m_RacingLine[currentNode + 1], &m_RacingLine[currentNode]);
 
-	char n3Buffer[32];
-	sprintf_s(n3Buffer, "N1: X:%.0f Z:%.0f", m_RacingLine[currentNode + 1].x, m_RacingLine[currentNode + 1].z);
-	m_Text->UpdateSentence(m_Text->m_sentence10, n3Buffer, 10.0f, 250.0f, 0.0f, 1.0f, 0.0f, deviceContext);
+	position += forwardVector * deltaTime * speed;
+	emptyNode += forwardVector * deltaTime * speed;
 
-	position -= m_RacingLine[currentNode] * 0.01f * deltaTime;
-	m_Model->Transform(position, 0.0f);
-
-	if (position == m_RacingLine[currentNode + 1]){
+	if (D3DXVec3Length(&emptyNode) > D3DXVec3Length(&forwardVector)) {
 		currentNode++;
+		emptyNode = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	}
-
-	/*accelerationInput = 1.0f;
-	steerFactor = 1.1f;
 
 	//Find distance from racing line
 	////Calculate vectors from left and right of car
+	D3DXVec3Normalize(&forwardVector, &forwardVector);
 	D3DXVECTOR3 tangentLine = D3DXVECTOR3(forwardVector.z, forwardVector.y, -forwardVector.x);
-	tangentLine = position + tangentLine;
 	////Find distance to racing line
-	float distance = DistanceFromLine(position, tangentLine);
+	float distance = DistanceFromLine(position, position + tangentLine, m_RacingLine[currentNode], m_RacingLine[currentNode + 1]);
 
 	//Calculate error
 	float error = distance;
@@ -207,80 +199,18 @@ void Car::OpponentFrame(float deltaTime)
 	}
 
 	//Calculate derivative
-	float derivative = ((error - previousError) / deltaTime);
+	float derivative = ((error - previousError) * deltaTime);
 	previousError = error;
 
 	//Steering angle equals error + inegral + derivative clamped between 1 and -1
-	steerAngle = (error * kp) + (integral * ki) + (derivative * kd);
+	pid = (error * kp) + (integral * ki) + (derivative * kd);
 
-	if (steerAngle < -0.05f) {
-		steerAngle = -0.05f;
-	}
-	else if (steerAngle > 0.05f) {
-		steerAngle = 0.05f;
-	}
+	position += tangentLine * pid * speed * deltaTime;
 
-	//The speed of the car is equivalent to the magnitude of the velocity vector
-	speed = (D3DXVec3Length(&velocity));
+	angleDelta = atan2(forwardVector.z, forwardVector.x) - atan2(previousForwardVector.z, previousForwardVector.x);
+	previousForwardVector = forwardVector;
 
-	//Divide the angle by speed divided by 100. This stops the car from being able to turn on the spot
-	//steerAngle = steerAngle * (speed / topSpeed);
-
-	//This handles both gear changing and car noise
-	if (speed < (gearRange)) {
-		gear = 0.2f;
-	}
-	else if ((speed >= (gearRange)) && (speed < (gearRange * 2))) {
-		gear = 0.2f;
-	}
-	else if ((speed >= (gearRange * 2)) && (speed < (gearRange * 3))) {
-		gear = 0.2f;
-	}
-	else if ((speed >= (gearRange * 3)) && (speed < (gearRange * 4))) {
-		gear = 0.2f;
-	}
-	else {
-		gear = 0.2f;
-	}
-
-	//Controls the 'gear' i.e. the car moves at a speed relevant to how fast its already going
-	accelerationFactor = startAccelerationFactor + (speed * gear);
-
-	//Calculate new forward vector
-	D3DXMatrixRotationY(&rotation, steerAngle); //Create a matrix for rotation around Y from angle of steering
-	D3DXVec3Transform(&nextForwardVector, &forwardVector, &rotation); //Transform forward vector by rotation matrix
-	forwardVector = D3DXVECTOR3(nextForwardVector.x, nextForwardVector.y, nextForwardVector.z); //As Vec3Transform returns a Vector4, put these values into a Vector3
-
-	//Calculate new right vector from forward vector
-	D3DXVec3Normalize(&forwardVectorNormalized, &forwardVector);
-	D3DXVec3Cross(&rightVector, &forwardVectorNormalized, &upVector);
-
-	//Lateral friction stops the car from drifting as if it is on ice
-	lateralVelocity = rightVector * D3DXVec3Dot(&velocity, &rightVector);
-	lateralFriction = -lateralVelocity * lateralFrictionFactor;
-
-	//Acceleration is equal to direction car is facing multiplied by the rate of acceleration multiplied by input
-	acceleration = forwardVector * accelerationInput * accelerationFactor;
-
-	//Friction is equal to the reverse of velocity multiplied by how frictiony the surface is
-	friction = -velocity * frictionFactor;
-	velocity += (friction + lateralFriction) * deltaTime;
-
-	//Increase velocity by acceleration
-	if (speed < topSpeed) {
-		velocity += acceleration * deltaTime;
-	}
-
-	//Apply velocity to car position
-	position = position + velocity * deltaTime;
-
-	//Set the position of the cars model
-	m_Model->Transform(position, steerAngle);
-
-	char steerAngleBuffer[32];
-	sprintf_s(steerAngleBuffer, "Steer: %.3f", steerAngle);
-
-	m_Text->UpdateSentence(m_Text->m_sentence8, steerAngleBuffer, 10.0f, 210.0f, 0.0f, 1.0f, 0.0f, deviceContext);*/
+	m_Model->Transform(position, -angleDelta);
 }
 
 void Car::SetRacingLine(std::vector<D3DXVECTOR3> racingLine)
@@ -344,42 +274,25 @@ D3DXVECTOR3 Car::GetPosition()
 	return position;
 }
 
-/*float Car::DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 horizontalLine)
+float Car::DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 horizontalLine, D3DXVECTOR3 prevNode, D3DXVECTOR3 nextNode)
 {
 	//Find A, B and C for lines
 	D3DXVECTOR3 horLine = CalculateLine(position, horizontalLine);
 
-	//Check against each unpassed point on racing line
-	for (int i = 0; i < m_RacingLine.size() - 1; i++) {
-		//Check against 2 current nodes
-		D3DXVECTOR3 trackPoint1 = m_RacingLine[i];
-		D3DXVECTOR3 trackPoint2 = m_RacingLine[i + 1];
+	//Find A, B and C for current 2 trackpoints
+	D3DXVECTOR3 trackLine = CalculateLine(prevNode, nextNode);
 
-		//Find A, B and C for current 2 trackpoints
-		D3DXVECTOR3 trackLine = CalculateLine(trackPoint1, trackPoint2);
+	//Find where car lines intersect with track line
+	D3DXVECTOR3 intersectionPoint = FindIntersectionPoint(horLine, trackLine);
 
-		//Find where car lines intersect with track line
-		D3DXVECTOR3 intersectionPoint = FindIntersectionPoint(horLine, trackLine);
-
-		//If intersection point is on either right or left line, return distance to point
-		if ((intersectionPoint.x == position.x) && (intersectionPoint.z == position.z)) {
-			return 0.0f;
-		}
-		else if ((intersectionPoint.x >= trackPoint2.x) && (intersectionPoint.x <= trackPoint1.x) &&
-			(intersectionPoint.z >= trackPoint2.z) && (intersectionPoint.z <= trackPoint1.z)) {
-			if (IsLeft(intersectionPoint, position, position + (forwardVector))) {
-				D3DXVECTOR3 vectorFromLine = intersectionPoint - position;
-				return -D3DXVec3Length(&vectorFromLine);
-			} else {
-				D3DXVECTOR3 vectorFromLine = intersectionPoint - position;
-				return D3DXVec3Length(&vectorFromLine);
-			}
-		}
+	//If intersection point is on either right or left line, return distance to point
+	if (IsLeft(intersectionPoint, position, position + forwardVector)) {
+		D3DXVECTOR3 vectorFromLine = intersectionPoint - position;
+		return -D3DXVec3Length(&vectorFromLine);
+	} else {
+		D3DXVECTOR3 vectorFromLine = intersectionPoint - position;
+		return D3DXVec3Length(&vectorFromLine);
 	}
-
-	//If no points on the track intersect, reset checkpoint in case a problem has occurred and return 0
-	checkPoint = 0;
-	return 0.0f;
 }
 
 D3DXVECTOR3 Car::CalculateLine(D3DXVECTOR3 point1, D3DXVECTOR3 point2)
@@ -399,7 +312,7 @@ D3DXVECTOR3 Car::FindIntersectionPoint(D3DXVECTOR3 line1, D3DXVECTOR3 line2)
 	float z = ((line1.x * line2.z) - (line2.x * line1.z)) / det;
 
 	return D3DXVECTOR3(x, 0.0f, z);
-}*/
+}
 
 bool Car::IsLeft(D3DXVECTOR3 pointA, D3DXVECTOR3 pointB, D3DXVECTOR3 pointC)
 {
