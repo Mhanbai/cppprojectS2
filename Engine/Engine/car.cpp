@@ -163,32 +163,29 @@ void Car::Frame(float deltaTime)
 
 void Car::OpponentFrame(float deltaTime)
 {
-	accelerationInput = 1.0f;
-	D3DXVECTOR3 tangentLine = D3DXVECTOR3(forwardVector.z, forwardVector.y, -forwardVector.x);
+	char n1Buffer[32];
+	sprintf_s(n1Buffer, "N1: X:%.0f Z:%.0f", m_RacingLine[currentNode - 1].x,  m_RacingLine[currentNode - 1].z);
+	m_Text->UpdateSentence(m_Text->m_sentence8, n1Buffer, 10.0f, 210.0f, 0.0f, 1.0f, 0.0f, deviceContext);
 
-	for (int i = 0; i < m_RacingLine.size(); i++) {
-		node = i;
-		if (IsLeft(position, position + tangentLine, m_RacingLine[i])) {
-			D3DXVECTOR3 distance = m_RacingLine[i] - position;
-			if (D3DXVec3Length(&distance) < 8.0f) {
-				D3DXVECTOR3 idealForwardVector = m_RacingLine[i] - position;
-				D3DXVec3Normalize(&idealForwardVector, &idealForwardVector);
+	char n2Buffer[32];
+	sprintf_s(n2Buffer, "N1: X:%.0f Z:%.0f", m_RacingLine[currentNode].x, m_RacingLine[currentNode].z);
+	m_Text->UpdateSentence(m_Text->m_sentence9, n2Buffer, 10.0f, 230.0f, 0.0f, 1.0f, 0.0f, deviceContext);
 
-				steerAngle = atan2(idealForwardVector.x, idealForwardVector.z) - atan2(forwardVector.x, forwardVector.z);
-				break;
-			}
-		}
+	char n3Buffer[32];
+	sprintf_s(n3Buffer, "N1: X:%.0f Z:%.0f", m_RacingLine[currentNode + 1].x, m_RacingLine[currentNode + 1].z);
+	m_Text->UpdateSentence(m_Text->m_sentence10, n3Buffer, 10.0f, 250.0f, 0.0f, 1.0f, 0.0f, deviceContext);
 
-		if (i == m_RacingLine.size() - 1) {
-			steerAngle = 0.0f;
-			break;
-		}
+	position -= m_RacingLine[currentNode] * 0.01f * deltaTime;
+	m_Model->Transform(position, 0.0f);
+
+	if (position == m_RacingLine[currentNode + 1]){
+		currentNode++;
 	}
 
-	debug[0] = m_RacingLine[node];
-	debug[1] = position + tangentLine;
+	/*accelerationInput = 1.0f;
+	steerFactor = 1.1f;
 
-	/*//Find distance from racing line
+	//Find distance from racing line
 	////Calculate vectors from left and right of car
 	D3DXVECTOR3 tangentLine = D3DXVECTOR3(forwardVector.z, forwardVector.y, -forwardVector.x);
 	tangentLine = position + tangentLine;
@@ -201,49 +198,49 @@ void Car::OpponentFrame(float deltaTime)
 	//Calculate integral
 	integral = integral + (error * deltaTime);
 
-	if (abs(error) < 0.01f) {
+	if (error == 0.0f) {
 		integral = 0.0f;
 	}
 
-	if (abs(error) > 1.0f) {
+	if (abs(integral) > 1.0f) {
 		integral = 0.0f;
 	}
 
 	//Calculate derivative
-	float derivative = ((error - previousError) * deltaTime);
+	float derivative = ((error - previousError) / deltaTime);
 	previousError = error;
 
 	//Steering angle equals error + inegral + derivative clamped between 1 and -1
 	steerAngle = (error * kp) + (integral * ki) + (derivative * kd);
 
-	if (steerAngle < -1.0f) {
-		steerAngle = -1.0f;
+	if (steerAngle < -0.05f) {
+		steerAngle = -0.05f;
 	}
-	else if (steerAngle > 1.0f) {
-		steerAngle = 1.0f;
-	}*/
+	else if (steerAngle > 0.05f) {
+		steerAngle = 0.05f;
+	}
 
 	//The speed of the car is equivalent to the magnitude of the velocity vector
 	speed = (D3DXVec3Length(&velocity));
 
 	//Divide the angle by speed divided by 100. This stops the car from being able to turn on the spot
-	steerAngle = steerAngle * (speed / topSpeed);
+	//steerAngle = steerAngle * (speed / topSpeed);
 
 	//This handles both gear changing and car noise
 	if (speed < (gearRange)) {
 		gear = 0.2f;
 	}
 	else if ((speed >= (gearRange)) && (speed < (gearRange * 2))) {
-		gear = 0.4f;
+		gear = 0.2f;
 	}
 	else if ((speed >= (gearRange * 2)) && (speed < (gearRange * 3))) {
-		gear = 0.6f;
+		gear = 0.2f;
 	}
 	else if ((speed >= (gearRange * 3)) && (speed < (gearRange * 4))) {
-		gear = 0.8f;
+		gear = 0.2f;
 	}
 	else {
-		gear = 1.0f;
+		gear = 0.2f;
 	}
 
 	//Controls the 'gear' i.e. the car moves at a speed relevant to how fast its already going
@@ -280,7 +277,10 @@ void Car::OpponentFrame(float deltaTime)
 	//Set the position of the cars model
 	m_Model->Transform(position, steerAngle);
 
-	m_Text->DisplayInfo(steerAngle, steerAngle, steerAngle, deviceContext);
+	char steerAngleBuffer[32];
+	sprintf_s(steerAngleBuffer, "Steer: %.3f", steerAngle);
+
+	m_Text->UpdateSentence(m_Text->m_sentence8, steerAngleBuffer, 10.0f, 210.0f, 0.0f, 1.0f, 0.0f, deviceContext);*/
 }
 
 void Car::SetRacingLine(std::vector<D3DXVECTOR3> racingLine)
@@ -361,19 +361,16 @@ D3DXVECTOR3 Car::GetPosition()
 		//Find where car lines intersect with track line
 		D3DXVECTOR3 intersectionPoint = FindIntersectionPoint(horLine, trackLine);
 
-		m_Text->DisplayInfo(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z, deviceContext);
-		debug[0] = intersectionPoint;
-
 		//If intersection point is on either right or left line, return distance to point
 		if ((intersectionPoint.x == position.x) && (intersectionPoint.z == position.z)) {
 			return 0.0f;
 		}
 		else if ((intersectionPoint.x >= trackPoint2.x) && (intersectionPoint.x <= trackPoint1.x) &&
 			(intersectionPoint.z >= trackPoint2.z) && (intersectionPoint.z <= trackPoint1.z)) {
-			if (GetLateralPosition(intersectionPoint, position, position + (forwardVector))) {
+			if (IsLeft(intersectionPoint, position, position + (forwardVector))) {
 				D3DXVECTOR3 vectorFromLine = intersectionPoint - position;
 				return -D3DXVec3Length(&vectorFromLine);
-			} else if (GetLateralPosition(intersectionPoint, position, position + (forwardVector))) {
+			} else {
 				D3DXVECTOR3 vectorFromLine = intersectionPoint - position;
 				return D3DXVec3Length(&vectorFromLine);
 			}
@@ -406,5 +403,5 @@ D3DXVECTOR3 Car::FindIntersectionPoint(D3DXVECTOR3 line1, D3DXVECTOR3 line2)
 
 bool Car::IsLeft(D3DXVECTOR3 pointA, D3DXVECTOR3 pointB, D3DXVECTOR3 pointC)
 {
-	return ((pointB.x - pointA.x)*(pointC.y - pointA.y) - (pointB.y - pointC.y*(pointC.x - pointA.x)) > 0);
+	return ((pointB.x - pointA.x)*(pointC.z - pointA.z)) - ((pointB.z - pointA.z) * (pointC.x - pointA.x)) > 0;
 }

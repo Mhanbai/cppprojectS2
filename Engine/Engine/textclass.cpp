@@ -623,7 +623,7 @@ bool TextClass::SetCameraPosition(float posX, float posY, float posZ, ID3D11Devi
 
 bool TextClass::DisplayInfo(float info1, float info2, float info3, ID3D11DeviceContext* deviceContext)
 {
-	char tempString[32];
+	/*char tempString[32];
 	char dataString[32];
 	bool result;
 
@@ -658,6 +658,6 @@ bool TextClass::DisplayInfo(float info1, float info2, float info3, ID3D11DeviceC
 	if(!result)
 	{
 		return false;
-	}
+	}*/
 	return true;
 }

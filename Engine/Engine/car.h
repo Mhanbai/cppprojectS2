@@ -72,16 +72,20 @@ private:
 	D3DXVECTOR3 upVector;
 
 	std::vector<D3DXVECTOR3> m_RacingLine;
-	int node = 0;
-	/*float DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 horizontalLine);
-	D3DXVECTOR3 CalculateLine(D3DXVECTOR3 point1, D3DXVECTOR3 point2);
-	D3DXVECTOR3 FindIntersectionPoint(D3DXVECTOR3 line1, D3DXVECTOR3 line2);
-	int checkPoint = 0;
-	float integral = 0.0f;
-	float previousError = 0.0f;
-	float kp = 0.06f;
-	float ki = 0.03f;
-	float kd = 0.03f;*/
+	int currentNode = 1;
+	//int node = 0;
+	//float DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 horizontalLine);
+	//D3DXVECTOR3 CalculateLine(D3DXVECTOR3 point1, D3DXVECTOR3 point2);
+	//D3DXVECTOR3 FindIntersectionPoint(D3DXVECTOR3 line1, D3DXVECTOR3 line2);
+	//int checkPoint = 0;
+	//float integral = 0.0f;
+	//float previousError = 0.0f;
+	//float kp = 0.5f;
+	//float ki = 0.2f;
+	//float kd = 0.5f;
+	//float kp = 0.01f;
+	//float ki = 0.01f;
+	//float kd = 0.01f;
 
 	//Velocity, friction, steering etc...
 	D3DXVECTOR3 velocity;
