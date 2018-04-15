@@ -40,6 +40,9 @@ const float SCREEN_NEAR = 0.1f;
 #include "textureshaderclass.h"
 #include "rendertextureclass.h"
 #include "collisionclass.h"
+#include "horizontalblurshaderclass.h"
+#include "verticalblurshaderclass.h"
+#include "orthowindowclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,6 +64,12 @@ private:
 	bool RenderGraphics();
 	bool RenderToTexture();
 	bool RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix);
+	bool RenderSceneToTexture();
+	bool DownSampleTexture();
+	bool RenderHorizontalBlurToTexture();
+	bool RenderVerticalBlurToTexture();
+	bool UpSampleTexture();
+	bool Render2DTextureScene();
 
 private:
 	InputClass* m_Input;
@@ -89,10 +98,14 @@ private:
 	D3DXMATRIX screenViewMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, -4.0f, 4.0f, 1.0f);
-	RenderTextureClass* m_RenderTexture;
+		0.0f, 0.0f, 0.1f, 1.0f);
+	RenderTextureClass* m_RearViewTexture;
 	ScreenObjectClass* m_RearView;
 	CollisionClass* m_Collision;
+	HorizontalBlurShaderClass* m_HorizontalBlurShader;
+	VerticalBlurShaderClass* m_VerticalBlurShader;
+	RenderTextureClass *m_RenderTexture, *m_DownSampleTexure, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_UpSampleTexure;
+	OrthoWindowClass *m_SmallWindow, *m_FullScreenWindow;
 
 	int debugCount = 2;
 	ModelClass* m_Model[2];

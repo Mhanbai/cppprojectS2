@@ -52,6 +52,7 @@ bool Car::Initialize(char* modelFilename, WCHAR* textureFilename, ModelClass* &m
 	//Find starting direction for model
 	angleOffset = atan2(forwardVector.z, forwardVector.x) - atan2(-1.0f, 0.0f);
 	m_Model->Transform(position, -angleOffset);
+	angleTracker = 0.0f;
 
 	m_Text = text_in;
 	deviceContext = deviceContext_in;
@@ -210,7 +211,27 @@ void Car::OpponentFrame(float deltaTime)
 	angleDelta = atan2(forwardVector.z, forwardVector.x) - atan2(previousForwardVector.z, previousForwardVector.x);
 	previousForwardVector = forwardVector;
 
-	m_Model->Transform(position, -angleDelta);
+	if (angleDelta != 0.0f) {
+		angleTracker = angleDelta / 20;
+		counter = 0;
+	}
+
+	if (counter < 20) {
+		m_Model->Transform(position, -angleTracker);
+		counter++;
+	}
+	else {
+		m_Model->Transform(position, 0.0f);
+	}
+
+	char info1Buffer[32];
+	sprintf_s(info1Buffer, "AT: %.4f", angleTracker);
+	m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, deviceContext);
+
+	char info2Buffer[32];
+	sprintf_s(info2Buffer, "AD: %.4f", angleDelta);
+	m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, deviceContext);
+
 }
 
 void Car::SetRacingLine(std::vector<D3DXVECTOR3> racingLine)

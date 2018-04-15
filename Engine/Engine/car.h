@@ -104,7 +104,8 @@ private:
 	float gearRange;
 
 	D3DXVECTOR3 previousForwardVector;
-	float angleDelta;
+	float angleDelta, angleTracker;
+	int counter = 0;
 
 	//Values for lateral velocity
 	D3DXVECTOR3 lateralVelocity;

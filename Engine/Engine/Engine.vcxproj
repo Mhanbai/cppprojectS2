@@ -82,6 +82,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp" />
+    <ClCompile Include="horizontalblurshaderclass.cpp" />
+    <ClCompile Include="orthowindowclass.cpp" />
     <ClCompile Include="screenobjectclass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
     <ClCompile Include="car.cpp" />
@@ -109,9 +111,12 @@
     <ClCompile Include="timerclass.cpp" />
     <ClCompile Include="trackclass.cpp" />
     <ClCompile Include="modelshaderclass.cpp" />
+    <ClCompile Include="verticalblurshaderclass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h" />
+    <ClInclude Include="horizontalblurshaderclass.h" />
+    <ClInclude Include="orthowindowclass.h" />
     <ClInclude Include="screenobjectclass.h" />
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="car.h" />
@@ -138,10 +143,13 @@
     <ClInclude Include="timerclass.h" />
     <ClInclude Include="trackclass.h" />
     <ClInclude Include="modelshaderclass.h" />
+    <ClInclude Include="verticalblurshaderclass.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="font.ps" />
     <None Include="font.vs" />
+    <None Include="horizontalblur.ps" />
+    <None Include="horizontalblur.vs" />
     <None Include="light.ps" />
     <None Include="light.vs" />
     <None Include="skydome.ps" />
@@ -152,6 +160,8 @@
     <None Include="model.vs" />
     <None Include="texture.ps" />
     <None Include="texture.vs" />
+    <None Include="verticalblur.ps" />
+    <None Include="verticalblur.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
