@@ -379,7 +379,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the render to texture object.
-	result = m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight);
+	result = m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR);
 	if (!result)
 	{
 		return false;
@@ -770,10 +770,10 @@ bool ApplicationClass::RenderToTexture()
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 
 	// Set the render target to be the render to texture.
-	m_RenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView());
+	m_RenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
 
 	// Clear the render to texture.
-	m_RenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+	m_RenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 1.0f, 1.0f);
 
 	// Render the scene now and it will draw to the render to texture instead of the back buffer.
 	result = RenderScene(viewMatrix, projectionMatrix);

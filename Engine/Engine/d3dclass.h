@@ -35,7 +35,7 @@ public:
 
 	bool Initialize(int, int, bool, HWND, bool, float, float);
 	void Shutdown();
-	
+
 	void BeginScene(float, float, float, float);
 	void EndScene();
 
@@ -49,7 +49,9 @@ public:
 	void GetVideoCardInfo(char*, int&);
 
 	void DisplayWireframe();
+	void ResetViewport();
 	void DisplayFill();
+
 	void TurnZBufferOn();
 	void TurnZBufferOff();
 	void TurnOnAlphaBlending();
@@ -77,6 +79,7 @@ private:
 	D3DXMATRIX m_projectionMatrix;
 	D3DXMATRIX m_worldMatrix;
 	D3DXMATRIX m_orthoMatrix;
+	D3D11_VIEWPORT m_viewport;
 	ID3D11DepthStencilState* m_depthDisabledStencilState;
 	ID3D11BlendState* m_alphaEnableBlendingState;
 	ID3D11BlendState* m_alphaDisableBlendingState;
