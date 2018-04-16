@@ -40,6 +40,9 @@ ApplicationClass::ApplicationClass()
 	m_UpSampleTexure = 0;
 	m_SmallWindow = 0;
 	m_FullScreenWindow = 0;
+	m_BushFoliage = 0;
+	m_TreeFoliage = 0;
+	m_FoliageShader = 0;
 }
 
 
@@ -295,6 +298,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos);
+	//m_PlayerCar->SetPosition(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 
 	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
 	m_AICar = new Car;
@@ -561,12 +565,74 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	// Create the foliage object.
+	m_BushFoliage = new FoliageClass;
+	if (!m_BushFoliage)
+	{
+		return false;
+	}
+
+	// Initialize the foliage object.
+	result = m_BushFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/foliage.dds", m_Terrain, 0.01f, 0.03f, -5.0f, 3.0f, 1.0f, 4.0f, 3);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the foliage object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the foliage object.
+	m_TreeFoliage = new FoliageClass;
+	if (!m_TreeFoliage)
+	{
+		return false;
+	}
+
+	// Initialize the foliage object.
+	result = m_TreeFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/tree.dds", m_Terrain, 0.02f, 0.04f, -5.0f, 2.0f, 10.0f, 15.0f, 32);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the foliage object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_FoliageShader = new FoliageShaderClass;
+	if (!m_FoliageShader) {
+		return false;
+	}
+
+	result = m_FoliageShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+
+	m_Terrain->DeleteVertices();
+
 	return true;
 }
 
 
 void ApplicationClass::Shutdown()
 {
+	if (m_FoliageShader)
+	{
+		m_FoliageShader->Shutdown();
+		delete m_FoliageShader;
+		m_FoliageShader = 0;
+	}
+
+	// Release the foliage object.
+	if (m_BushFoliage)
+	{
+		m_BushFoliage->Shutdown();
+		delete m_BushFoliage;
+		m_BushFoliage = 0;
+	}
+
+	// Release the foliage object.
+	if (m_TreeFoliage)
+	{
+		m_TreeFoliage->Shutdown();
+		delete m_TreeFoliage;
+		m_TreeFoliage = 0;
+	}
+
 	// Release the full screen ortho window object.
 	if (m_FullScreenWindow)
 	{
@@ -842,7 +908,7 @@ bool ApplicationClass::Frame()
 	}
 
 	m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
-	m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
+	//m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
 
 
 	//If last frame for player car resulted in a collision, reset to previous position
@@ -866,6 +932,20 @@ bool ApplicationClass::Frame()
 	}
 
 	m_Camera->Follow(playerCarPos, m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
+
+	D3DXVECTOR3 cameraPosition = m_Camera->GetPosition();
+	// Do the frame processing for the foliage.
+	result = m_BushFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	result = m_TreeFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
 
 	// Render the graphics.
 	result = RenderGraphics();
@@ -1256,7 +1336,8 @@ bool ApplicationClass::Render2DTextureScene()
 
 	// Render the full screen ortho window using the texture shader and the full screen sized blurred render to texture resource.
 	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix,
-		m_UpSampleTexure->GetShaderResourceView());
+		//m_UpSampleTexure->GetShaderResourceView());
+		m_RenderTexture->GetShaderResourceView());
 	if (!result)
 	{
 		return false;
@@ -1364,6 +1445,30 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 			return false;
 		}
 	}
+
+	// Turn on the alpha-to-coverage blending.
+	m_Direct3D->EnableAlphaToCoverageBlending();
+
+	// Render the foliage.
+	m_BushFoliage->Render(m_Direct3D->GetDeviceContext());
+
+	result = m_FoliageShader->Render(m_Direct3D->GetDeviceContext(), m_BushFoliage->GetVertexCount(), m_BushFoliage->GetInstanceCount(), viewMatrix, projectionMatrix, m_BushFoliage->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the foliage.
+	m_TreeFoliage->Render(m_Direct3D->GetDeviceContext());
+
+	result = m_FoliageShader->Render(m_Direct3D->GetDeviceContext(), m_TreeFoliage->GetVertexCount(), m_TreeFoliage->GetInstanceCount(), viewMatrix, projectionMatrix, m_TreeFoliage->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Turn off the alpha blending.
+	m_Direct3D->TurnOffAlphaBlending();
 
 	return true;
 }

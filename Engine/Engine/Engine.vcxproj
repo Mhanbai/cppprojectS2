@@ -83,6 +83,8 @@
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp" />
     <ClCompile Include="collisionmap.cpp" />
+    <ClCompile Include="foliageclass.cpp" />
+    <ClCompile Include="foliageshaderclass.cpp" />
     <ClCompile Include="horizontalblurshaderclass.cpp" />
     <ClCompile Include="orthowindowclass.cpp" />
     <ClCompile Include="screenobjectclass.cpp" />
@@ -116,6 +118,8 @@
   <ItemGroup>
     <ClInclude Include="applicationclass.h" />
     <ClInclude Include="collisionmap.h" />
+    <ClInclude Include="foliageclass.h" />
+    <ClInclude Include="foliageshaderclass.h" />
     <ClInclude Include="horizontalblurshaderclass.h" />
     <ClInclude Include="orthowindowclass.h" />
     <ClInclude Include="screenobjectclass.h" />
@@ -146,6 +150,8 @@
     <ClInclude Include="verticalblurshaderclass.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="foliage.ps" />
+    <None Include="foliage.vs" />
     <None Include="font.ps" />
     <None Include="font.vs" />
     <None Include="horizontalblur.ps" />

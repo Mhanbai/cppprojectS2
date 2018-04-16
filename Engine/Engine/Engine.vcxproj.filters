@@ -108,6 +108,12 @@
     <ClCompile Include="collisionmap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="foliageclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="foliageshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -200,6 +206,12 @@
     <ClInclude Include="collisionmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="foliageclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="foliageshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="terrain.vs">
@@ -248,6 +260,12 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="verticalblur.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="foliage.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="foliage.vs">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

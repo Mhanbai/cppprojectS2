@@ -99,7 +99,6 @@ bool CollisionMap::Initialize(TerrainClass * terrain_in, TrackClass* track_in)
 		}
 	}
 
-	m_Terrain->DeleteVertices();
 	return true;
 }
 

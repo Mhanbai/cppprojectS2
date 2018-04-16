@@ -43,6 +43,8 @@ const float SCREEN_NEAR = 0.1f;
 #include "horizontalblurshaderclass.h"
 #include "verticalblurshaderclass.h"
 #include "orthowindowclass.h"
+#include "foliageclass.h"
+#include "foliageshaderclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,6 +108,11 @@ private:
 	VerticalBlurShaderClass* m_VerticalBlurShader;
 	RenderTextureClass *m_RenderTexture, *m_DownSampleTexure, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_UpSampleTexure;
 	OrthoWindowClass *m_SmallWindow, *m_FullScreenWindow;
+	FoliageClass* m_BushFoliage;
+	FoliageClass* m_TreeFoliage;
+	FoliageShaderClass* m_FoliageShader;
+
+	//Variable to save car position in case of collision
 	D3DXVECTOR3 playerCarPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
 	int debugCount = 2;
