@@ -58,6 +58,10 @@ public:
 	std::vector<D3DXVECTOR3> opponentRacingLine;
 	D3DXVECTOR3 carsStartDirection;
 
+	VertexType* vertices;
+	int m_vertexCount;
+	void DeleteVertices();
+
 private:
 	int startNode = 0;
 	int endNode;

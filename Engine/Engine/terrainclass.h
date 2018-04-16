@@ -59,16 +59,15 @@ public:
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	int  GetIndexCount();
+	void DeleteVertices();
 
 	ID3D11ShaderResourceView* GetGrassTexture();
 	ID3D11ShaderResourceView* GetSlopeTexture();
 	ID3D11ShaderResourceView* GetRockTexture();
 
 	GeometryType* GetHeightMap();
-	/*D3DXVECTOR3 bottomLeft = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	D3DXVECTOR3 bottomRight = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	D3DXVECTOR3 topRight = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	D3DXVECTOR3 topLeft = D3DXVECTOR3(0.0f, 0.0f, 0.0f);*/
+	VertexType* vertices;
+	int m_vertexCount;
 
 private:
 	bool CalculateNormals();
@@ -85,10 +84,9 @@ private:
 private:
 	bool m_terrainGeneratedToggle;
 	int m_terrainWidth, m_terrainHeight;
-	int m_vertexCount, m_indexCount;
+	int m_indexCount;
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	GeometryType* m_heightMap;
-	VertexType* vertices;
 	TextureClass *m_GrassTexture, *m_SlopeTexture, *m_RockTexture;
 };
 

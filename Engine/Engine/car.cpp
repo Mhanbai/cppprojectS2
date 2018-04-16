@@ -91,6 +91,11 @@ void Car::Frame(float deltaTime)
 		gear = 1.0f;
 	}
 
+	//If y position is 0 (not on track) limit speed
+	/*if (position.y == 0.0f) {
+		gear = 0.3f;
+	}*/
+
 	//Controls the 'gear' i.e. the car moves at a speed relevant to how fast its already going
 	accelerationFactor = startAccelerationFactor + (speed * gear);
 
@@ -150,6 +155,11 @@ void Car::Frame(float deltaTime)
 	//Friction is equal to the reverse of velocity multiplied by how frictiony the surface is
 	friction = -velocity * frictionFactor;
 	velocity += (friction + lateralFriction) * deltaTime;
+	
+
+	if (colliding == true) {
+		velocity -= velocity;
+	}
 
 	//Increase velocity by acceleration
 	if (speed < topSpeed) {
@@ -167,6 +177,13 @@ void Car::OpponentFrame(float deltaTime)
 {
 	float pid;
 	float speed = 3.0f;
+
+	if (position.y == 0.0f) {
+		speed = 1.0f;
+	}
+	else {
+		speed = 3.0f;
+	}
 
 	D3DXVec3Subtract(&forwardVector, &m_RacingLine[currentNode + 1], &m_RacingLine[currentNode]);
 
@@ -225,11 +242,11 @@ void Car::OpponentFrame(float deltaTime)
 	}
 
 	char info1Buffer[32];
-	sprintf_s(info1Buffer, "AT: %.4f", angleTracker);
+	sprintf_s(info1Buffer, "POS: %.4f", position.y);
 	m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, deviceContext);
 
 	char info2Buffer[32];
-	sprintf_s(info2Buffer, "AD: %.4f", angleDelta);
+	sprintf_s(info2Buffer, "SP: %.4f", speed);
 	m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, deviceContext);
 
 }
@@ -293,6 +310,11 @@ D3DXVECTOR3 Car::GetForwardVector()
 D3DXVECTOR3 Car::GetPosition()
 {
 	return position;
+}
+
+void Car::SetColliding(bool set)
+{
+	colliding = set;
 }
 
 float Car::DistanceFromLine(D3DXVECTOR3 position, D3DXVECTOR3 horizontalLine, D3DXVECTOR3 prevNode, D3DXVECTOR3 nextNode)

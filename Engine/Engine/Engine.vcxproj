@@ -82,12 +82,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp" />
+    <ClCompile Include="collisionmap.cpp" />
     <ClCompile Include="horizontalblurshaderclass.cpp" />
     <ClCompile Include="orthowindowclass.cpp" />
     <ClCompile Include="screenobjectclass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
     <ClCompile Include="car.cpp" />
-    <ClCompile Include="collisionclass.cpp" />
     <ClCompile Include="cpuclass.cpp" />
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="fontclass.cpp" />
@@ -115,12 +115,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h" />
+    <ClInclude Include="collisionmap.h" />
     <ClInclude Include="horizontalblurshaderclass.h" />
     <ClInclude Include="orthowindowclass.h" />
     <ClInclude Include="screenobjectclass.h" />
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="car.h" />
-    <ClInclude Include="collisionclass.h" />
     <ClInclude Include="cpuclass.h" />
     <ClInclude Include="d3dclass.h" />
     <ClInclude Include="fontclass.h" />

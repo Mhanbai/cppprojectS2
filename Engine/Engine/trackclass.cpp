@@ -261,6 +261,13 @@ TextureClass* TrackClass::GetTexture()
 	return m_Texture;
 }
 
+void TrackClass::DeleteVertices()
+{
+	// Release the vertex array 
+	delete[] vertices;
+	vertices = 0;
+}
+
 float TrackClass::DistanceToStart(int node)
 {
 	float totalDistance = 0.0f;
@@ -374,14 +381,13 @@ D3DXVECTOR3 TrackClass::CalculateNormal(D3DXVECTOR3 triPoint1, D3DXVECTOR3 triPo
 bool TrackClass::InitializeBuffers(ID3D11Device* device)
 {
 	unsigned long* indices;
-	VertexType* vertices;
 	int i, j;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 	int index1, index2, index3, index4;
 	float tu, tv;
-	int m_vertexCount, m_indexCount;
+	int m_indexCount;
 
 
 	// Calculate the number of vertices in the terrain mesh.
@@ -623,10 +629,6 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 	{
 		return false;
 	}
-
-	// Release the index array now that the buffers have been created and loaded.
-	delete[] vertices;
-	vertices = 0;
 
 	// Release the index array now that the buffers have been created and loaded.
 	delete[] indices;

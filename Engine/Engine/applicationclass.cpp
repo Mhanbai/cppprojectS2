@@ -267,6 +267,18 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		}
 	}
 
+	m_Collision = new CollisionMap;
+	if (!m_Collision) {
+		return false;
+	}
+
+	result = m_Collision->Initialize(m_Terrain, m_Racetrack);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the collision object.", L"Error", MB_OK);
+		return false;
+	}
+
 	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
 	m_PlayerCar = new Car;
 	if (!m_PlayerCar)
@@ -411,18 +423,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
-		return false;
-	}
-
-	m_Collision = new CollisionClass;
-	if (!m_Collision) {
-		return false;
-	}
-
-	result = m_Collision->Initialize();
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the collision object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -842,7 +842,21 @@ bool ApplicationClass::Frame()
 	}
 
 	m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
-	m_AICar->OpponentFrame(m_Timer->GetTime() / 1000);
+	m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
+
+
+	//If last frame for player car resulted in a collision, reset to previous position
+	if (m_PlayerCar->colliding) {
+		m_PlayerCar->SetPosition(playerCarPos);
+	}
+	else {
+		playerCarPos = m_PlayerCar->GetPosition();
+		m_PlayerCar->SetPosition(D3DXVECTOR3(playerCarPos.x, m_Collision->GetHeight(m_PlayerCar), playerCarPos.z));
+	}
+
+	//m_AICar->OpponentFrame(m_Timer->GetTime() / 1000);
+	D3DXVECTOR3 aiCarPos = m_AICar->GetPosition();
+	m_AICar->SetPosition(D3DXVECTOR3(aiCarPos.x, m_Collision->GetHeight(m_AICar), aiCarPos.z));
 
 	// Do the frame input processing.
 	result = HandleInput(m_Timer->GetTime() / 1000);
@@ -850,6 +864,8 @@ bool ApplicationClass::Frame()
 	{
 		return false;
 	}
+
+	m_Camera->Follow(playerCarPos, m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
 
 	// Render the graphics.
 	result = RenderGraphics();
@@ -878,8 +894,6 @@ bool ApplicationClass::HandleInput(float frameTime)
 
 	keyDown = m_Input->IsDownPressed();
 	m_PlayerCar->BreakReverse(keyDown);
-
-	m_Camera->Follow(m_AICar->GetPosition(), m_AICar->GetForwardVector(), m_Timer->GetTime() / 1000);
 
 	D3DXVECTOR3 camPos = -m_Camera->GetPosition();
 

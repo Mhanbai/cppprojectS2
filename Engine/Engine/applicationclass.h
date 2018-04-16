@@ -39,7 +39,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "screenobjectclass.h"
 #include "textureshaderclass.h"
 #include "rendertextureclass.h"
-#include "collisionclass.h"
+#include "collisionmap.h"
 #include "horizontalblurshaderclass.h"
 #include "verticalblurshaderclass.h"
 #include "orthowindowclass.h"
@@ -101,11 +101,12 @@ private:
 		0.0f, 0.0f, 0.1f, 1.0f);
 	RenderTextureClass* m_RearViewTexture;
 	ScreenObjectClass* m_RearView;
-	CollisionClass* m_Collision;
+	CollisionMap* m_Collision;
 	HorizontalBlurShaderClass* m_HorizontalBlurShader;
 	VerticalBlurShaderClass* m_VerticalBlurShader;
 	RenderTextureClass *m_RenderTexture, *m_DownSampleTexure, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_UpSampleTexure;
 	OrthoWindowClass *m_SmallWindow, *m_FullScreenWindow;
+	D3DXVECTOR3 playerCarPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
 	int debugCount = 2;
 	ModelClass* m_Model[2];

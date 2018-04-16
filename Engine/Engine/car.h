@@ -60,6 +60,8 @@ public:
 	TextClass* m_Text;
 	ID3D11DeviceContext* deviceContext;
 
+	bool colliding = false;
+	void SetColliding(bool set);
 	D3DXVECTOR3 debug[2];
 
 private:

@@ -755,23 +755,6 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 		}
 	}
 
-	/*for (int i = 0; i < m_vertexCount; i++) {
-		float X = vertices[i].position.x;
-		float Z = vertices[i].position.z;
-
-		if ((X < bottomLeft.x) && (Z < bottomLeft.z)) {
-			bottomLeft = vertices[i].position;
-		}
-		if ((X > topRight.x) && (Z > topRight.z)) {
-			topRight = vertices[i].position;
-		}
-	}
-
-	topRight = D3DXVECTOR3(topRight.x, 0.0f, topRight.z);
-	bottomLeft = D3DXVECTOR3(bottomLeft.x, 0.0f, bottomLeft.z);
-	topLeft = D3DXVECTOR3(bottomLeft.x, 0.0f, topRight.z);
-	bottomRight = D3DXVECTOR3(topRight.x, 0.0f, bottomLeft.z);*/
-
 	// Set up the description of the static vertex buffer.
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
@@ -811,10 +794,6 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 	{
 		return false;
 	}
-
-	// Release the index array now that the buffers have been created and loaded.
-	delete[] vertices;
-	vertices = 0;
 
 	// Release the index array now that the buffers have been created and loaded.
 	delete [] indices;
@@ -864,4 +843,11 @@ void TerrainClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	return;
+}
+
+void TerrainClass::DeleteVertices()
+{
+	// Release the index array now that the buffers have been created and loaded.
+	delete[] vertices;
+	vertices = 0;
 }
