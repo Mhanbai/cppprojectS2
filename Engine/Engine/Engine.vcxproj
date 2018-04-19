@@ -85,7 +85,7 @@
     <ClCompile Include="collisionmap.cpp" />
     <ClCompile Include="foliageclass.cpp" />
     <ClCompile Include="foliageshaderclass.cpp" />
-    <ClCompile Include="horizontalblurshaderclass.cpp" />
+    <ClCompile Include="motionblurshaderclass.cpp" />
     <ClCompile Include="orthowindowclass.cpp" />
     <ClCompile Include="screenobjectclass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
@@ -120,7 +120,7 @@
     <ClInclude Include="collisionmap.h" />
     <ClInclude Include="foliageclass.h" />
     <ClInclude Include="foliageshaderclass.h" />
-    <ClInclude Include="horizontalblurshaderclass.h" />
+    <ClInclude Include="motionblurshaderclass.h" />
     <ClInclude Include="orthowindowclass.h" />
     <ClInclude Include="screenobjectclass.h" />
     <ClInclude Include="cameraclass.h" />
@@ -154,8 +154,8 @@
     <None Include="foliage.vs" />
     <None Include="font.ps" />
     <None Include="font.vs" />
-    <None Include="horizontalblur.ps" />
-    <None Include="horizontalblur.vs" />
+    <None Include="motionblur.ps" />
+    <None Include="motionblur.vs" />
     <None Include="light.ps" />
     <None Include="light.vs" />
     <None Include="skydome.ps" />

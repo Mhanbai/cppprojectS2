@@ -40,7 +40,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "textureshaderclass.h"
 #include "rendertextureclass.h"
 #include "collisionmap.h"
-#include "horizontalblurshaderclass.h"
+#include "motionblurshaderclass.h"
 #include "verticalblurshaderclass.h"
 #include "orthowindowclass.h"
 #include "foliageclass.h"
@@ -67,10 +67,7 @@ private:
 	bool RenderToTexture();
 	bool RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix);
 	bool RenderSceneToTexture();
-	bool DownSampleTexture();
-	bool RenderHorizontalBlurToTexture();
-	bool RenderVerticalBlurToTexture();
-	bool UpSampleTexture();
+	bool RenderMotionBlurToTexture();
 	bool Render2DTextureScene();
 
 private:
@@ -104,13 +101,13 @@ private:
 	RenderTextureClass* m_RearViewTexture;
 	ScreenObjectClass* m_RearView;
 	CollisionMap* m_Collision;
-	HorizontalBlurShaderClass* m_HorizontalBlurShader;
-	VerticalBlurShaderClass* m_VerticalBlurShader;
-	RenderTextureClass *m_RenderTexture, *m_DownSampleTexure, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_UpSampleTexure;
-	OrthoWindowClass *m_SmallWindow, *m_FullScreenWindow;
+	MotionBlurShaderClass* m_MotionBlurShader;
+	RenderTextureClass *m_RenderTexture, *m_MotionBlurTexture;
+	OrthoWindowClass *m_FullScreenWindow;
 	FoliageClass* m_BushFoliage;
 	FoliageClass* m_TreeFoliage;
 	FoliageShaderClass* m_FoliageShader;
+	D3DXMATRIX prevWorldMatrix, prevViewMatrix, prevProjMatrix;
 
 	//Variable to save car position in case of collision
 	D3DXVECTOR3 playerCarPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);

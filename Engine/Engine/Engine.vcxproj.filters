@@ -96,9 +96,6 @@
     <ClCompile Include="screenobjectclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="horizontalblurshaderclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="orthowindowclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -112,6 +109,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="foliageshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="motionblurshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -194,9 +194,6 @@
     <ClInclude Include="screenobjectclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="horizontalblurshaderclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="orthowindowclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -210,6 +207,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="foliageshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="motionblurshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -250,12 +250,6 @@
     <None Include="texture.vs">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="horizontalblur.ps">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="horizontalblur.vs">
-      <Filter>Shader Files</Filter>
-    </None>
     <None Include="verticalblur.ps">
       <Filter>Shader Files</Filter>
     </None>
@@ -266,6 +260,12 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="foliage.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="motionblur.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="motionblur.vs">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>
