@@ -114,6 +114,9 @@
     <ClCompile Include="motionblurshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="depthshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -212,6 +215,9 @@
     <ClInclude Include="motionblurshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="depthshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="motionblurvs.hlsl">
@@ -266,6 +272,12 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="verticalblurvs.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="depth.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="depth.vs">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

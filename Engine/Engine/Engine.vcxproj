@@ -83,6 +83,7 @@
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp" />
     <ClCompile Include="collisionmap.cpp" />
+    <ClCompile Include="depthshaderclass.cpp" />
     <ClCompile Include="foliageclass.cpp" />
     <ClCompile Include="foliageshaderclass.cpp" />
     <ClCompile Include="motionblurshaderclass.cpp" />
@@ -118,6 +119,7 @@
   <ItemGroup>
     <ClInclude Include="applicationclass.h" />
     <ClInclude Include="collisionmap.h" />
+    <ClInclude Include="depthshaderclass.h" />
     <ClInclude Include="foliageclass.h" />
     <ClInclude Include="foliageshaderclass.h" />
     <ClInclude Include="motionblurshaderclass.h" />
@@ -150,6 +152,8 @@
     <ClInclude Include="verticalblurshaderclass.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="depth.ps" />
+    <None Include="depth.vs" />
     <None Include="foliageps.hlsl" />
     <None Include="foliagevs.hlsl" />
     <None Include="fontps.hlsl" />

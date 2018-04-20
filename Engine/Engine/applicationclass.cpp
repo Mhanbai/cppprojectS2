@@ -38,6 +38,8 @@ ApplicationClass::ApplicationClass()
 	m_BushFoliage = 0;
 	m_TreeFoliage = 0;
 	m_FoliageShader = 0;
+	m_DepthShader = 0;
+	m_DepthTexture = 0;
 }
 
 
@@ -455,6 +457,21 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	// Create the render to texture object.
+	m_DepthTexture = new RenderTextureClass;
+	if (!m_DepthTexture)
+	{
+		return false;
+	}
+
+	// Initialize the render to texture object.
+	result = m_DepthTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
 	// Create the Motion blur render to texture object.
 	m_MotionBlurTexture = new RenderTextureClass;
 	if (!m_MotionBlurTexture)
@@ -522,6 +539,21 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	result = m_FoliageShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 
+	// Create the depth shader object.
+	m_DepthShader = new DepthShaderClass;
+	if (!m_DepthShader)
+	{
+		return false;
+	}
+
+	// Initialize the depth shader object.
+	result = m_DepthShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the depth shader object.", L"Error", MB_OK);
+		return false;
+	}
+
 	m_Terrain->DeleteVertices();
 
 	return true;
@@ -530,6 +562,14 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 void ApplicationClass::Shutdown()
 {
+	// Release the depth shader object.
+	if (m_DepthShader)
+	{
+		m_DepthShader->Shutdown();
+		delete m_DepthShader;
+		m_DepthShader = 0;
+	}
+
 	if (m_FoliageShader)
 	{
 		m_FoliageShader->Shutdown();
@@ -567,6 +607,14 @@ void ApplicationClass::Shutdown()
 		m_MotionBlurTexture->Shutdown();
 		delete m_MotionBlurTexture;
 		m_MotionBlurTexture = 0;
+	}
+
+	// Release the Motion blur render to texture object.
+	if (m_DepthTexture)
+	{
+		m_DepthTexture->Shutdown();
+		delete m_DepthTexture;
+		m_DepthTexture = 0;
 	}
 
 	// Release the render to texture object.
@@ -877,8 +925,8 @@ bool ApplicationClass::RenderGraphics()
 	// Generate the view matrix based on the camera's position.
 	m_Camera->Render();
 
-	// Render the entire scene to the texture first.
-	result = RenderToTexture();
+	// Render the rear view scene to the texture first.
+	result = RenderToRearViewTexture();
 	if (!result)
 	{
 		return false;
@@ -892,6 +940,13 @@ bool ApplicationClass::RenderGraphics()
 
 	// First render the scene to a render texture.
 	result = RenderSceneToTexture();
+	if (!result)
+	{
+		return false;
+	}
+
+	// Perform a Motion blur on the down sampled render texture.
+	result = RenderDepthToTexture();
 	if (!result)
 	{
 		return false;
@@ -1005,6 +1060,33 @@ bool ApplicationClass::RenderSceneToTexture()
 	return true;
 }
 
+bool ApplicationClass::RenderDepthToTexture()
+{
+	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	bool result;
+
+	// Set the render target to be the render to texture.
+	m_DepthTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// Clear the render to texture.
+	m_DepthTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// Get the world, view, and projection matrices from the camera and d3d objects.
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+
+	RenderSceneDepth(viewMatrix, projectionMatrix);
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// Reset the viewport back to the original.
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
 bool ApplicationClass::RenderMotionBlurToTexture()
 {
 	D3DXMATRIX worldMatrix, viewMatrix, orthoMatrix;
@@ -1033,7 +1115,7 @@ bool ApplicationClass::RenderMotionBlurToTexture()
 
 	// Render the small ortho window using the Motion blur shader and the down sampled render to texture resource.
 	result = m_MotionBlurShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix,
-		m_RenderTexture->GetShaderResourceView(), m_RearViewTexture->GetShaderResourceView(), prevWorldMatrix, prevViewMatrix, prevProjMatrix);
+		m_RenderTexture->GetShaderResourceView(), m_DepthTexture->GetShaderResourceView(), prevWorldMatrix, prevViewMatrix, prevProjMatrix);
 	if (!result)
 	{
 		return false;
@@ -1203,7 +1285,60 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 	return true;
 }
 
-bool ApplicationClass::RenderToTexture()
+bool ApplicationClass::RenderSceneDepth(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
+{
+	D3DXMATRIX worldMatrix;
+	D3DXVECTOR3 cameraPosition;
+	bool result;
+
+	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+
+	// Reset the world matrix.
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+
+	// Render the terrain buffers.
+	m_Terrain->Render(m_Direct3D->GetDeviceContext());
+
+	// Render the terrain using the terrain shader.
+	result = m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	result = m_Racetrack->Render(m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	result = m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_Racetrack->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_PlayerCarModel->Render(m_Direct3D->GetDeviceContext());
+
+	result = m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_PlayerCarModel->GetIndexCount(), m_PlayerCarModel->GetWorldMatrix(), viewMatrix, projectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_AICarModel->Render(m_Direct3D->GetDeviceContext());
+
+	result = m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_AICarModel->GetIndexCount(), m_AICarModel->GetWorldMatrix(), viewMatrix, projectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool ApplicationClass::RenderToRearViewTexture()
 {
 	bool result;
 	D3DXMATRIX viewMatrix, projectionMatrix;

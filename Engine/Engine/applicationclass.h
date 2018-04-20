@@ -45,6 +45,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "orthowindowclass.h"
 #include "foliageclass.h"
 #include "foliageshaderclass.h"
+#include "depthshaderclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,9 +65,11 @@ public:
 private:
 	bool HandleInput(float);
 	bool RenderGraphics();
-	bool RenderToTexture();
+	bool RenderToRearViewTexture();
 	bool RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix);
+	bool RenderSceneDepth(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix);
 	bool RenderSceneToTexture();
+	bool RenderDepthToTexture();
 	bool RenderMotionBlurToTexture();
 	bool Render2DTextureScene();
 
@@ -102,12 +105,13 @@ private:
 	ScreenObjectClass* m_RearView;
 	CollisionMap* m_Collision;
 	MotionBlurShaderClass* m_MotionBlurShader;
-	RenderTextureClass *m_RenderTexture, *m_MotionBlurTexture;
+	RenderTextureClass *m_RenderTexture, *m_MotionBlurTexture, *m_DepthTexture;
 	OrthoWindowClass *m_FullScreenWindow;
 	FoliageClass* m_BushFoliage;
 	FoliageClass* m_TreeFoliage;
 	FoliageShaderClass* m_FoliageShader;
 	D3DXMATRIX prevWorldMatrix, prevViewMatrix, prevProjMatrix;
+	DepthShaderClass* m_DepthShader;
 
 	//Variable to save car position in case of collision
 	D3DXVECTOR3 playerCarPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
