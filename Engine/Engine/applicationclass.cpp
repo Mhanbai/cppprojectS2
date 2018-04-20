@@ -911,10 +911,6 @@ bool ApplicationClass::RenderGraphics()
 		return false;
 	}
 
-	m_Camera->GetViewMatrix(prevViewMatrix);
-	m_Direct3D->GetWorldMatrix(prevWorldMatrix);
-	m_Direct3D->GetProjectionMatrix(prevProjMatrix);
-
 	///////////////////////////////////2D UI RENDERING/////////////////////////////////////////////////////////////////
 	
 	// Turn off the Z buffer to begin all 2D rendering.
@@ -997,6 +993,9 @@ bool ApplicationClass::RenderSceneToTexture()
 
 	RenderScene(viewMatrix, projectionMatrix);
 
+	m_Camera->GetViewMatrix(prevViewMatrix);
+	m_Direct3D->GetProjectionMatrix(prevProjMatrix);
+
 	// Reset the render target back to the original back buffer and not the render to texture anymore.
 	m_Direct3D->SetBackBufferRenderTarget();
 
@@ -1034,7 +1033,7 @@ bool ApplicationClass::RenderMotionBlurToTexture()
 
 	// Render the small ortho window using the Motion blur shader and the down sampled render to texture resource.
 	result = m_MotionBlurShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix,
-		m_RenderTexture->GetShaderResourceView(), prevWorldMatrix, prevViewMatrix, prevProjMatrix);
+		m_RenderTexture->GetShaderResourceView(), m_RearViewTexture->GetShaderResourceView(), prevWorldMatrix, prevViewMatrix, prevProjMatrix);
 	if (!result)
 	{
 		return false;

@@ -34,6 +34,7 @@ struct PixelInputType
 {
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
+	float2 velocity : VELOCITY;
 };
 
 
@@ -43,9 +44,7 @@ struct PixelInputType
 PixelInputType MotionBlurVertexShader(VertexInputType input)
 {
     PixelInputType output;
-	float texelSize;
-	float3 currentWSP;
-	float3 prevWSP;
+	float4 prevWSP;
 
 	// Change the position vector to be 4 units for proper matrix calculations.
     input.position.w = 1.0f;
@@ -54,6 +53,11 @@ PixelInputType MotionBlurVertexShader(VertexInputType input)
     output.position = mul(input.position, worldMatrix);
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
+
+    prevWSP = mul(input.position, prevViewMatrix);
+	prevWSP = mul(prevWSP, prevProjectionMatrix);
+
+    output.velocity = (output.position - prevWSP) / 2.f;
     
 	// Store the texture coordinates for the pixel shader.
 	output.tex = input.tex;

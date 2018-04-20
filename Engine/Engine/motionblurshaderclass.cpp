@@ -31,7 +31,7 @@ bool MotionBlurShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/motionblur.vs", L"../Engine/motionblur.ps");
+	result = InitializeShader(device, hwnd, L"../Engine/motionblurvs.hlsl", L"../Engine/motionblurps.hlsl");
 	if(!result)
 	{
 		return false;
@@ -51,13 +51,13 @@ void MotionBlurShaderClass::Shutdown()
 
 
 bool MotionBlurShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
-									   D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXMATRIX prevWorldMatrix, D3DXMATRIX prevViewMatrix, D3DXMATRIX prevProjectionMatrix)
+									   D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* depthTexture, D3DXMATRIX prevWorldMatrix, D3DXMATRIX prevViewMatrix, D3DXMATRIX prevProjectionMatrix)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, prevWorldMatrix, prevViewMatrix, prevProjectionMatrix);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, depthTexture, prevWorldMatrix, prevViewMatrix, prevProjectionMatrix);
 	if(!result)
 	{
 		return false;
@@ -317,7 +317,7 @@ void MotionBlurShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, H
 
 
 bool MotionBlurShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
-				D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXMATRIX prevWorldMatrix, D3DXMATRIX prevViewMatrix, D3DXMATRIX prevProjectionMatrix)
+				D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* depthTexture, D3DXMATRIX prevWorldMatrix, D3DXMATRIX prevViewMatrix, D3DXMATRIX prevProjectionMatrix)
 {
 	HRESULT result;
     D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -379,8 +379,12 @@ bool MotionBlurShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceConte
 	// Now set the constant buffer in the vertex shader with the updated values.
     deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_prevMatrixBuffer);
 
+	ID3D11ShaderResourceView* resources[2];
+	resources[0] = texture;
+	resources[1] = depthTexture;
+
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, &texture);
+	deviceContext->PSSetShaderResources(0, 2, resources);
 
 	return true;
 }

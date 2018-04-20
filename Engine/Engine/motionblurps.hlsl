@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: texture.ps
+// Filename: motionblur.ps
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -17,19 +17,26 @@ struct PixelInputType
 {
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
+	float2 velocity : VELOCITY;
 };
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
-float4 TexturePixelShader(PixelInputType input) : SV_TARGET
+float4 MotionBlurPixelShader(PixelInputType input) : SV_TARGET
 {
-	float4 textureColor;
+    int numSamples = 3;
+    float2 texCoord = input.tex;
 
+	float4 color = shaderTexture.Sample(SampleType, texCoord);
+    texCoord += input.velocity;
 
-    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
-    textureColor = shaderTexture.Sample(SampleType, input.tex);
-
-    return textureColor;
+    for (int i = 0; i < numSamples; i++, texCoord += input.velocity)
+    {
+        float4 newColor = shaderTexture.Sample(SampleType, texCoord);
+		color += newColor;
+    }
+	
+    return color / numSamples;
 }

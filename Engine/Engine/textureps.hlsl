@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: motionblur.ps
+// Filename: textureps.hlsl
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -23,13 +23,13 @@ struct PixelInputType
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
-float4 MotionBlurPixelShader(PixelInputType input) : SV_TARGET
+float4 TexturePixelShader(PixelInputType input) : SV_TARGET
 {
-	float4 color;
+	float4 textureColor;
 
-	color = color = shaderTexture.Sample(SampleType, input.tex);
-	// Set the alpha channel to one.
-	color.a = 1.0f;
-	
-    return color;
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+    return textureColor;
 }
