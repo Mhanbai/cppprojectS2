@@ -274,10 +274,10 @@
     <None Include="verticalblurvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="depth.ps">
+    <None Include="depthps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="depth.vs">
+    <None Include="depthvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

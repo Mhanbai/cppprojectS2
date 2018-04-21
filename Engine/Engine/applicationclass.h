@@ -10,7 +10,7 @@
 /////////////
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
-const float SCREEN_DEPTH = 1000.0f;
+const float SCREEN_DEPTH = 500.0f;
 const float SCREEN_NEAR = 0.1f;
 
 
@@ -110,7 +110,7 @@ private:
 	FoliageClass* m_BushFoliage;
 	FoliageClass* m_TreeFoliage;
 	FoliageShaderClass* m_FoliageShader;
-	D3DXMATRIX prevWorldMatrix, prevViewMatrix, prevProjMatrix;
+	D3DXMATRIX currViewMatrix, currProjMatrix, prevViewMatrix, prevProjMatrix;
 	DepthShaderClass* m_DepthShader;
 
 	//Variable to save car position in case of collision

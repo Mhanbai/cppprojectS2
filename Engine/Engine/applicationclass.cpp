@@ -1029,7 +1029,6 @@ bool ApplicationClass::RenderGraphics()
 
 bool ApplicationClass::RenderSceneToTexture()
 {
-	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix;
 	bool result;
 
 	// Set the render target to be the render to texture.
@@ -1042,11 +1041,10 @@ bool ApplicationClass::RenderSceneToTexture()
 	m_Camera->Render();
 
 	// Get the world, view, and projection matrices from the camera and d3d objects.
-	m_Camera->GetViewMatrix(viewMatrix);
-	m_Direct3D->GetWorldMatrix(worldMatrix);
-	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Camera->GetViewMatrix(currViewMatrix);
+	m_Direct3D->GetProjectionMatrix(currProjMatrix);
 
-	RenderScene(viewMatrix, projectionMatrix);
+	RenderScene(currViewMatrix, currProjMatrix);
 
 	m_Camera->GetViewMatrix(prevViewMatrix);
 	m_Direct3D->GetProjectionMatrix(prevProjMatrix);
@@ -1071,12 +1069,7 @@ bool ApplicationClass::RenderDepthToTexture()
 	// Clear the render to texture.
 	m_DepthTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
 
-	// Get the world, view, and projection matrices from the camera and d3d objects.
-	m_Camera->GetViewMatrix(viewMatrix);
-	m_Direct3D->GetWorldMatrix(worldMatrix);
-	m_Direct3D->GetProjectionMatrix(projectionMatrix);
-
-	RenderSceneDepth(viewMatrix, projectionMatrix);
+	RenderSceneDepth(currViewMatrix, currProjMatrix);
 
 	// Reset the render target back to the original back buffer and not the render to texture anymore.
 	m_Direct3D->SetBackBufferRenderTarget();
@@ -1115,7 +1108,7 @@ bool ApplicationClass::RenderMotionBlurToTexture()
 
 	// Render the small ortho window using the Motion blur shader and the down sampled render to texture resource.
 	result = m_MotionBlurShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix,
-		m_RenderTexture->GetShaderResourceView(), m_DepthTexture->GetShaderResourceView(), prevWorldMatrix, prevViewMatrix, prevProjMatrix);
+		m_RenderTexture->GetShaderResourceView(), m_DepthTexture->GetShaderResourceView(), currViewMatrix, currProjMatrix, prevViewMatrix, prevProjMatrix);
 	if (!result)
 	{
 		return false;

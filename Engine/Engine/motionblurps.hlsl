@@ -17,7 +17,9 @@ struct PixelInputType
 {
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
-	float2 velocity : VELOCITY;
+    matrix viewProjection : MATRIXA;
+    matrix viewProjectionInverse : MATRIXB;
+    matrix prevViewProjection : MATRIXC;
 };
 
 
@@ -26,20 +28,51 @@ struct PixelInputType
 ////////////////////////////////////////////////////////////////////////////////
 float4 MotionBlurPixelShader(PixelInputType input) : SV_TARGET
 {
-    /*int numSamples = 3;
     float2 texCoord = input.tex;
+    int numSamples = 12;
 
-	float4 color = shaderTexture[1].Sample(SampleType, texCoord);
-    texCoord += input.velocity;
+    // Get the depth buffer value at this pixel.
+    float zOverW = shaderTexture[1].Sample(SampleType, texCoord).r;
+    
+    // H is the viewport position at this pixel in the range -1 to 1.
+    float4 H = float4(texCoord.x * 2 - 1, (1 - texCoord.y) * 2 - 1, zOverW, 1);
+    
+    // Transform by the view-projection inverse.
+    float4 D = mul(H, input.viewProjectionInverse);
+    
+    // Divide by w to get the world position.
+    float4 worldPos = D / D.w;
 
-    for (int i = 0; i < numSamples; i++, texCoord += input.velocity)
+    // Current viewport position
+    float4 currentPos = H;
+    
+    // Use the world position, and transform by the previous view-projection matrix.
+    float4 previousPos = mul(worldPos, input.prevViewProjection);
+
+    // Convert to nonhomogeneous points [-1,1] by dividing by w.
+    previousPos /= previousPos.w;
+
+    // Use this frame's position and last frame's to compute the pixel velocity.
+    float2 velocity = (currentPos - previousPos) / 2.f;
+
+    velocity = velocity * 5;
+
+    // Get the initial color at this pixel.
+    float4 color = shaderTexture[0].Sample(SampleType, texCoord);
+    texCoord += velocity;
+
+    for (int i = 0; i < numSamples; i++, texCoord += velocity)
     {
-        float4 newColor = shaderTexture[1].Sample(SampleType, texCoord);
-		color += newColor;
+    
+        // Sample the color buffer along the velocity vector.
+        float4 currentColor = shaderTexture[0].Sample(SampleType, texCoord);
+        // Add the current color to our color sum.
+        color += currentColor;
     }
-	
-    return color / numSamples;*/
-    float2 texCoord = input.tex;
-    return shaderTexture[1].Sample(SampleType, texCoord);
 
+    // Average all of the samples to get the final blur color.
+    float4 finalColor = color / numSamples;
+
+    return finalColor;
+    //return shaderTexture[1].Sample(SampleType, texCoord);
 }

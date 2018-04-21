@@ -51,13 +51,14 @@ void MotionBlurShaderClass::Shutdown()
 
 
 bool MotionBlurShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
-									   D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* depthTexture, D3DXMATRIX prevWorldMatrix, D3DXMATRIX prevViewMatrix, D3DXMATRIX prevProjectionMatrix)
+									D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* depthTexture,
+									D3DXMATRIX currentViewMatrix, D3DXMATRIX currentProjectionMatrix, D3DXMATRIX prevViewMatrix, D3DXMATRIX prevProjectionMatrix)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, depthTexture, prevWorldMatrix, prevViewMatrix, prevProjectionMatrix);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, depthTexture, currentViewMatrix, currentProjectionMatrix, prevViewMatrix, prevProjectionMatrix);
 	if(!result)
 	{
 		return false;
@@ -215,7 +216,7 @@ bool MotionBlurShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WC
 
 	// Setup the description of the dynamic screen size constant buffer that is in the vertex shader.
     prevMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	prevMatrixBufferDesc.ByteWidth = sizeof(PrevMatrixBufferType);
+	prevMatrixBufferDesc.ByteWidth = sizeof(BlurMatrixBufferType);
     prevMatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     prevMatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     prevMatrixBufferDesc.MiscFlags = 0;
@@ -317,13 +318,14 @@ void MotionBlurShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, H
 
 
 bool MotionBlurShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
-				D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* depthTexture, D3DXMATRIX prevWorldMatrix, D3DXMATRIX prevViewMatrix, D3DXMATRIX prevProjectionMatrix)
+				D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* depthTexture, 
+				D3DXMATRIX currentViewMatrix, D3DXMATRIX currentProjectionMatrix, D3DXMATRIX prevViewMatrix, D3DXMATRIX prevProjectionMatrix)
 {
 	HRESULT result;
     D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
-	PrevMatrixBufferType* dataPtr2;
+	BlurMatrixBufferType* dataPtr2;
 
 
 	// Transpose the matrices to prepare them for the shader.
@@ -363,12 +365,13 @@ bool MotionBlurShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceConte
 	}
 
 	// Get a pointer to the data in the constant buffer.
-	dataPtr2 = (PrevMatrixBufferType*)mappedResource.pData;
+	dataPtr2 = (BlurMatrixBufferType*)mappedResource.pData;
 
 	// Copy the data into the constant buffer.
-	dataPtr2->prevProjection = prevWorldMatrix;
+	dataPtr2->prevProjection = prevProjectionMatrix;
 	dataPtr2->prevView = prevViewMatrix;
-	dataPtr2->prevWorld = prevProjectionMatrix;
+	dataPtr2->currentProjection = currentProjectionMatrix;
+	dataPtr2->currentView = currentViewMatrix;
 
 	// Unlock the constant buffer.
     deviceContext->Unmap(m_prevMatrixBuffer, 0);

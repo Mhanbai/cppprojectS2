@@ -29,7 +29,7 @@ bool DepthShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/depth.vs", L"../Engine/depth.ps");
+	result = InitializeShader(device, hwnd, L"../Engine/depthvs.hlsl", L"../Engine/depthps.hlsl");
 	if(!result)
 	{
 		return false;

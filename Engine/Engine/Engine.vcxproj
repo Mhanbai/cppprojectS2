@@ -152,8 +152,8 @@
     <ClInclude Include="verticalblurshaderclass.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="depth.ps" />
-    <None Include="depth.vs" />
+    <None Include="depthps.hlsl" />
+    <None Include="depthvs.hlsl" />
     <None Include="foliageps.hlsl" />
     <None Include="foliagevs.hlsl" />
     <None Include="fontps.hlsl" />
