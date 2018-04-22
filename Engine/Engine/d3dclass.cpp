@@ -57,6 +57,10 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
 	D3D11_BLEND_DESC blendStateDescription;
 
+	m_screenHeight = screenHeight;
+	m_screenWidth = screenWidth;
+	m_screenDepth = screenDepth;
+	m_screenNear = screenNear;
 
 	// Store the vsync setting.
 	m_vsync_enabled = vsync;
@@ -763,6 +767,16 @@ void D3DClass::ResetViewport()
 	m_deviceContext->RSSetViewports(1, &m_viewport);
 
 	return;
+}
+
+void D3DClass::ChangeFieldofView(float FOV, float screenNear, float screenDepth)
+{
+	// Setup the projection matrix.
+	float fieldOfView = (float)D3DX_PI / FOV;
+	float screenAspect = (float)m_screenWidth / (float)m_screenHeight;
+
+	// Create the projection matrix for 3D rendering.
+	D3DXMatrixPerspectiveFovLH(&m_projectionMatrix, fieldOfView, screenAspect, m_screenNear, m_screenDepth);
 }
 
 void D3DClass::EnableAlphaToCoverageBlending()

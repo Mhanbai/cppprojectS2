@@ -108,41 +108,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	// Create the terrain object.
-	m_Terrain = new TerrainClass;
-	if(!m_Terrain)
-	{
-		return false;
-	}
-
-	// Initialize the terrain object.
-	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), &m_NoiseGenerator, 1024, 1024, 
-											L"../Engine/data/grass.dds", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
-		return false;
-	}
-
-	m_Racetrack = new TrackClass;
-	if (!m_Racetrack)
-	{
-		return false;
-	}
-
-	result = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"../Engine/data/track.dds");
-	if (!result)
-	{
-		return false;
-	}
-
-	// Set the initial position of the camera.
-	cameraX = m_Racetrack->trackPoints[1].x;
-	cameraY = m_Racetrack->trackPoints[1].y;
-	cameraZ = m_Racetrack->trackPoints[1].z;
-
-	m_Camera->SetPosition(-cameraX, -cameraY, -cameraZ);
-
 	// Create the timer object.
 	m_Timer = new TimerClass;
 	if(!m_Timer)
@@ -253,71 +218,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	for (int i = 0; i < debugCount; i++) {
-		// Create the debug model objects. 
-		m_Model[i] = new ModelClass;
-		if (!m_Model[i])
-		{
-			return false;
-		}
-
-		// Initialize the input object.
-		result = m_Model[i]->Initialize(m_Direct3D->GetDevice(), "data/cube.txt", L"data/cars.dds");
-		if (!result)
-		{
-			MessageBox(hwnd, L"Could not initialize the debug model object.", L"Error", MB_OK);
-			return false;
-		}
-	}
-
-	m_Collision = new CollisionMap;
-	if (!m_Collision) {
-		return false;
-	}
-
-	result = m_Collision->Initialize(m_Terrain, m_Racetrack);
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the collision object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
-	m_PlayerCar = new Car;
-	if (!m_PlayerCar)
-	{
-		return false;
-	}
-
-	// Initialize the input object.
-	result = m_PlayerCar->Initialize("data/c_main.txt", L"data/cars.dds", m_PlayerCarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
-		return false;
-	}
-
-	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos);
-	//m_PlayerCar->SetPosition(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
-
-	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
-	m_AICar = new Car;
-	if (!m_AICar)
-	{
-		return false;
-	}
-
-	// Initialize the input object.
-	result = m_AICar->Initialize("data/c_main.txt", L"data/cars.dds", m_AICarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
-		return false;
-	}
-
-	m_AICar->SetPosition(m_Racetrack->opponentRacingLine[1]);
-	m_AICar->SetRacingLine(m_Racetrack->opponentRacingLine);
-
 	// Retrieve the video card information.
 	m_Direct3D->GetVideoCardInfo(videoCard, videoMemory);
 
@@ -393,7 +293,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	// Initialize the bitmap object.////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Initialize the bitmap object.
 	result = m_WingMirror->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/wingmirror.dds", screenWidth / 2.5f, screenHeight / 5.6f);
 	if (!result)
 	{
@@ -564,6 +464,90 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		MessageBox(hwnd, L"Could not initialize the full screen ortho window object.", L"Error", MB_OK);
 		return false;
 	}
+
+	//VVV////////////////////////////////////////////////////////////////////THIS WILL ALL HAVE TO CHANGE////////////////////////////////////////////////////////////////////////////VVV
+
+	// Create the terrain object.
+	m_Terrain = new TerrainClass;
+	if (!m_Terrain)
+	{
+		return false;
+	}
+
+	// Initialize the terrain object.
+	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), &m_NoiseGenerator, terrainWidth, terrainHeight,
+		L"../Engine/data/grass.dds", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds");
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_Racetrack = new TrackClass;
+	if (!m_Racetrack)
+	{
+		return false;
+	}
+
+	result = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"../Engine/data/track.dds");
+	if (!result)
+	{
+		return false;
+	}
+
+	// Set the initial position of the camera.
+	cameraX = m_Racetrack->trackPoints[1].x;
+	cameraY = m_Racetrack->trackPoints[1].y;
+	cameraZ = m_Racetrack->trackPoints[1].z;
+
+	m_Camera->SetPosition(-cameraX, -cameraY, -cameraZ);
+
+	m_Collision = new CollisionMap;
+	if (!m_Collision) {
+		return false;
+	}
+
+	result = m_Collision->Initialize(m_Terrain, m_Racetrack);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the collision object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
+	m_PlayerCar = new Car;
+	if (!m_PlayerCar)
+	{
+		return false;
+	}
+
+	// Initialize the input object.
+	result = m_PlayerCar->Initialize("data/c_main.txt", L"data/cars.dds", m_PlayerCarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos);
+
+	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
+	m_AICar = new Car;
+	if (!m_AICar)
+	{
+		return false;
+	}
+
+	// Initialize the input object.
+	result = m_AICar->Initialize("data/c_main.txt", L"data/cars.dds", m_AICarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_AICar->SetPosition(m_Racetrack->opponentRacingLine[1]);
+	m_AICar->SetRacingLine(m_Racetrack->opponentRacingLine);
 
 	// Create the foliage object.
 	m_BushFoliage = new FoliageClass;
@@ -875,6 +859,8 @@ bool ApplicationClass::Frame()
 {
 	bool result;
 
+	D3DXVECTOR3 cameraPosition;
+
 	// Read the user input.
 	result = m_Input->Frame();
 	if(!result)
@@ -907,41 +893,57 @@ bool ApplicationClass::Frame()
 		return false;
 	}
 
-	m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
-	//m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
-
-
-	//If last frame for player car resulted in a collision, reset to previous position
-	if (m_PlayerCar->colliding) {
-		m_PlayerCar->SetPosition(playerCarPos);
-	}
-	else {
-		playerCarPos = m_PlayerCar->GetPosition();
-		m_PlayerCar->SetPosition(D3DXVECTOR3(playerCarPos.x, m_Collision->GetHeight(m_PlayerCar), playerCarPos.z));
-	}
-
-	//m_AICar->OpponentFrame(m_Timer->GetTime() / 1000);
-	D3DXVECTOR3 aiCarPos = m_AICar->GetPosition();
-	m_AICar->SetPosition(D3DXVECTOR3(aiCarPos.x, m_Collision->GetHeight(m_AICar), aiCarPos.z));
-
 	// Do the frame input processing.
 	result = HandleInput(m_Timer->GetTime() / 1000);
-	if(!result)
-	{
-		return false;
-	}
-
-	m_Camera->Follow(playerCarPos, m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
-
-	D3DXVECTOR3 cameraPosition = m_Camera->GetPosition();
-	// Do the frame processing for the foliage.
-	result = m_BushFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
 	if (!result)
 	{
 		return false;
 	}
 
-	result = m_TreeFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
+	if (gameState == 0) {
+		m_Direct3D->ChangeFieldofView(2.0f, 0.1f, 1200.0f);
+		m_Camera->SetPosition(terrainWidth / 2, 550.0f, terrainHeight / 2);
+		m_Camera->SetRotation(90.0f, 0.0f, 0.0f);
+		m_Camera->RenderPreScene();
+		cameraPosition = m_Camera->GetPosition();
+	} else if (gameState == 1) {
+		m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
+		//m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
+
+
+		//If last frame for player car resulted in a collision, reset to previous position
+		if (m_PlayerCar->colliding) {
+			m_PlayerCar->SetPosition(playerCarPos);
+		}
+		else {
+			playerCarPos = m_PlayerCar->GetPosition();
+			m_PlayerCar->SetPosition(D3DXVECTOR3(playerCarPos.x, m_Collision->GetHeight(m_PlayerCar), playerCarPos.z));
+		}
+
+		//m_AICar->OpponentFrame(m_Timer->GetTime() / 1000);
+		D3DXVECTOR3 aiCarPos = m_AICar->GetPosition();
+		m_AICar->SetPosition(D3DXVECTOR3(aiCarPos.x, m_Collision->GetHeight(m_AICar), aiCarPos.z));
+
+		m_Camera->Follow(playerCarPos, m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
+		m_Camera->Render();
+
+		cameraPosition = m_Camera->GetPosition();
+		// Do the frame processing for the foliage.
+		result = m_BushFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
+		if (!result)
+		{
+			return false;
+		}
+
+		result = m_TreeFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
+		if (!result)
+		{
+			return false;
+		}
+	}
+
+	// Update the position values in the text object.
+	result = m_Text->SetCameraPosition(cameraPosition.x, cameraPosition.y, cameraPosition.z, m_Direct3D->GetDeviceContext());
 	if (!result)
 	{
 		return false;
@@ -949,7 +951,7 @@ bool ApplicationClass::Frame()
 
 	// Render the graphics.
 	result = RenderGraphics();
-	if(!result)
+	if (!result)
 	{
 		return false;
 	}
@@ -963,26 +965,36 @@ bool ApplicationClass::HandleInput(float frameTime)
 	bool keyDown, result;
 	float posX, posY, posZ, rotX, rotY, rotZ;
 
-	keyDown = m_Input->IsLeftPressed();
-	m_PlayerCar->TurnLeft(keyDown);
+	if (gameState == 1) {
+		keyDown = false;
 
-	keyDown = m_Input->IsRightPressed();
-	m_PlayerCar->TurnRight(keyDown);
+		keyDown = m_Input->IsLeftPressed();
+		m_PlayerCar->TurnLeft(keyDown);
 
-	keyDown = m_Input->IsUpPressed();
-	m_PlayerCar->Accelerate(keyDown);
+		keyDown = m_Input->IsRightPressed();
+		m_PlayerCar->TurnRight(keyDown);
 
-	keyDown = m_Input->IsDownPressed();
-	m_PlayerCar->BreakReverse(keyDown);
+		keyDown = m_Input->IsUpPressed();
+		m_PlayerCar->Accelerate(keyDown);
+
+		keyDown = m_Input->IsDownPressed();
+		m_PlayerCar->BreakReverse(keyDown);
+	}
+	else if (gameState == 0) {
+		keyDown = false;
+
+		keyDown = m_Input->IsAPressed();
+		if (keyDown) {
+			m_Terrain->GenerateNewTerrain();
+		}
+
+		keyDown = m_Input->IsZPressed();
+		if (keyDown) {
+ 			m_Racetrack->GenerateTrack();
+		}
+	}
 
 	D3DXVECTOR3 camPos = -m_Camera->GetPosition();
-
-	// Update the position values in the text object.
-	result = m_Text->SetCameraPosition(camPos.x, camPos.y, camPos.z, m_Direct3D->GetDeviceContext());
-	if (!result)
-	{
-		return false;
-	}
 
 	return true;
 }
@@ -993,9 +1005,6 @@ bool ApplicationClass::RenderGraphics()
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	D3DXVECTOR3 cameraPosition;
 	bool result;
-
-	// Generate the view matrix based on the camera's position.
-	m_Camera->Render();
 
 	// Render the entire scene to the texture first.
 	result = RenderToTexture();
@@ -1053,7 +1062,7 @@ bool ApplicationClass::RenderGraphics()
 	}
 
 	///////////////////////////////////2D UI RENDERING/////////////////////////////////////////////////////////////////
-	
+
 	// Turn off the Z buffer to begin all 2D rendering.
 	m_Direct3D->TurnZBufferOff();
 
@@ -1066,32 +1075,34 @@ bool ApplicationClass::RenderGraphics()
 	// Turn on the alpha blending before rendering the text.
 	m_Direct3D->TurnOnAlphaBlending();
 
-	// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = m_WingMirror->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_WingMirror->GetWidth() / 2), 20);
-	if (!result)
-	{
-		return false;
-	}
+	if (gameState == 1) {
+		// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+		result = m_WingMirror->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_WingMirror->GetWidth() / 2), 20);
+		if (!result)
+		{
+			return false;
+		}
 
-	// Render the wingmirror with the texture shader.
-	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_WingMirror->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_WingMirror->GetTexture());
-	if (!result)
-	{
-		return false;
-	}
+		// Render the wingmirror with the texture shader.
+		result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_WingMirror->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_WingMirror->GetTexture());
+		if (!result)
+		{
+			return false;
+		}
 
-	result = m_RearView->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_RearView->GetWidth() / 2), 25);
-	if (!result)
-	{
-		return false;
-	}
+		result = m_RearView->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_RearView->GetWidth() / 2), 25);
+		if (!result)
+		{
+			return false;
+		}
 
-	// Render the debug window using the texture shader.
-	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_RearView->GetIndexCount(), worldMatrix,
-		screenViewMatrix, orthoMatrix, m_RearViewTexture->GetShaderResourceView());
-	if (!result)
-	{
-		return false;
+		// Render the debug window using the texture shader.
+		result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_RearView->GetIndexCount(), worldMatrix,
+			screenViewMatrix, orthoMatrix, m_RearViewTexture->GetShaderResourceView());
+		if (!result)
+		{
+			return false;
+		}
 	}
 
 	// Render the text user interface elements.
@@ -1123,9 +1134,6 @@ bool ApplicationClass::RenderSceneToTexture()
 
 	// Clear the render to texture.
 	m_RenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
-
-	// Generate the view matrix based on the camera's position.
-	m_Camera->Render();
 
 	// Get the world, view, and projection matrices from the camera and d3d objects.
 	m_Camera->GetViewMatrix(viewMatrix);
@@ -1412,59 +1420,46 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 		return false;
 	}
 
-	m_PlayerCarModel->Render(m_Direct3D->GetDeviceContext());
+	if (gameState == 1) {
 
-	result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_PlayerCarModel->GetIndexCount(), m_PlayerCarModel->GetWorldMatrix(), viewMatrix, projectionMatrix,
-		m_PlayerCarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
-	if (!result)
-	{
-		return false;
-	}
+		m_PlayerCarModel->Render(m_Direct3D->GetDeviceContext());
 
-	m_AICarModel->Render(m_Direct3D->GetDeviceContext());
+		result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_PlayerCarModel->GetIndexCount(), m_PlayerCarModel->GetWorldMatrix(), viewMatrix, projectionMatrix,
+			m_PlayerCarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+		if (!result)
+		{
+			return false;
+		}
 
-	result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_AICarModel->GetIndexCount(), m_AICarModel->GetWorldMatrix(), viewMatrix, projectionMatrix,
-		m_AICarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
-	if (!result)
-	{
-		return false;
-	}
+		m_AICarModel->Render(m_Direct3D->GetDeviceContext());
 
-	for (int i = 0; i < 2; i++) {
-		worldMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
-								0.0f, 1.0f, 0.0f, 0.0f,
-								0.0f, 0.0f, 1.0f, 0.0f,
-								m_AICar->debug[i].x, m_AICar->debug[i].y, m_AICar->debug[i].z, 1.0f);
-
-		m_Model[i]->Render(m_Direct3D->GetDeviceContext());
-
-		result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_Model[i]->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_AICarModel->GetIndexCount(), m_AICarModel->GetWorldMatrix(), viewMatrix, projectionMatrix,
 			m_AICarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
 		if (!result)
 		{
 			return false;
 		}
-	}
 
-	// Turn on the alpha-to-coverage blending.
-	m_Direct3D->EnableAlphaToCoverageBlending();
+		// Turn on the alpha-to-coverage blending.
+		m_Direct3D->EnableAlphaToCoverageBlending();
 
-	// Render the foliage.
-	m_BushFoliage->Render(m_Direct3D->GetDeviceContext());
+		// Render the foliage.
+		m_BushFoliage->Render(m_Direct3D->GetDeviceContext());
 
-	result = m_FoliageShader->Render(m_Direct3D->GetDeviceContext(), m_BushFoliage->GetVertexCount(), m_BushFoliage->GetInstanceCount(), viewMatrix, projectionMatrix, m_BushFoliage->GetTexture());
-	if (!result)
-	{
-		return false;
-	}
+		result = m_FoliageShader->Render(m_Direct3D->GetDeviceContext(), m_BushFoliage->GetVertexCount(), m_BushFoliage->GetInstanceCount(), viewMatrix, projectionMatrix, m_BushFoliage->GetTexture());
+		if (!result)
+		{
+			return false;
+		}
 
-	// Render the foliage.
-	m_TreeFoliage->Render(m_Direct3D->GetDeviceContext());
+		// Render the foliage.
+		m_TreeFoliage->Render(m_Direct3D->GetDeviceContext());
 
-	result = m_FoliageShader->Render(m_Direct3D->GetDeviceContext(), m_TreeFoliage->GetVertexCount(), m_TreeFoliage->GetInstanceCount(), viewMatrix, projectionMatrix, m_TreeFoliage->GetTexture());
-	if (!result)
-	{
-		return false;
+		result = m_FoliageShader->Render(m_Direct3D->GetDeviceContext(), m_TreeFoliage->GetVertexCount(), m_TreeFoliage->GetInstanceCount(), viewMatrix, projectionMatrix, m_TreeFoliage->GetTexture());
+		if (!result)
+		{
+			return false;
+		}
 	}
 
 	// Turn off the alpha blending.

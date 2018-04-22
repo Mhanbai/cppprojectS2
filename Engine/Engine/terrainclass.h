@@ -54,7 +54,7 @@ public:
 	TerrainClass(const TerrainClass&);
 	~TerrainClass();
 
-	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, 
+	bool InitializeTerrain(ID3D11Device*, SimplexNoiseGenerator* noiseGenerator, int terrainWidth, int terrainHeight, 
 							WCHAR* grassTexture, WCHAR* slopeTexture, WCHAR* rockTexture);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
@@ -69,6 +69,8 @@ public:
 	VertexType* vertices;
 	int m_vertexCount;
 
+	bool GenerateNewTerrain();
+
 private:
 	bool CalculateNormals();
 	void ShutdownHeightMap();
@@ -82,12 +84,14 @@ private:
 	void RenderBuffers(ID3D11DeviceContext*);
 	
 private:
-	bool m_terrainGeneratedToggle;
+	ID3D11Device* m_Device; 
+	SimplexNoiseGenerator* m_noiseGenerator;
 	int m_terrainWidth, m_terrainHeight;
 	int m_indexCount;
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	GeometryType* m_heightMap;
 	TextureClass *m_GrassTexture, *m_SlopeTexture, *m_RockTexture;
+	bool terrainGenerated = false;
 };
 
 #endif

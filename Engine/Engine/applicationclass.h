@@ -114,9 +114,10 @@ private:
 
 	//Variable to save car position in case of collision
 	D3DXVECTOR3 playerCarPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	int gameState = 0;
 
-	int debugCount = 2;
-	ModelClass* m_Model[2];
+	int terrainWidth = 1024;
+	int terrainHeight = 1024;
 
 	int m_screenWidth;
 	int m_screenHeight;

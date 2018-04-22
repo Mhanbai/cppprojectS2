@@ -63,7 +63,7 @@ public:
 	ID3D11DepthStencilView* GetDepthStencilView();
 	void SetBackBufferRenderTarget();
 
-
+	void ChangeFieldofView(float FOV, float screenNear, float screenDepth);
 	void EnableAlphaToCoverageBlending();
 
 private:
@@ -89,6 +89,7 @@ private:
 	ID3D11BlendState* m_alphaDisableBlendingState;
 	ID3D11BlendState* m_alphaEnableBlendingState2;
 
+	float m_screenWidth, m_screenHeight, m_screenDepth, m_screenNear;
 };
 
 #endif

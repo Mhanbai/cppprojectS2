@@ -16,17 +16,79 @@ TrackClass::~TrackClass()
 bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in, int terrainWidth, int terrainHeight, WCHAR* textureFilename)
 {
 	m_Terrain = terrain_in;
+	m_Device = device;
+	m_terrainWidth = terrainWidth;
+	m_terrainHeight = terrainHeight;
 
+	LoadTexture(device, textureFilename);
+
+	GenerateTrack();
+	trackGenerated = true;
+
+	return true;
+}
+
+void TrackClass::Shutdown()
+{
+	ShutdownBuffers();
+}
+
+bool TrackClass::Render(ID3D11DeviceContext* deviceContext)
+{
+	unsigned int stride;
+	unsigned int offset;
+
+
+	// Set vertex buffer stride and offset.
+	stride = sizeof(VertexType);
+	offset = 0;
+
+	// Set the vertex buffer to active in the input assembler so it can be rendered.
+	deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+
+	// Set the index buffer to active in the input assembler so it can be rendered.
+	deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	return true;
+}
+
+int TrackClass::GetIndexCount()
+{
+	return index;
+}
+
+TextureClass* TrackClass::GetTexture()
+{
+	return m_Texture;
+}
+
+void TrackClass::DeleteVertices()
+{
+	// Release the vertex array 
+	delete[] vertices;
+	vertices = 0;
+}
+
+bool TrackClass::GenerateTrack()
+{
 	int index;
 	int BOX_SIZE = 16;
-	int mapNodeWidth = (terrainWidth / BOX_SIZE);
+	int mapNodeWidth = (m_terrainWidth / BOX_SIZE);
 	int nodeCount = 0;
+
+	if (trackGenerated) {
+		ShutdownBuffers();
+		DeleteTrack();
+	}
 
 	//Create Graph///////////////////////////////////////////////////////////////////////////////
 	//Check each 16x16 square in the heightmap
-	for (int j = 0; j < terrainHeight; j+=BOX_SIZE)
+	for (int j = 0; j < m_terrainHeight; j += BOX_SIZE)
 	{
-		for (int i = 0; i < terrainWidth; i+=BOX_SIZE)
+		for (int i = 0; i < m_terrainWidth; i += BOX_SIZE)
 		{
 			float lowest = 0.0f;
 			float highest = 0.0f;
@@ -35,7 +97,7 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 			bool flat = true;
 			for (int h = j; h < (j + BOX_SIZE); h++) {
 				for (int w = i; w < (i + BOX_SIZE); w++) {
-					index = (terrainHeight * h) + w;
+					index = (m_terrainHeight * h) + w;
 					if (m_Terrain->GetHeightMap()[index].y > highest) {
 						highest = m_Terrain->GetHeightMap()[index].y;
 					}
@@ -67,13 +129,13 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 			node.neighbours[5] = nodeCount + 1; //Right
 			node.neighbours[6] = nodeCount - mapNodeWidth + 1; //BottomRight
 			node.neighbours[7] = nodeCount - mapNodeWidth; //Bottom
-			//If neighbour does not exist set to -1
+														   //If neighbour does not exist set to -1
 			if (nodeCount < mapNodeWidth) {
 				node.neighbours[0] = -1;
 				node.neighbours[6] = -1;
 				node.neighbours[7] = -1;
 			}
-			if (nodeCount > ((mapNodeWidth * mapNodeWidth) - mapNodeWidth))
+			if (nodeCount >((mapNodeWidth * mapNodeWidth) - mapNodeWidth))
 			{
 				node.neighbours[2] = -1;
 				node.neighbours[3] = -1;
@@ -104,8 +166,11 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 	//Seed random with time
 	//srand(time(NULL));
 
-	//Find Path///////////////////////////////////////////////////////////////////////////////
-	while (nodesOnPath.size() < 60) {
+	bool pathSuccess = false;
+
+	//Keep going until we have a path that is long enough
+	while ((nodesOnPath.size() < 30) || (pathSuccess == false)) {
+		//Clear all important variables and lists each time we try
 		nodesOnPath.clear();
 		closedList.clear();
 		openList.clear();
@@ -114,46 +179,59 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 			node.distanceEstimate = 99999999999.9f;
 		}
 
+		//Find a starting node
 		int startNode = rand() % nodes.size();
+		//If the node is not flat, find a new node
 		while (nodes[startNode].isFlat == false) {
 			startNode = rand() % nodes.size();
 		}
 
+		//Distance estimate for start node is 0
 		nodes[startNode].distanceEstimate = 0;
 
 		//Add starting node to visited list
 		closedList.push_back(startNode);
 
+		//Find a flat end node
 		endNode = rand() % nodes.size();
 		while (nodes[endNode].isFlat == false) {
 			endNode = rand() % nodes.size();
 		}
 
+		//Keep trying to find a path to an end node
 		while (ExplorePath(startNode) == false) {
+			//If a path cannot be found, clear all important variables and lists
+			for (int i = 0; i < nodes.size(); i++) {
+				nodes[i].parent = -1;
+				nodes[i].distanceEstimate = 99999999999.9f;
+			}
 			closedList.clear();
 			openList.clear();
+			//Put the start node back on the closed list
 			closedList.push_back(startNode);
+			//Find a new end node
 			endNode = rand() % nodes.size();
 			while (nodes[endNode].isFlat == false) {
 				endNode = rand() % nodes.size();
 			}
 		}
 
-		BuildPath(endNode);
+		//Once a path has been found, turn it into a list
+		pathSuccess = BuildPath(endNode);
 	}
 
 	//Find catmul rom spline between points to use for the track///////////////////////////////////////////////
 	for (int i = 0; i < nodesOnPath.size() - 3; i++) {
-			D3DXVECTOR3 pointToAdd;
-			D3DXVECTOR3 point1 = nodesOnPath[i];
-			D3DXVECTOR3 point2 = nodesOnPath[i + 1];
-			D3DXVECTOR3 point3 = nodesOnPath[i + 2];
-			D3DXVECTOR3 point4 = nodesOnPath[i + 3];
+		D3DXVECTOR3 pointToAdd;
+		D3DXVECTOR3 point1 = nodesOnPath[i];
+		D3DXVECTOR3 point2 = nodesOnPath[i + 1];
+		D3DXVECTOR3 point3 = nodesOnPath[i + 2];
+		D3DXVECTOR3 point4 = nodesOnPath[i + 3];
 
-			for (float inc = 0.0f; inc < 1.0f; inc += 0.25f) {
-				D3DXVec3CatmullRom(&pointToAdd, &point1, &point2, &point3, &point4, inc);
-				trackPoints.push_back(pointToAdd);
-			}
+		for (float inc = 0.0f; inc < 1.0f; inc += 0.25f) {
+			D3DXVec3CatmullRom(&pointToAdd, &point1, &point2, &point3, &point4, inc);
+			trackPoints.push_back(pointToAdd);
+		}
 	}
 
 	//Calculate length of track to use for texturing
@@ -216,56 +294,41 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 	}
 
 	//Clean up the vectors used
+	closedList.clear();
+	closedList.shrink_to_fit();
+	openList.clear();
+	openList.shrink_to_fit();
 	nodes.clear();
 	nodes.shrink_to_fit();
 
-	LoadTexture(device, textureFilename);
-	InitializeBuffers(device);
+
+	InitializeBuffers(m_Device);
 
 	return true;
 }
 
-void TrackClass::Shutdown()
+bool TrackClass::DeleteTrack()
 {
-}
+	DeleteVertices();
 
-bool TrackClass::Render(ID3D11DeviceContext* deviceContext)
-{
-	unsigned int stride;
-	unsigned int offset;
+	if (m_model) {
+		delete m_model;
+		m_model = 0;
+	}
 
+	trackPoints.clear();
+	trackPoints.shrink_to_fit();
 
-	// Set vertex buffer stride and offset.
-	stride = sizeof(VertexType);
-	offset = 0;
+	nodesOnPath.clear();
+	nodesOnPath.shrink_to_fit();
 
-	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+	opponentRacingLine.clear();
+	opponentRacingLine.shrink_to_fit();
 
-	// Set the index buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	playerStartPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	carsStartDirection = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
 	return true;
-}
-
-int TrackClass::GetIndexCount()
-{
-	return index;
-}
-
-TextureClass* TrackClass::GetTexture()
-{
-	return m_Texture;
-}
-
-void TrackClass::DeleteVertices()
-{
-	// Release the vertex array 
-	delete[] vertices;
-	vertices = 0;
 }
 
 float TrackClass::DistanceToStart(int node)
@@ -274,7 +337,14 @@ float TrackClass::DistanceToStart(int node)
 	int currentNode = node;
 
 	while (currentNode != -1) {
-		totalDistance += nodes[currentNode].distanceFromParent;
+		if (nodes[currentNode].distanceFromParent > 0) {
+			totalDistance += nodes[currentNode].distanceFromParent;
+		}
+
+		if (totalDistance > 5000.0f) {
+			return totalDistance;
+		}
+
 		currentNode = nodes[currentNode].parent;
 	}
 
@@ -296,7 +366,7 @@ bool TrackClass::ExplorePath(int currentNode)
 			}
 			//If it is a valid node and is not already on the open list
 			else if ((nodes[currentNode].neighbours[i] != -1) && (std::find(openList.begin(), openList.end(), nodes[currentNode].neighbours[i]) == openList.end())) {
-				if (nodes[nodes[currentNode].neighbours[i]].isFlat) {
+				if ((nodes[nodes[currentNode].neighbours[i]].isFlat) && (nodes[currentNode].parent != nodes[currentNode].neighbours[i])) {
 					//Its parent node becomes the current node
 					nodes[nodes[currentNode].neighbours[i]].parent = currentNode;
 					//Calculate its distance from the parent
@@ -357,14 +427,20 @@ bool TrackClass::ExplorePath(int currentNode)
 	}
 }
 
-void TrackClass::BuildPath(int endNode)
+bool TrackClass::BuildPath(int endNode)
 {
 	int currentNode = endNode;
 
 	while (currentNode != -1) {
 		nodesOnPath.push_back(nodes[currentNode].centerPoint);
 		currentNode = nodes[currentNode].parent;
+
+		if (nodesOnPath.size() > 4096) {
+			return false;
+		}
 	}
+
+	return true;
 }
 
 D3DXVECTOR3 TrackClass::CalculateNormal(D3DXVECTOR3 triPoint1, D3DXVECTOR3 triPoint2, D3DXVECTOR3 triPoint3)
@@ -651,4 +727,23 @@ bool TrackClass::LoadTexture(ID3D11Device* device, WCHAR* textureFilename)
 	{
 		return false;
 	}
+}
+
+void TrackClass::ShutdownBuffers()
+{
+	// Release the index buffer.
+	if (m_indexBuffer)
+	{
+		m_indexBuffer->Release();
+		m_indexBuffer = 0;
+	}
+
+	// Release the vertex buffer.
+	if (m_vertexBuffer)
+	{
+		m_vertexBuffer->Release();
+		m_vertexBuffer = 0;
+	}
+
+	return;
 }

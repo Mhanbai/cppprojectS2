@@ -13,7 +13,6 @@ TerrainClass::TerrainClass()
 	m_GrassTexture = 0;
 	m_SlopeTexture = 0;
 	m_RockTexture = 0;
-	m_terrainGeneratedToggle = false;
 }
 
 
@@ -26,74 +25,24 @@ TerrainClass::~TerrainClass()
 {
 }
 
-bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* m_noiseGenerator, int terrainWidth, int terrainHeight, 
+bool TerrainClass::InitializeTerrain(ID3D11Device* device, SimplexNoiseGenerator* noiseGenerator, int terrainWidth, int terrainHeight, 
 										WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename, WCHAR* rockTextureFilename)
 {
-	int index;
-	float height = 0.0;
-	bool result;
-	//srand(time(NULL));
-	float random = rand() * 100.1f;
-
 	// Save the dimensions of the terrain.
 	m_terrainWidth = terrainWidth;
 	m_terrainHeight = terrainHeight;
 
-	// Create the structure to hold the terrain data.
-	m_heightMap = new GeometryType[m_terrainWidth * m_terrainHeight];
-	if(!m_heightMap)
-	{
-		return false;
-	}
-
-	// Initialise the data in the height map
-	for(int j=0; j<m_terrainHeight; j++)
-	{
-		for(int i=0; i<m_terrainWidth; i++)
-		{			
-			index = (m_terrainHeight * j) + i;
-
-			m_heightMap[index].x = (float)i;
-			m_heightMap[index].z = (float)j;
-
-			int xCo = i + random;
-			int yCo = j + random;
-			float e = ((float)m_noiseGenerator->GenerateNoise(xCo * 0.01f, 0.0f, yCo * 0.01f) +
-				0.5f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.0175f, 0.0f, yCo * 0.0175f) + 									
-				0.25f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.0375f, 0.0f, yCo * 0.0375f));
-
-
-			m_heightMap[index].y = (float)pow(e, 1.2f) * 120.0f;
-
-			if (isnan(m_heightMap[index].y)) {
-				m_heightMap[index].y = e;
-			}
-		}
-	}
-
-	// Calculate the normals for the terrain data.
-	result = CalculateNormals();
-	if(!result)
-	{
-		return false;
-	}
-
-	// Calculate the texture coordinates.
-	CalculateTextureCoordinates();
+	m_Device = device;
+	m_noiseGenerator = noiseGenerator;
 
 	// Load the textures.
-	result = LoadTextures(device, grassTextureFilename, slopeTextureFilename, rockTextureFilename);
+	bool result = LoadTextures(m_Device, grassTextureFilename, slopeTextureFilename, rockTextureFilename);
 	if (!result)
 	{
 		return false;
 	}
 
-	// Initialize the vertex and index buffer that hold the geometry for the terrain.
-	result = InitializeBuffers(device);
-	if(!result)
-	{
-		return false;
-	}
+	GenerateNewTerrain();
 
 	return true;
 }
@@ -148,6 +97,72 @@ ID3D11ShaderResourceView* TerrainClass::GetRockTexture()
 GeometryType* TerrainClass::GetHeightMap()
 {
 	return m_heightMap;
+}
+
+bool TerrainClass::GenerateNewTerrain()
+{
+	int index;
+	float height = 0.0;
+	bool result;
+	//srand(time(NULL));
+	float random = rand() * 100.1f;
+
+	if (terrainGenerated) {
+		DeleteVertices();
+		ShutdownHeightMap();
+		ShutdownBuffers();
+	}
+
+	// Create the structure to hold the terrain data.
+	m_heightMap = new GeometryType[m_terrainWidth * m_terrainHeight];
+	if (!m_heightMap)
+	{
+		return false;
+	}
+
+	// Initialise the data in the height map
+	for (int j = 0; j<m_terrainHeight; j++)
+	{
+		for (int i = 0; i<m_terrainWidth; i++)
+		{
+			index = (m_terrainHeight * j) + i;
+
+			m_heightMap[index].x = (float)i;
+			m_heightMap[index].z = (float)j;
+
+			int xCo = i + random;
+			int yCo = j + random;
+			float e = ((float)m_noiseGenerator->GenerateNoise(xCo * 0.01f, 0.0f, yCo * 0.01f) +
+				0.5f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.0175f, 0.0f, yCo * 0.0175f) +
+				0.25f * (float)m_noiseGenerator->GenerateNoise(xCo * 0.0375f, 0.0f, yCo * 0.0375f));
+
+
+			m_heightMap[index].y = (float)pow(e, 1.2f) * 120.0f;
+
+			if (isnan(m_heightMap[index].y)) {
+				m_heightMap[index].y = e;
+			}
+		}
+	}
+
+	// Calculate the normals for the terrain data.
+	result = CalculateNormals();
+	if (!result)
+	{
+		return false;
+	}
+
+	// Calculate the texture coordinates.
+	CalculateTextureCoordinates();
+
+	// Initialize the vertex and index buffer that hold the geometry for the terrain.
+	result = InitializeBuffers(m_Device);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 bool TerrainClass::CalculateNormals()
@@ -337,6 +352,8 @@ void TerrainClass::CalculateTextureCoordinates()
 			tvCount = 0;
 		}
 	}
+
+	terrainGenerated = true;
 
 	return;
 }

@@ -22,11 +22,13 @@ public:
 	~CameraClass();
 
 	void SetPosition(float, float, float);
+	void SetRotation(float, float, float);
 
 	D3DXVECTOR3 GetPosition();
 
 	void Follow(D3DXVECTOR3 followTarget, D3DXVECTOR3 targetForwardVector, float deltaTime);
 	void Render();
+	void RenderPreScene();
 	void GetViewMatrix(D3DXMATRIX&);
 	void GetReverseViewMatrix(D3DXMATRIX&);
 

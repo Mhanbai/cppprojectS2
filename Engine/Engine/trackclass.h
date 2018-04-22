@@ -62,6 +62,9 @@ public:
 	int m_vertexCount;
 	void DeleteVertices();
 
+	bool GenerateTrack();
+	bool DeleteTrack();
+
 private:
 	int startNode = 0;
 	int endNode;
@@ -69,7 +72,7 @@ private:
 	std::vector<int> closedList;
 	float DistanceToStart(int node);
 	bool ExplorePath(int currentNode);
-	void BuildPath(int endNode);
+	bool BuildPath(int endNode);
 	D3DXVECTOR3 CalculateNormal(D3DXVECTOR3 triPoint1, D3DXVECTOR3 triPoint2, D3DXVECTOR3 triPoint3);
 	float nodeLength;
 
@@ -80,6 +83,13 @@ private:
 	TerrainClass* m_Terrain;
 	TextureClass* m_Texture;
 	bool LoadTexture(ID3D11Device* device, WCHAR* textureFilename);
+
+	ID3D11Device* m_Device;
+	int m_terrainWidth;
+	int m_terrainHeight;
+
+	void ShutdownBuffers();
+	bool trackGenerated = false;
 };
 
 #endif
