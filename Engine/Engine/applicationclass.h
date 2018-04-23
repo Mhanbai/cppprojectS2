@@ -72,6 +72,7 @@ private:
 	bool RenderVerticalBlurToTexture();
 	bool UpSampleTexture();
 	bool Render2DTextureScene();
+	bool StartGame();
 
 private:
 	InputClass* m_Input;
@@ -111,6 +112,7 @@ private:
 	FoliageClass* m_BushFoliage;
 	FoliageClass* m_TreeFoliage;
 	FoliageShaderClass* m_FoliageShader;
+	HWND m_hwnd;
 
 	//Variable to save car position in case of collision
 	D3DXVECTOR3 playerCarPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);

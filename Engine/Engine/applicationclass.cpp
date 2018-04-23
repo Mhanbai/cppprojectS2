@@ -60,6 +60,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 {
 	bool result;
 	int downSampleWidth, downSampleHeight;
+	m_hwnd = hwnd;
 
 	float cameraX, cameraY, cameraZ;
 	char videoCard[128];
@@ -465,7 +466,12 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	//VVV////////////////////////////////////////////////////////////////////THIS WILL ALL HAVE TO CHANGE////////////////////////////////////////////////////////////////////////////VVV
+	m_FoliageShader = new FoliageShaderClass;
+	if (!m_FoliageShader) {
+		return false;
+	}
+
+	result = m_FoliageShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 
 	// Create the terrain object.
 	m_Terrain = new TerrainClass;
@@ -491,98 +497,38 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	showTrack = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"../Engine/data/track.dds");
 
-	/*// Set the initial position of the camera.
-	cameraX = m_Racetrack->trackPoints[1].x;
-	cameraY = m_Racetrack->trackPoints[1].y;
-	cameraZ = m_Racetrack->trackPoints[1].z;
-
-	m_Camera->SetPosition(-cameraX, -cameraY, -cameraZ);
-
 	m_Collision = new CollisionMap;
 	if (!m_Collision) {
 		return false;
 	}
 
-	result = m_Collision->Initialize(m_Terrain, m_Racetrack);
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the collision object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
+	// Create the car object. 
 	m_PlayerCar = new Car;
 	if (!m_PlayerCar)
 	{
 		return false;
 	}
 
-	// Initialize the input object.
-	result = m_PlayerCar->Initialize("data/c_main.txt", L"data/cars.dds", m_PlayerCarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
-		return false;
-	}
-
-	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos);
-
-	// Create the car object.  The input object will be used to handle reading the keyboard and mouse input from the user.
+	// Create the car object. 
 	m_AICar = new Car;
 	if (!m_AICar)
 	{
 		return false;
 	}
 
-	// Initialize the input object.
-	result = m_AICar->Initialize("data/c_main.txt", L"data/cars.dds", m_AICarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
-		return false;
-	}
-
-	m_AICar->SetPosition(m_Racetrack->opponentRacingLine[1]);
-	m_AICar->SetRacingLine(m_Racetrack->opponentRacingLine);
-
-	// Create the foliage object.
+	// Create the bush foliage object.
 	m_BushFoliage = new FoliageClass;
 	if (!m_BushFoliage)
 	{
 		return false;
 	}
 
-	// Initialize the foliage object.
-	result = m_BushFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/foliage.dds", m_Terrain, 0.01f, 0.03f, -5.0f, 3.0f, 1.0f, 4.0f, 3);
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the foliage object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Create the foliage object.
+	// Create the tree foliage object.
 	m_TreeFoliage = new FoliageClass;
 	if (!m_TreeFoliage)
 	{
 		return false;
 	}
-
-	// Initialize the foliage object.
-	result = m_TreeFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/tree.dds", m_Terrain, 0.02f, 0.04f, -5.0f, 2.0f, 10.0f, 15.0f, 32);
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the foliage object.", L"Error", MB_OK);
-		return false;
-	}
-
-	m_FoliageShader = new FoliageShaderClass;
-	if (!m_FoliageShader) {
-		return false;
-	}
-
-	result = m_FoliageShader->Initialize(m_Direct3D->GetDevice(), hwnd);
-
-	m_Terrain->DeleteVertices();*////////////////////////////////////////////////////////////////////////////////////////
 
 	return true;
 }
@@ -699,7 +645,6 @@ void ApplicationClass::Shutdown()
 		m_PlayerCar = 0;
 	}
 
-	// Release the debug window object.///////////////////////////////////////////////////////////////////////////////////////////////////////
 	if (m_RearView)
 	{
 		m_RearView->Shutdown();
@@ -904,7 +849,7 @@ bool ApplicationClass::Frame()
 		cameraPosition = m_Camera->GetPosition();
 	} else if (gameState == 1) {
 		m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
-		//m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
+		m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
 
 
 		//If last frame for player car resulted in a collision, reset to previous position
@@ -1026,6 +971,12 @@ bool ApplicationClass::HandleInput(float frameTime)
 			sprintf_s(info2Buffer, "Distance: %.0fm", m_Racetrack->trackLength);
 		}
 		m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+
+		keyDown = m_Input->IsSpacePressed();
+		if (keyDown) {
+			m_Direct3D->ChangeFieldofView(4.0f, 0.1f, 1000.0f);
+			StartGame();
+		}
 	}
 
 	D3DXVECTOR3 camPos = -m_Camera->GetPosition();
@@ -1389,6 +1340,66 @@ bool ApplicationClass::Render2DTextureScene()
 	m_Direct3D->TurnZBufferOn();
 
 	return true;
+}
+
+bool ApplicationClass::StartGame()
+{
+	float cameraX, cameraY, cameraZ;
+	bool result;
+	gameState = 1;
+
+	// Set the initial position of the camera.
+	cameraX = m_Racetrack->trackPoints[1].x;
+	cameraY = m_Racetrack->trackPoints[1].y;
+	cameraZ = m_Racetrack->trackPoints[1].z;
+
+	m_Camera->SetPosition(-cameraX, -cameraY, -cameraZ);
+
+	result = m_Collision->Initialize(m_Terrain, m_Racetrack);
+	if (!result)
+	{
+	MessageBox(m_hwnd, L"Could not initialize the collision object.", L"Error", MB_OK);
+	return false;
+	}
+
+	// Initialize the input object.
+	result = m_PlayerCar->Initialize("data/c_main.txt", L"data/cars.dds", m_PlayerCarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+	MessageBox(m_hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
+	return false;
+	}
+
+	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos + D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+
+	// Initialize the input object.
+	result = m_AICar->Initialize("data/c_main.txt", L"data/cars.dds", m_AICarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+	MessageBox(m_hwnd, L"Could not initialize the car object.", L"Error", MB_OK);
+	return false;
+	}
+
+	m_AICar->SetPosition(m_Racetrack->opponentRacingLine[1] + D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+	m_AICar->SetRacingLine(m_Racetrack->opponentRacingLine);
+
+	// Initialize the foliage object.
+	result = m_BushFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/foliage.dds", m_Terrain, 0.01f, 0.03f, -5.0f, 3.0f, 1.0f, 4.0f, 3);
+	if (!result)
+	{
+	MessageBox(m_hwnd, L"Could not initialize the foliage object.", L"Error", MB_OK);
+	return false;
+	}
+
+	// Initialize the foliage object.
+	result = m_TreeFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/tree.dds", m_Terrain, 0.02f, 0.04f, -5.0f, 2.0f, 10.0f, 15.0f, 32);
+	if (!result)
+	{
+	MessageBox(m_hwnd, L"Could not initialize the foliage object.", L"Error", MB_OK);
+	return false;
+	}
+
+	m_Terrain->DeleteVertices();
 }
 
 bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
