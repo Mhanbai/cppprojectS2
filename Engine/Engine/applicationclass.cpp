@@ -489,13 +489,9 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	result = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"../Engine/data/track.dds");
-	if (!result)
-	{
-		return false;
-	}
+	showTrack = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"../Engine/data/track.dds");
 
-	// Set the initial position of the camera.
+	/*// Set the initial position of the camera.
 	cameraX = m_Racetrack->trackPoints[1].x;
 	cameraY = m_Racetrack->trackPoints[1].y;
 	cameraZ = m_Racetrack->trackPoints[1].z;
@@ -586,7 +582,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	result = m_FoliageShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 
-	m_Terrain->DeleteVertices();
+	m_Terrain->DeleteVertices();*////////////////////////////////////////////////////////////////////////////////////////
 
 	return true;
 }
@@ -985,13 +981,51 @@ bool ApplicationClass::HandleInput(float frameTime)
 
 		keyDown = m_Input->IsAPressed();
 		if (keyDown) {
+			char info1Buffer[32];
+			sprintf_s(info1Buffer, "Generating...");
+			m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+
+			RenderGraphics();
+
 			m_Terrain->GenerateNewTerrain();
+
+			sprintf_s(info1Buffer, "Searching...");
+			m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+
+			RenderGraphics();
+
+			showTrack = m_Racetrack->GenerateTrack();
 		}
 
 		keyDown = m_Input->IsZPressed();
 		if (keyDown) {
- 			m_Racetrack->GenerateTrack();
+			char info1Buffer[32];
+			sprintf_s(info1Buffer, "Searching...");
+			m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+
+			RenderGraphics();
+
+ 			showTrack = m_Racetrack->GenerateTrack();
 		}
+
+		char info1Buffer[32];
+
+		if (!showTrack) {
+			sprintf_s(info1Buffer, "No track. Retry");
+		}
+		else {
+			sprintf_s(info1Buffer, "Track found!");
+		}
+		m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+
+		char info2Buffer[32];
+		if (!showTrack) {
+			sprintf_s(info2Buffer, "Distance: 0m");
+		}
+		else {
+			sprintf_s(info2Buffer, "Distance: %.0fm", m_Racetrack->trackLength);
+		}
+		m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 	}
 
 	D3DXVECTOR3 camPos = -m_Camera->GetPosition();
@@ -1407,17 +1441,19 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 		return false;
 	}
 
-	result = m_Racetrack->Render(m_Direct3D->GetDeviceContext());
-	if (!result)
-	{
-		return false;
-	}
+	if (showTrack) {
+		result = m_Racetrack->Render(m_Direct3D->GetDeviceContext());
+		if (!result)
+		{
+			return false;
+		}
 
-	result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_Racetrack->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
-		m_Racetrack->GetTexture()->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
-	if (!result)
-	{
-		return false;
+		result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_Racetrack->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+			m_Racetrack->GetTexture()->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+		if (!result)
+		{
+			return false;
+		}
 	}
 
 	if (gameState == 1) {

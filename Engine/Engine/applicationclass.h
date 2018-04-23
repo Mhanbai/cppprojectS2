@@ -121,6 +121,8 @@ private:
 
 	int m_screenWidth;
 	int m_screenHeight;
+
+	bool showTrack = true;
 };
 
 #endif

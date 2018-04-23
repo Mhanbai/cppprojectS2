@@ -65,6 +65,8 @@ public:
 	bool GenerateTrack();
 	bool DeleteTrack();
 
+	int attempts = 0;
+	float trackLength = 0.0f;
 private:
 	int startNode = 0;
 	int endNode;

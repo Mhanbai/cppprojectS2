@@ -22,10 +22,9 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 
 	LoadTexture(device, textureFilename);
 
-	GenerateTrack();
-	trackGenerated = true;
+	trackGenerated = GenerateTrack();
 
-	return true;
+	return trackGenerated;
 }
 
 void TrackClass::Shutdown()
@@ -131,22 +130,26 @@ bool TrackClass::GenerateTrack()
 			node.neighbours[7] = nodeCount - mapNodeWidth; //Bottom
 														   //If neighbour does not exist set to -1
 			if (nodeCount < mapNodeWidth) {
+				//If we are on the bottom row remove all bottom neighbors
 				node.neighbours[0] = -1;
 				node.neighbours[6] = -1;
 				node.neighbours[7] = -1;
 			}
-			if (nodeCount >((mapNodeWidth * mapNodeWidth) - mapNodeWidth))
+			if (nodeCount >=((mapNodeWidth * mapNodeWidth) - mapNodeWidth))
 			{
+				//If we are on the top row remove all top neighbors
 				node.neighbours[2] = -1;
 				node.neighbours[3] = -1;
 				node.neighbours[4] = -1;
 			}
 			if (nodeCount % mapNodeWidth == 0) {
+				//If we are on the left of the graph remove all left neighbors
 				node.neighbours[0] = -1;
 				node.neighbours[1] = -1;
 				node.neighbours[2] = -1;
 			}
 			if (nodeCount % mapNodeWidth == (mapNodeWidth - 1)) {
+				//If we are on the right of the graph remove all right neighbors
 				node.neighbours[4] = -1;
 				node.neighbours[5] = -1;
 				node.neighbours[6] = -1;
@@ -167,9 +170,15 @@ bool TrackClass::GenerateTrack()
 	//srand(time(NULL));
 
 	bool pathSuccess = false;
+	attempts = 0;
 
 	//Keep going until we have a path that is long enough
 	while ((nodesOnPath.size() < 30) || (pathSuccess == false)) {
+		if (attempts > 20) {
+			return false;
+		}
+
+		attempts++;
 		//Clear all important variables and lists each time we try
 		nodesOnPath.clear();
 		closedList.clear();
@@ -220,91 +229,98 @@ bool TrackClass::GenerateTrack()
 		pathSuccess = BuildPath(endNode);
 	}
 
-	//Find catmul rom spline between points to use for the track///////////////////////////////////////////////
-	for (int i = 0; i < nodesOnPath.size() - 3; i++) {
-		D3DXVECTOR3 pointToAdd;
-		D3DXVECTOR3 point1 = nodesOnPath[i];
-		D3DXVECTOR3 point2 = nodesOnPath[i + 1];
-		D3DXVECTOR3 point3 = nodesOnPath[i + 2];
-		D3DXVECTOR3 point4 = nodesOnPath[i + 3];
+	trackLength = DistanceToStart(endNode);
 
-		for (float inc = 0.0f; inc < 1.0f; inc += 0.25f) {
-			D3DXVec3CatmullRom(&pointToAdd, &point1, &point2, &point3, &point4, inc);
-			trackPoints.push_back(pointToAdd);
+	if (pathSuccess) {
+		//Find catmul rom spline between points to use for the track///////////////////////////////////////////////
+		for (int i = 0; i < nodesOnPath.size() - 3; i++) {
+			D3DXVECTOR3 pointToAdd;
+			D3DXVECTOR3 point1 = nodesOnPath[i];
+			D3DXVECTOR3 point2 = nodesOnPath[i + 1];
+			D3DXVECTOR3 point3 = nodesOnPath[i + 2];
+			D3DXVECTOR3 point4 = nodesOnPath[i + 3];
+
+			for (float inc = 0.0f; inc < 1.0f; inc += 0.25f) {
+				D3DXVec3CatmullRom(&pointToAdd, &point1, &point2, &point3, &point4, inc);
+				trackPoints.push_back(pointToAdd);
+			}
 		}
+
+		//Calculate length of track to use for texturing
+		D3DXVECTOR3 nodeSpaceVector = trackPoints[1] - trackPoints[0];
+		nodeLength = D3DXVec3Length(&nodeSpaceVector);
+
+		//Find indices for road model///////////////////////////////////////////////////////////////////////////////
+		m_model = new GeometryType[trackPoints.size() * 4];
+		D3DXVECTOR3 vectorToNextPoint;
+
+		float ROAD_WIDTH = 4.0f;
+		float ROAD_HEIGHT = 0.2f;
+
+		for (int i = 0; i < trackPoints.size(); i++) {
+			//Dont do this if we're on the last node
+			if (i != (trackPoints.size() - 1)) {
+				//Find forward vector for node
+				vectorToNextPoint = trackPoints[i + 1] - trackPoints[i];
+				D3DXVec3Normalize(&vectorToNextPoint, &vectorToNextPoint);
+			}
+
+			//Find left and right vectors for node
+			D3DXVECTOR3 right = D3DXVECTOR3(vectorToNextPoint.z, vectorToNextPoint.y, -vectorToNextPoint.x);
+			D3DXVECTOR3 left = -right;
+
+			//Find starting position for player and starting direction
+			if (i == 0) {
+				playerStartPos = trackPoints[1] + left * 2.0f;
+			}
+			else if (i == 1) {
+				carsStartDirection = vectorToNextPoint;
+			}
+
+			//Find racing line for opponent
+			opponentRacingLine.push_back(trackPoints[i] + right * 2.0f);
+
+			//Find indices for track
+			D3DXVECTOR3 bottomRight = trackPoints[i] + (right * ROAD_WIDTH);
+			D3DXVECTOR3 topRight = bottomRight + (left * 0.5f) + D3DXVECTOR3(0.0f, ROAD_HEIGHT, 0.0f);
+			D3DXVECTOR3 bottomLeft = trackPoints[i] + (left * ROAD_WIDTH);
+			D3DXVECTOR3 topLeft = bottomLeft + (right * 0.5f) + D3DXVECTOR3(0.0f, ROAD_HEIGHT, 0.0f);
+
+			int m_Pos = i * 4;
+
+			m_model[m_Pos].x = bottomLeft.x;
+			m_model[m_Pos].y = bottomLeft.y;
+			m_model[m_Pos].z = bottomLeft.z;
+
+			m_model[m_Pos + 1].x = topLeft.x;
+			m_model[m_Pos + 1].y = topLeft.y;
+			m_model[m_Pos + 1].z = topLeft.z;
+
+			m_model[m_Pos + 2].x = topRight.x;
+			m_model[m_Pos + 2].y = topRight.y;
+			m_model[m_Pos + 2].z = topRight.z;
+
+			m_model[m_Pos + 3].x = bottomRight.x;
+			m_model[m_Pos + 3].y = bottomRight.y;
+			m_model[m_Pos + 3].z = bottomRight.z;
+		}
+
+		//Clean up the vectors used
+		closedList.clear();
+		closedList.shrink_to_fit();
+		openList.clear();
+		openList.shrink_to_fit();
+		nodes.clear();
+		nodes.shrink_to_fit();
+
+
+		InitializeBuffers(m_Device);
+
+		return true;
 	}
-
-	//Calculate length of track to use for texturing
-	D3DXVECTOR3 nodeSpaceVector = trackPoints[1] - trackPoints[0];
-	nodeLength = D3DXVec3Length(&nodeSpaceVector);
-
-	//Find indices for road model///////////////////////////////////////////////////////////////////////////////
-	m_model = new GeometryType[trackPoints.size() * 4];
-	D3DXVECTOR3 vectorToNextPoint;
-
-	float ROAD_WIDTH = 4.0f;
-	float ROAD_HEIGHT = 0.2f;
-
-	for (int i = 0; i < trackPoints.size(); i++) {
-		//Dont do this if we're on the last node
-		if (i != (trackPoints.size() - 1)) {
-			//Find forward vector for node
-			vectorToNextPoint = trackPoints[i + 1] - trackPoints[i];
-			D3DXVec3Normalize(&vectorToNextPoint, &vectorToNextPoint);
-		}
-
-		//Find left and right vectors for node
-		D3DXVECTOR3 right = D3DXVECTOR3(vectorToNextPoint.z, vectorToNextPoint.y, -vectorToNextPoint.x);
-		D3DXVECTOR3 left = -right;
-
-		//Find starting position for player and starting direction
-		if (i == 0) {
-			playerStartPos = trackPoints[1] + left * 2.0f;
-		}
-		else if (i == 1) {
-			carsStartDirection = vectorToNextPoint;
-		}
-
-		//Find racing line for opponent
-		opponentRacingLine.push_back(trackPoints[i] + right * 2.0f);
-
-		//Find indices for track
-		D3DXVECTOR3 bottomRight = trackPoints[i] + (right * ROAD_WIDTH);
-		D3DXVECTOR3 topRight = bottomRight + (left * 0.5f) + D3DXVECTOR3(0.0f, ROAD_HEIGHT, 0.0f);
-		D3DXVECTOR3 bottomLeft = trackPoints[i] + (left * ROAD_WIDTH);
-		D3DXVECTOR3 topLeft = bottomLeft + (right * 0.5f) + D3DXVECTOR3(0.0f, ROAD_HEIGHT, 0.0f);
-
-		int m_Pos = i * 4;
-
-		m_model[m_Pos].x = bottomLeft.x;
-		m_model[m_Pos].y = bottomLeft.y;
-		m_model[m_Pos].z = bottomLeft.z;
-
-		m_model[m_Pos + 1].x = topLeft.x;
-		m_model[m_Pos + 1].y = topLeft.y;
-		m_model[m_Pos + 1].z = topLeft.z;
-
-		m_model[m_Pos + 2].x = topRight.x;
-		m_model[m_Pos + 2].y = topRight.y;
-		m_model[m_Pos + 2].z = topRight.z;
-
-		m_model[m_Pos + 3].x = bottomRight.x;
-		m_model[m_Pos + 3].y = bottomRight.y;
-		m_model[m_Pos + 3].z = bottomRight.z;
+	else {
+		return false;
 	}
-
-	//Clean up the vectors used
-	closedList.clear();
-	closedList.shrink_to_fit();
-	openList.clear();
-	openList.shrink_to_fit();
-	nodes.clear();
-	nodes.shrink_to_fit();
-
-
-	InitializeBuffers(m_Device);
-
-	return true;
 }
 
 bool TrackClass::DeleteTrack()
@@ -315,6 +331,9 @@ bool TrackClass::DeleteTrack()
 		delete m_model;
 		m_model = 0;
 	}
+
+	nodes.clear();
+	nodes.shrink_to_fit();
 
 	trackPoints.clear();
 	trackPoints.shrink_to_fit();
@@ -341,7 +360,8 @@ float TrackClass::DistanceToStart(int node)
 			totalDistance += nodes[currentNode].distanceFromParent;
 		}
 
-		if (totalDistance > 5000.0f) {
+		//If distance is over 2000, something has gone wrong, and we're in an infinite loop
+		if (totalDistance > 2000.0f) {
 			return totalDistance;
 		}
 
@@ -435,7 +455,8 @@ bool TrackClass::BuildPath(int endNode)
 		nodesOnPath.push_back(nodes[currentNode].centerPoint);
 		currentNode = nodes[currentNode].parent;
 
-		if (nodesOnPath.size() > 4096) {
+		//If there are over 300 nodes on the path, something has gone wrong and we are caught in an infinite loop
+		if (nodesOnPath.size() > 300) {
 			return false;
 		}
 	}
