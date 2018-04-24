@@ -12,7 +12,7 @@ CollisionMap::~CollisionMap()
 {
 }
 
-bool CollisionMap::Initialize(TerrainClass * terrain_in, TrackClass* track_in)
+bool CollisionMap::Initialize(ID3D11Device* m_device, TerrainClass * terrain_in, TrackClass* track_in)
 {
 	m_Terrain = terrain_in;
 	m_Racetrack = track_in;
@@ -116,118 +116,270 @@ float CollisionMap::GetHeight(Car * car)
 
 bool CollisionMap::CheckCollision(Car * car)
 {
-	D3DXVECTOR3 carPos = car->GetPosition() + (car->GetForwardVector() * 2.0f);
+	D3DXVECTOR3 carPos = car->GetPosition();
 	int pos = (ceilf(carPos.x / 256.0f)) + (floorf(carPos.z / 256.0f) * 4);
+
+	D3DXVECTOR3 UL, UR, BR, BL;
+	float halfWidth = (car->m_Model->GetWidth() / 2) * car->scale;
+	float halfLength = (car->m_Model->GetLength() / 2) * car->scale;
+	UL = carPos + (car->GetLeftVector() * halfWidth) + (car->GetForwardVector() * halfLength);
+	BL = UL + (-car->GetForwardVector() * (halfLength * 2));
+	UR = UL + (car->GetRightVector() * (halfWidth * 2));
+	BR = UR + (-car->GetForwardVector() * (halfLength * 2));
 
 	switch (pos) {
 	case 1:
 		for (int i = 0; i < terrainCheck1.size(); i++) {
-			if (terrainCheck1[i].isWithin(carPos)) {
+			if (terrainCheck1[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck1[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck1[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck1[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 2:
 		for (int i = 0; i < terrainCheck2.size(); i++) {
-			if (terrainCheck2[i].isWithin(carPos)) {
+			if (terrainCheck2[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck2[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck2[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck2[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 3:
 		for (int i = 0; i < terrainCheck3.size(); i++) {
-			if (terrainCheck3[i].isWithin(carPos)) {
+			if (terrainCheck3[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck3[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck3[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck3[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 4:
 		for (int i = 0; i < terrainCheck4.size(); i++) {
-			if (terrainCheck4[i].isWithin(carPos)) {
+			if (terrainCheck4[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck4[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck4[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck4[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 5:
 		for (int i = 0; i < terrainCheck5.size(); i++) {
-			if (terrainCheck5[i].isWithin(carPos)) {
+			if (terrainCheck5[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck5[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck5[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck5[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 6:
 		for (int i = 0; i < terrainCheck6.size(); i++) {
-			if (terrainCheck6[i].isWithin(carPos)) {
+			if (terrainCheck6[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck6[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck6[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck6[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 7:
 		for (int i = 0; i < terrainCheck7.size(); i++) {
-			if (terrainCheck7[i].isWithin(carPos)) {
+			if (terrainCheck7[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck7[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck7[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck7[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 8:
 		for (int i = 0; i < terrainCheck8.size(); i++) {
-			if (terrainCheck8[i].isWithin(carPos)) {
+			if (terrainCheck8[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck8[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck8[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck8[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 9:
 		for (int i = 0; i < terrainCheck9.size(); i++) {
-			if (terrainCheck9[i].isWithin(carPos)) {
+			if (terrainCheck9[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck9[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck9[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck9[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 10:
 		for (int i = 0; i < terrainCheck10.size(); i++) {
-			if (terrainCheck10[i].isWithin(carPos)) {
+			if (terrainCheck10[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck10[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck10[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck10[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 11:
 		for (int i = 0; i < terrainCheck11.size(); i++) {
-			if (terrainCheck11[i].isWithin(carPos)) {
+			if (terrainCheck11[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck11[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck11[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck11[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 12:
 		for (int i = 0; i < terrainCheck12.size(); i++) {
-			if (terrainCheck12[i].isWithin(carPos)) {
+			if (terrainCheck12[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck12[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck12[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck12[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 13:
 		for (int i = 0; i < terrainCheck13.size(); i++) {
-			if (terrainCheck13[i].isWithin(carPos)) {
+			if (terrainCheck13[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck13[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck13[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck13[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 14:
 		for (int i = 0; i < terrainCheck14.size(); i++) {
-			if (terrainCheck14[i].isWithin(carPos)) {
+			if (terrainCheck14[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck14[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck14[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck14[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 15:
 		for (int i = 0; i < terrainCheck15.size(); i++) {
-			if (terrainCheck15[i].isWithin(carPos)) {
+			if (terrainCheck15[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck15[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck15[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck15[i].isWithin(BR)) {
 				return true;
 			}
 		}
 		break;
 	case 16:
 		for (int i = 0; i < terrainCheck16.size(); i++) {
-			if (terrainCheck16[i].isWithin(carPos)) {
+			if (terrainCheck16[i].isWithin(UL)) {
+				return true;
+			}
+			else if (terrainCheck16[i].isWithin(BL)) {
+				return true;
+			}
+			else if (terrainCheck16[i].isWithin(UR)) {
+				return true;
+			}
+			else if (terrainCheck16[i].isWithin(BR)) {
 				return true;
 			}
 		}

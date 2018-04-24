@@ -1355,7 +1355,7 @@ bool ApplicationClass::StartGame()
 
 	m_Camera->SetPosition(-cameraX, -cameraY, -cameraZ);
 
-	result = m_Collision->Initialize(m_Terrain, m_Racetrack);
+	result = m_Collision->Initialize(m_Direct3D->GetDevice(), m_Terrain, m_Racetrack);
 	if (!result)
 	{
 	MessageBox(m_hwnd, L"Could not initialize the collision object.", L"Error", MB_OK);

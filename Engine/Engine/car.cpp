@@ -41,7 +41,7 @@ bool Car::Initialize(char* modelFilename, WCHAR* textureFilename, ModelClass* &m
 
 	m_Model = new ModelClass;
 	m_Model->Initialize(device, modelFilename, textureFilename);
-	m_Model->Scale(0.3f);
+	m_Model->Scale(scale);
 
 	model_in = m_Model;
 
@@ -92,9 +92,9 @@ void Car::Frame(float deltaTime)
 	}
 
 	//If y position is 0 (not on track) limit speed
-	/*if (position.y == 0.0f) {
+	if (position.y == 0.0f) {
 		gear = 0.3f;
-	}*/
+	}
 
 	//Controls the 'gear' i.e. the car moves at a speed relevant to how fast its already going
 	accelerationFactor = startAccelerationFactor + (speed * gear);
@@ -305,6 +305,16 @@ void Car::SetPosition(D3DXVECTOR3 position_in)
 D3DXVECTOR3 Car::GetForwardVector()
 {
 	return forwardVector;
+}
+
+D3DXVECTOR3 Car::GetRightVector()
+{
+	return D3DXVECTOR3(forwardVector.z, forwardVector.y, -forwardVector.x);
+}
+
+D3DXVECTOR3 Car::GetLeftVector()
+{
+	return -GetRightVector();
 }
 
 D3DXVECTOR3 Car::GetPosition()

@@ -134,6 +134,24 @@ void ModelClass::Scale(float scale)
 	D3DXMatrixMultiply(&worldMatrix, &worldMatrix, &scaleMatrix);
 }
 
+float ModelClass::GetWidth()
+{
+	return m_width;
+}
+
+float ModelClass::GetLength()
+{
+	return m_length;
+}
+
+void ModelClass::SetWorldPosition(float xCoord, float yCoord, float zCoord)
+{
+	worldMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
+								0.0f, 1.0f, 0.0f, 0.0f,
+								0.0f, 0.0f, 1.0f, 0.0f,
+								xCoord, yCoord, zCoord, 1.0f);
+}
+
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
@@ -215,6 +233,9 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 
 	delete [] indices;
 	indices = 0;
+
+	//Find model height and width
+	FindHeightAndWidth();
 
 	return true;
 }
@@ -374,4 +395,30 @@ void ModelClass::ReleaseModel()
 D3DXVECTOR3 ModelClass::GetPosition()
 {
 	return position;
+}
+
+void ModelClass::FindHeightAndWidth()
+{
+	float furthestLeft = 0.0f;
+	float furthestRight = 0.0f;
+	float furthestUp = 0.0f;
+	float furthestDown = 0.0f;
+
+	for (int i = 0; i < m_vertexCount; i++) {
+		if (m_model[i].x > furthestRight) {
+			furthestRight = m_model[i].x;
+		}
+		if (m_model[i].x < furthestLeft) {
+			furthestLeft = m_model[i].x;
+		}
+		if (m_model[i].z > furthestUp) {
+			furthestUp = m_model[i].z;
+		}
+		if (m_model[i].z < furthestDown) {
+			furthestDown = m_model[i].z;
+		}
+	}
+
+	m_width = max(furthestLeft, furthestRight) - min(furthestLeft, furthestRight);
+	m_length = max(furthestUp, furthestDown) - min(furthestUp, furthestDown);
 }

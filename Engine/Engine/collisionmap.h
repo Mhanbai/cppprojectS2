@@ -60,7 +60,7 @@ public:
 	CollisionMap(const CollisionMap&);
 	~CollisionMap();
 
-	bool Initialize(TerrainClass* terrain_in, TrackClass* track_in);
+	bool Initialize(ID3D11Device* m_device, TerrainClass* terrain_in, TrackClass* track_in);
 	float GetHeight(Car* car);
 	bool CheckCollision(Car* car);
 

@@ -54,6 +54,8 @@ public:
 	void TurnRight(bool);
 	void SetPosition(D3DXVECTOR3 position_in);
 	D3DXVECTOR3 GetForwardVector();
+	D3DXVECTOR3 GetRightVector();
+	D3DXVECTOR3 GetLeftVector();
 	D3DXVECTOR3 GetPosition();
 
 	ModelClass* m_Model;
@@ -62,6 +64,8 @@ public:
 
 	bool colliding = false;
 	void SetColliding(bool set);
+	float scale = 0.3;
+
 	D3DXVECTOR3 debug[2];
 
 private:

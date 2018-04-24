@@ -56,6 +56,10 @@ public:
 	void Transform(D3DXVECTOR3 position_in, float angle_in);
 	void Scale(float scale);
 
+	float GetWidth();
+	float GetLength();
+
+	void SetWorldPosition(float xCoord, float yCoord, float zCoord);
 
 private:
 	bool InitializeBuffers(ID3D11Device*);
@@ -68,6 +72,7 @@ private:
 	bool LoadModel(char*);
 	void ReleaseModel();
 	D3DXVECTOR3 GetPosition();
+	void FindHeightAndWidth();
 
 private:
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
@@ -76,6 +81,9 @@ private:
 	ModelType* m_model;
 	D3DXMATRIX worldMatrix;
 	D3DXVECTOR3 position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+	float m_width;
+	float m_length;
 };
 
 #endif
