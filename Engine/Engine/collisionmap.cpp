@@ -31,6 +31,21 @@ bool CollisionMap::Initialize(ID3D11Device* m_device, TerrainClass * terrain_in,
 
 	m_Racetrack->DeleteVertices();
 
+	////////Set up checkpoints////////
+
+	noOfCheckpoints = m_Racetrack->noOfCheckpoints;
+	checkPointFlags = new D3DXVECTOR3[noOfCheckpoints * 2];
+
+	for (int i = 0; i < noOfCheckpoints; i++) {
+		checkPointsCheck.push_back(Triangle(m_Racetrack->checkPoints[i].bottomLeft, m_Racetrack->checkPoints[i].topLeft, m_Racetrack->checkPoints[i].topRight));
+		checkPointsCheck.push_back(Triangle(m_Racetrack->checkPoints[i].topRight, m_Racetrack->checkPoints[i].bottomLeft, m_Racetrack->checkPoints[i].bottomRight));
+	}
+
+	for (int i = 0; i < noOfCheckpoints; i+=2) {
+		checkPointFlags[i] = m_Racetrack->checkPoints[i].bottomLeft;
+		checkPointFlags[i + 1] = m_Racetrack->checkPoints[i].bottomRight;
+	}
+
 	for (int i = 0; i < m_Terrain->m_vertexCount; i += 3) {
 		VertexType a = m_Terrain->vertices[i];
 		VertexType b = m_Terrain->vertices[i + 1];
@@ -119,7 +134,6 @@ bool CollisionMap::CheckCollision(Car * car)
 	D3DXVECTOR3 carPos = car->GetPosition();
 	int pos = (ceilf(carPos.x / 256.0f)) + (floorf(carPos.z / 256.0f) * 4);
 
-	D3DXVECTOR3 UL, UR, BR, BL;
 	float halfWidth = (car->m_Model->GetWidth() / 2) * car->scale;
 	float halfLength = (car->m_Model->GetLength() / 2) * car->scale;
 	UL = carPos + (car->GetLeftVector() * halfWidth) + (car->GetForwardVector() * halfLength);
@@ -387,4 +401,25 @@ bool CollisionMap::CheckCollision(Car * car)
 	}
 
 	return false;
+}
+
+int CollisionMap::CheckPoint(Car * car)
+{
+	int cpCollided = -1;
+	for (int i = 0; i < checkPointsCheck.size(); i++) {
+		if ((checkPointsCheck[i].isWithin(UR)) || (checkPointsCheck[i].isWithin(UL)) || (checkPointsCheck[i].isWithin(BL)) || (checkPointsCheck[i].isWithin(BR))) {
+			cpCollided = i;
+			break;
+		}
+	}
+
+	if (cpCollided == -1) {
+		return cpCollided;
+	}
+
+	for (int i = 0; i < noOfCheckpoints; i++) {
+		if ((cpCollided >= (i * 2)) && (cpCollided < ((i + 1) * 2))) {
+			return i;
+		}
+	}
 }

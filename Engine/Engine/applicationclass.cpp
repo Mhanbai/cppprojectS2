@@ -851,7 +851,6 @@ bool ApplicationClass::Frame()
 		m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
 		m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
 
-
 		//If last frame for player car resulted in a collision, reset to previous position
 		if (m_PlayerCar->colliding) {
 			m_PlayerCar->SetPosition(playerCarPos);
@@ -860,6 +859,10 @@ bool ApplicationClass::Frame()
 			playerCarPos = m_PlayerCar->GetPosition();
 			m_PlayerCar->SetPosition(D3DXVECTOR3(playerCarPos.x, m_Collision->GetHeight(m_PlayerCar), playerCarPos.z));
 		}
+
+		char info2Buffer[32];
+		sprintf_s(info2Buffer, "CP: %i", m_Collision->CheckPoint(m_PlayerCar));
+		m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 
 		//m_AICar->OpponentFrame(m_Timer->GetTime() / 1000);
 		D3DXVECTOR3 aiCarPos = m_AICar->GetPosition();
@@ -1400,6 +1403,13 @@ bool ApplicationClass::StartGame()
 	}
 
 	m_Terrain->DeleteVertices();
+
+	checkPointFlags = m_Racetrack->noOfCheckpoints * 2;
+	m_flags = new ModelClass[checkPointFlags];
+	for (int i = 0; i < checkPointFlags; i++) {
+		m_flags[i].Initialize(m_Direct3D->GetDevice(), "data/flag1.txt", L"data/flag.dds");
+		m_flags[i].SetWorldPosition(m_Collision->checkPointFlags[i].x, m_Collision->checkPointFlags[i].y, m_Collision->checkPointFlags[i].z);
+	}
 }
 
 bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
@@ -1476,6 +1486,26 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 		if (!result)
 		{
 			return false;
+		}
+
+		m_AICarModel->Render(m_Direct3D->GetDeviceContext());
+
+		result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_AICarModel->GetIndexCount(), m_AICarModel->GetWorldMatrix(), viewMatrix, projectionMatrix,
+			m_AICarModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+		if (!result)
+		{
+			return false;
+		}
+
+		for (int i = 0; i < checkPointFlags; i++) {
+			m_flags[i].Render(m_Direct3D->GetDeviceContext());
+
+			result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_flags[i].GetIndexCount(), m_flags[i].GetWorldMatrix(), viewMatrix, projectionMatrix,
+				m_flags[i].GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+			if (!result)
+			{
+				return false;
+			}
 		}
 
 		m_AICarModel->Render(m_Direct3D->GetDeviceContext());

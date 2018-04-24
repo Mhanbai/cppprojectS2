@@ -66,6 +66,8 @@ public:
 	void SetColliding(bool set);
 	float scale = 0.3;
 
+	int currentCheckPoint = 0;
+
 	D3DXVECTOR3 debug[2];
 
 private:

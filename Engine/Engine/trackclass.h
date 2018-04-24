@@ -34,6 +34,18 @@ struct MapNodeType
 	bool isFlat;
 };
 
+struct CheckPointBox
+{
+public:
+	CheckPointBox(D3DXVECTOR3 BL, D3DXVECTOR3 TL, D3DXVECTOR3 TR, D3DXVECTOR3 BR) {
+		bottomLeft = D3DXVECTOR3(BL.x, 0.0f, BL.z);
+		topLeft = D3DXVECTOR3(TL.x, 0.0f, TL.z);
+		topRight = D3DXVECTOR3(TR.x, 0.0f, TR.z);
+		bottomRight = D3DXVECTOR3(BR.x, 0.0f, BR.z);
+	};
+
+	D3DXVECTOR3 bottomLeft, topLeft, topRight, bottomRight;
+};
 
 class TrackClass
 {
@@ -67,6 +79,10 @@ public:
 
 	int attempts = 0;
 	float trackLength = 0.0f;
+
+	std::vector<CheckPointBox> checkPoints;
+	int noOfCheckpoints = 4; //Including finish line
+
 private:
 	int startNode = 0;
 	int endNode;
@@ -92,6 +108,8 @@ private:
 
 	void ShutdownBuffers();
 	bool trackGenerated = false;
+
+	int trackpointsBetweenCheckpoints;
 };
 
 #endif

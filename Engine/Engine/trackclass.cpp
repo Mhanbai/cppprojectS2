@@ -167,7 +167,7 @@ bool TrackClass::GenerateTrack()
 	}
 
 	//Seed random with time
-	//srand(time(NULL));
+	srand(time(NULL));
 
 	bool pathSuccess = false;
 	attempts = 0;
@@ -254,6 +254,9 @@ bool TrackClass::GenerateTrack()
 		m_model = new GeometryType[trackPoints.size() * 4];
 		D3DXVECTOR3 vectorToNextPoint;
 
+		//Find the appropriate number of checkpoints for the track
+		trackpointsBetweenCheckpoints = trackPoints.size() / noOfCheckpoints;
+
 		float ROAD_WIDTH = 4.0f;
 		float ROAD_HEIGHT = 0.2f;
 
@@ -303,7 +306,24 @@ bool TrackClass::GenerateTrack()
 			m_model[m_Pos + 3].x = bottomRight.x;
 			m_model[m_Pos + 3].y = bottomRight.y;
 			m_model[m_Pos + 3].z = bottomRight.z;
+
+
+			D3DXVECTOR3 nextNodeRight = bottomRight + vectorToNextPoint;
+			D3DXVECTOR3 nextNodeLeft = bottomLeft + vectorToNextPoint;
+
+			//Set up checkpoints
+			if ((i % trackpointsBetweenCheckpoints) == 0) {
+				if (i != 0) {
+					checkPoints.push_back(CheckPointBox(bottomLeft, nextNodeLeft, nextNodeRight, bottomRight));
+				}
+			}
+
+			//Set up the finish line
+			if (i == (trackPoints.size() - 10)) {
+				checkPoints.push_back(CheckPointBox(bottomLeft, nextNodeLeft, nextNodeRight, bottomRight));
+			}
 		}
+
 
 		//Clean up the vectors used
 		closedList.clear();

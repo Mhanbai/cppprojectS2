@@ -125,6 +125,9 @@ private:
 	int m_screenHeight;
 
 	bool showTrack = true;
+
+	ModelClass* m_flags;
+	int checkPointFlags;
 };
 
 #endif

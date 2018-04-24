@@ -63,10 +63,15 @@ public:
 	bool Initialize(ID3D11Device* m_device, TerrainClass* terrain_in, TrackClass* track_in);
 	float GetHeight(Car* car);
 	bool CheckCollision(Car* car);
+	int CheckPoint(Car* car);
+	int noOfCheckpoints;
+
+	D3DXVECTOR3* checkPointFlags;
 
 private:
 	TerrainClass* m_Terrain;
 	TrackClass* m_Racetrack;
+	std::vector<Triangle> checkPointsCheck;
 	std::vector<Triangle> terrainCheck1;
 	std::vector<Triangle> terrainCheck2;
 	std::vector<Triangle> terrainCheck3;
@@ -84,6 +89,9 @@ private:
 	std::vector<Triangle> terrainCheck15;
 	std::vector<Triangle> terrainCheck16;
 	std::vector<Triangle> trackCheck;
+
+	//Car corners
+	D3DXVECTOR3 UL, UR, BR, BL;
 };
 
 #endif
