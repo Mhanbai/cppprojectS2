@@ -130,6 +130,10 @@ private:
 	int checkPointFlags;
 	int playerCurrentCheckPoint = 0;
 	int aiCurrentCheckPoint = 0;
+	int prevPlayerCurrentCheckPoint = 0;
+	int prevAICurrentCheckPoint = 0;
+
+	bool raceOver = false;
 };
 
 #endif

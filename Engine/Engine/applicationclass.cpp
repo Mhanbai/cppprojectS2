@@ -848,31 +848,57 @@ bool ApplicationClass::Frame()
 		m_Camera->RenderPreScene();
 		cameraPosition = m_Camera->GetPosition();
 	} else if (gameState == 1) {
-		m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
-		m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
+#		//Gameplay code///////////////////////////////////////////
 
+		//Player Car Frame
+		m_PlayerCar->Frame(m_Timer->GetTime() / 1000);
+		//Check if car is colliding
+		m_PlayerCar->SetColliding(m_Collision->CheckCollision(m_PlayerCar));
 		//If last frame for player car resulted in a collision, reset to previous position
 		if (m_PlayerCar->colliding) {
-			m_PlayerCar->SetPosition(playerCarPos);
+			m_PlayerCar->SetPosition(D3DXVECTOR3(playerCarPos.x, m_Collision->GetHeight(m_PlayerCar), playerCarPos.z));
 		}
+		//If not
 		else {
+			//Save position
 			playerCarPos = m_PlayerCar->GetPosition();
+			//Set car to correct position (clamped to either track height or zero
 			m_PlayerCar->SetPosition(D3DXVECTOR3(playerCarPos.x, m_Collision->GetHeight(m_PlayerCar), playerCarPos.z));
 		}
 
+		//Frame for computer controlled car
 		m_AICar->OpponentFrame(m_Timer->GetTime() / 1000);
 		D3DXVECTOR3 aiCarPos = m_AICar->GetPosition();
+		//Clamp to track height or zero
 		m_AICar->SetPosition(D3DXVECTOR3(aiCarPos.x, m_Collision->GetHeight(m_AICar), aiCarPos.z));
 
+		//Set camera to follow player
 		m_Camera->Follow(playerCarPos, m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
 		m_Camera->Render();
 
-		//Gameplay code///////////////////////////////////////////
+		//Update checkpoints
 		playerCurrentCheckPoint = max(playerCurrentCheckPoint, m_Collision->CheckPoint(m_PlayerCar));
 		aiCurrentCheckPoint = max(aiCurrentCheckPoint, m_Collision->CheckPoint(m_AICar));
 
+		//If checkpoint for player is new...
+		if (playerCurrentCheckPoint != prevPlayerCurrentCheckPoint) {
+			if (playerCurrentCheckPoint == m_Racetrack->noOfCheckpoints) {
+				gameState = 2;
+			}
+		}
 
+		//If checkpoint for AI is new...
+		if (aiCurrentCheckPoint != prevAICurrentCheckPoint) {
+			if (aiCurrentCheckPoint == m_Racetrack->noOfCheckpoints) {
+				gameState = 3;
+			}
+		}
 
+		//Update previous checkpoint trackers
+		prevPlayerCurrentCheckPoint = playerCurrentCheckPoint;
+		prevAICurrentCheckPoint = aiCurrentCheckPoint;
+
+		//////Info Display/////////////////////////////////////////
 
 		char info1Buffer[32];
 		sprintf_s(info1Buffer, "Player: %i", playerCurrentCheckPoint);
@@ -882,8 +908,10 @@ bool ApplicationClass::Frame()
 		sprintf_s(info2Buffer, "AI: %i", aiCurrentCheckPoint);
 		m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 
+		// Do the frame processing for the foliage.//////////////
+
 		cameraPosition = m_Camera->GetPosition();
-		// Do the frame processing for the foliage.
+
 		result = m_BushFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
 		if (!result)
 		{
@@ -895,6 +923,16 @@ bool ApplicationClass::Frame()
 		{
 			return false;
 		}
+	}
+	else if (gameState == 2) {
+		char info1Buffer[32];
+		sprintf_s(info1Buffer, "Game Won!");
+		m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+	}
+	else if (gameState == 3) {
+		char info1Buffer[32];
+		sprintf_s(info1Buffer, "Game Lost!");
+		m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 	}
 
 	// Update the position values in the text object.
@@ -1442,7 +1480,7 @@ bool ApplicationClass::StartGame()
 	m_flags[checkPointFlags].Initialize(m_Direct3D->GetDevice(), "data/finish.txt", L"data/finish.dds");
 	m_flags[checkPointFlags].Scale(0.2f);
 	vectorBetween = D3DXVECTOR3(m_Racetrack->checkPoints[m_Racetrack->noOfCheckpoints - 1].bottomLeft - m_Racetrack->checkPoints[m_Racetrack->noOfCheckpoints - 1].bottomRight);
-	float angleOffset = atan2(vectorBetween.z, vectorBetween.x);
+	float angleOffset = atan2(vectorBetween.x, vectorBetween.z);
 	m_flags[checkPointFlags].Transform((m_Racetrack->checkPoints[m_Racetrack->noOfCheckpoints - 1].bottomLeft) - (vectorBetween * 0.5f), angleOffset);
 }
 
