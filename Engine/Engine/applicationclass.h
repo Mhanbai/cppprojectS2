@@ -10,7 +10,7 @@
 /////////////
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
-const float SCREEN_DEPTH = 1000.0f;
+const float SCREEN_DEPTH = 500.0f;
 const float SCREEN_NEAR = 0.1f;
 
 
@@ -40,11 +40,11 @@ const float SCREEN_NEAR = 0.1f;
 #include "textureshaderclass.h"
 #include "rendertextureclass.h"
 #include "collisionmap.h"
-#include "horizontalblurshaderclass.h"
-#include "verticalblurshaderclass.h"
+#include "motionblurshaderclass.h"
 #include "orthowindowclass.h"
 #include "foliageclass.h"
 #include "foliageshaderclass.h"
+#include "depthshaderclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,17 +64,17 @@ public:
 private:
 	bool HandleInput(float);
 	bool RenderGraphics();
-	bool RenderToTexture();
+	bool RenderToRearViewTexture();
 	bool RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix);
+	bool RenderSceneDepth(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix);
 	bool RenderSceneToTexture();
-	bool DownSampleTexture();
-	bool RenderHorizontalBlurToTexture();
-	bool RenderVerticalBlurToTexture();
-	bool UpSampleTexture();
+	bool RenderDepthToTexture();
+	bool RenderMotionBlurToTexture();
 	bool Render2DTextureScene();
 	bool StartGame();
 
 private:
+	HWND m_hwnd;
 	InputClass* m_Input;
 	D3DClass* m_Direct3D;
 	CameraClass* m_Camera;
@@ -105,14 +105,14 @@ private:
 	RenderTextureClass* m_RearViewTexture;
 	ScreenObjectClass* m_RearView;
 	CollisionMap* m_Collision;
-	HorizontalBlurShaderClass* m_HorizontalBlurShader;
-	VerticalBlurShaderClass* m_VerticalBlurShader;
-	RenderTextureClass *m_RenderTexture, *m_DownSampleTexure, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_UpSampleTexure;
-	OrthoWindowClass *m_SmallWindow, *m_FullScreenWindow;
+	MotionBlurShaderClass* m_MotionBlurShader;
+	RenderTextureClass *m_RenderTexture, *m_MotionBlurTexture, *m_DepthTexture;
+	OrthoWindowClass *m_FullScreenWindow;
 	FoliageClass* m_BushFoliage;
 	FoliageClass* m_TreeFoliage;
 	FoliageShaderClass* m_FoliageShader;
-	HWND m_hwnd;
+	D3DXMATRIX currViewMatrix, currProjMatrix, prevViewMatrix, prevProjMatrix;
+	DepthShaderClass* m_DepthShader;
 
 	//Variable to save car position in case of collision
 	D3DXVECTOR3 playerCarPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);

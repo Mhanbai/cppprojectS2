@@ -26,7 +26,7 @@ FoliageClass::~FoliageClass()
 
 
 bool FoliageClass::Initialize(ID3D11Device* device, WCHAR* textureFilename, TerrainClass* terrain_in, float minSlope_in, float maxSlope_in, 
-							float minHeight_in, float maxHeight_in, float minScale_in, float maxScale_in, int frequency_in)
+							float minHeight_in, float maxHeight_in, float minScale_in, float maxScale_in, float heightScale_in, int frequency_in)
 {
 	bool result;
 
@@ -38,6 +38,7 @@ bool FoliageClass::Initialize(ID3D11Device* device, WCHAR* textureFilename, Terr
 	minScale = minScale_in;
 	maxScale = maxScale_in;
 	frequency = frequency_in;
+	heightScale = heightScale_in;
 
 	// Generate the positions of the foliage.
 	result = GeneratePositions();
@@ -143,7 +144,7 @@ bool FoliageClass::Frame(D3DXVECTOR3 cameraPosition, ID3D11DeviceContext* device
 		// Setup the X rotation of the billboard.
 		D3DXMatrixRotationY(&rotateMatrix, rotation);
 
-		D3DXVECTOR3 scalingVector = D3DXVECTOR3(m_foliageArray[i].scale, m_foliageArray[i].scale, 1.0f);
+		D3DXVECTOR3 scalingVector = D3DXVECTOR3(m_foliageArray[i].scale, m_foliageArray[i].scale * heightScale, 1.0f);
 		D3DXQUATERNION rotationQuaternion;
 		D3DXQuaternionRotationMatrix(&rotationQuaternion, &rotateMatrix);
 		D3DXVECTOR3 translationVector = D3DXVECTOR3(modelPosition.x, modelPosition.y, modelPosition.z);

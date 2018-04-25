@@ -96,13 +96,7 @@
     <ClCompile Include="screenobjectclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="horizontalblurshaderclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="orthowindowclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="verticalblurshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="collisionmap.cpp">
@@ -112,6 +106,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="foliageshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="motionblurshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="depthshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -194,13 +194,7 @@
     <ClInclude Include="screenobjectclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="horizontalblurshaderclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="orthowindowclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="verticalblurshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="collisionmap.h">
@@ -210,6 +204,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="foliageshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="motionblurshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="depthshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -224,12 +224,6 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="fontvs.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="horizontalblurps.hlsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="horizontalblurvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
     <None Include="lightps.hlsl">
@@ -262,10 +256,10 @@
     <None Include="texturevs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="verticalblurps.hlsl">
+    <None Include="motionblurps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="verticalblurvs.hlsl">
+    <None Include="motionblurvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

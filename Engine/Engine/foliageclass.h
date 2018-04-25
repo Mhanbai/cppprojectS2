@@ -52,7 +52,7 @@ public:
 	~FoliageClass();
 
 	bool Initialize(ID3D11Device*, WCHAR*, TerrainClass*, float minSlope_in, float maxSlope_in, float minHeight_in, 
-						float maxHeight_in, float minScale_in, float maxScale_in, int frequency_in);
+						float maxHeight_in, float minScale_in, float maxScale_in, float heightScale_in, int frequency_in);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	bool Frame(D3DXVECTOR3, ID3D11DeviceContext*);
@@ -83,7 +83,7 @@ private:
 	int m_windDirection;
 	TerrainClass* m_Terrain;
 	std::vector<D3DXVECTOR3> foliageLocations;
-	float minSlope, maxSlope, minHeight, maxHeight, minScale, maxScale;
+	float minSlope, maxSlope, minHeight, maxHeight, minScale, maxScale, heightScale;
 	int frequency;
 };
 
