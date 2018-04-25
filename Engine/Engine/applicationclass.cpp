@@ -976,7 +976,8 @@ bool ApplicationClass::HandleInput(float frameTime)
 		m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 
 		keyDown = m_Input->IsSpacePressed();
-		if (keyDown) {
+
+		if ((keyDown) && (showTrack)) {
 			m_Direct3D->ChangeFieldofView(4.0f, 0.1f, 1000.0f);
 			StartGame();
 		}
@@ -1406,9 +1407,25 @@ bool ApplicationClass::StartGame()
 
 	checkPointFlags = m_Racetrack->noOfCheckpoints * 2;
 	m_flags = new ModelClass[checkPointFlags];
+	D3DXVECTOR3 vectorBetween;
+
 	for (int i = 0; i < checkPointFlags; i++) {
+		//Initialize the flag model
 		m_flags[i].Initialize(m_Direct3D->GetDevice(), "data/flag1.txt", L"data/flag.dds");
-		m_flags[i].SetWorldPosition(m_Collision->checkPointFlags[i].x, m_Collision->checkPointFlags[i].y, m_Collision->checkPointFlags[i].z);
+		//For each 2 flags...
+		if ((i % 2) == 0) {
+			//Find the vector between the two sides
+			vectorBetween = D3DXVECTOR3(m_Racetrack->checkPoints[i / 2].bottomLeft - m_Racetrack->checkPoints[i / 2].bottomRight);
+			//Find the correct angle for the flag and set to the correct transform
+			float angleOffset = atan2(vectorBetween.x, vectorBetween.z) - atan2(1.0f, 0.0f);
+			m_flags[i].Transform(m_Collision->checkPointFlags[i], angleOffset);
+		}
+		//Otherwise...
+		else {
+			//Find the correct angle for the flag and set to the correct transform
+			float angleOffset = atan2(vectorBetween.x, vectorBetween.z) - atan2(-1.0f, 0.0f);
+			m_flags[i].Transform(m_Collision->checkPointFlags[i], angleOffset);
+		}
 	}
 }
 

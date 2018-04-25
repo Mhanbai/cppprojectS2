@@ -83,6 +83,8 @@ public:
 	std::vector<CheckPointBox> checkPoints;
 	int noOfCheckpoints = 4; //Including finish line
 
+	bool pathSuccess = false;
+
 private:
 	int startNode = 0;
 	int endNode;

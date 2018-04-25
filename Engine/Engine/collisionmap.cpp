@@ -41,9 +41,9 @@ bool CollisionMap::Initialize(ID3D11Device* m_device, TerrainClass * terrain_in,
 		checkPointsCheck.push_back(Triangle(m_Racetrack->checkPoints[i].topRight, m_Racetrack->checkPoints[i].bottomLeft, m_Racetrack->checkPoints[i].bottomRight));
 	}
 
-	for (int i = 0; i < noOfCheckpoints; i+=2) {
-		checkPointFlags[i] = m_Racetrack->checkPoints[i].bottomLeft;
-		checkPointFlags[i + 1] = m_Racetrack->checkPoints[i].bottomRight;
+	for (int i = 0; i < (noOfCheckpoints * 2); i+=2) {
+		checkPointFlags[i] = m_Racetrack->checkPoints[i /2].bottomLeft;
+		checkPointFlags[i + 1] = m_Racetrack->checkPoints[i / 2].bottomRight;
 	}
 
 	for (int i = 0; i < m_Terrain->m_vertexCount; i += 3) {

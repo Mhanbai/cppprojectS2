@@ -169,7 +169,7 @@ bool TrackClass::GenerateTrack()
 	//Seed random with time
 	srand(time(NULL));
 
-	bool pathSuccess = false;
+	pathSuccess = false;
 	attempts = 0;
 
 	//Keep going until we have a path that is long enough
