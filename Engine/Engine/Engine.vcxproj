@@ -150,24 +150,24 @@
     <ClInclude Include="verticalblurshaderclass.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="foliage.ps" />
-    <None Include="foliage.vs" />
-    <None Include="font.ps" />
-    <None Include="font.vs" />
-    <None Include="horizontalblur.ps" />
-    <None Include="horizontalblur.vs" />
-    <None Include="light.ps" />
-    <None Include="light.vs" />
-    <None Include="skydome.ps" />
-    <None Include="skydome.vs" />
-    <None Include="terrain.ps" />
-    <None Include="terrain.vs" />
-    <None Include="model.ps" />
-    <None Include="model.vs" />
-    <None Include="texture.ps" />
-    <None Include="texture.vs" />
-    <None Include="verticalblur.ps" />
-    <None Include="verticalblur.vs" />
+    <None Include="foliageps.hlsl" />
+    <None Include="foliagevs.hlsl" />
+    <None Include="fontps.hlsl" />
+    <None Include="fontvs.hlsl" />
+    <None Include="horizontalblurps.hlsl" />
+    <None Include="horizontalblurvs.hlsl" />
+    <None Include="lightps.hlsl" />
+    <None Include="lightvs.hlsl" />
+    <None Include="skydomeps.hlsl" />
+    <None Include="skydomevs.hlsl" />
+    <None Include="terrainps.hlsl" />
+    <None Include="terrainvs.hlsl" />
+    <None Include="modelps.hlsl" />
+    <None Include="modelvs.hlsl" />
+    <None Include="textureps.hlsl" />
+    <None Include="texturevs.hlsl" />
+    <None Include="verticalblurps.hlsl" />
+    <None Include="verticalblurvs.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

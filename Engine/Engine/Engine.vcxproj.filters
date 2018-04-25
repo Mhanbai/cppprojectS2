@@ -214,58 +214,58 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="terrain.vs">
+    <None Include="foliageps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="font.ps">
+    <None Include="foliagevs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="font.vs">
+    <None Include="fontps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="terrain.ps">
+    <None Include="fontvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="skydome.ps">
+    <None Include="horizontalblurps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="skydome.vs">
+    <None Include="horizontalblurvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="light.ps">
+    <None Include="lightps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="light.vs">
+    <None Include="lightvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="model.ps">
+    <None Include="modelps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="model.vs">
+    <None Include="modelvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="texture.ps">
+    <None Include="skydomeps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="texture.vs">
+    <None Include="skydomevs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="horizontalblur.ps">
+    <None Include="terrainps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="horizontalblur.vs">
+    <None Include="terrainvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="verticalblur.ps">
+    <None Include="textureps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="verticalblur.vs">
+    <None Include="texturevs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="foliage.ps">
+    <None Include="verticalblurps.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="foliage.vs">
+    <None Include="verticalblurvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

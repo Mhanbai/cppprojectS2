@@ -31,7 +31,7 @@ bool ModelShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/model.vs", L"../Engine/model.ps");
+	result = InitializeShader(device, hwnd, L"../Engine/modelvs.hlsl", L"../Engine/modelps.hlsl");
 	if(!result)
 	{
 		return false;
