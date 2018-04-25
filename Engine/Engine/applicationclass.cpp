@@ -24,6 +24,9 @@ ApplicationClass::ApplicationClass()
 	m_LightShader = 0;
 	m_TextureShader = 0;
 	m_WingMirror = 0;
+	m_Winner = 0;
+	m_Loser = 0;
+	m_TextBackdrop = 0;
 	m_RearViewTexture = 0;
 	m_RearView = 0;
 	m_PlayerCar = 0;
@@ -40,6 +43,13 @@ ApplicationClass::ApplicationClass()
 	m_FoliageShader = 0;
 	m_DepthShader = 0;
 	m_DepthTexture = 0;
+	m_HorizontalBlurShader = 0;
+	m_VerticalBlurShader = 0;
+	m_DownSampleTexure = 0;
+	m_HorizontalBlurTexture = 0;
+	m_VerticalBlurTexture = 0;
+	m_UpSampleTexure = 0;
+	m_SmallWindow = 0;
 }
 
 
@@ -59,12 +69,19 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	int downSampleWidth, downSampleHeight;
 	m_hwnd = hwnd;
 
+	// Set the size to sample down to.
+	downSampleWidth = screenWidth / 2;
+	downSampleHeight = screenHeight / 2;
+
 	float cameraX, cameraY, cameraZ;
 	char videoCard[128];
 	int videoMemory;
 
 	m_screenWidth = screenWidth;
 	m_screenHeight = screenHeight;
+
+	//Create an identity matrix
+	D3DXMatrixIdentity(&identity);
 
 	// Create the input object.  The input object will be used to handle reading the keyboard and mouse input from the user.
 	m_Input = new InputClass;
@@ -216,14 +233,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	// Retrieve the video card information.
 	m_Direct3D->GetVideoCardInfo(videoCard, videoMemory);
 
-	// Set the video card information in the text object.
-	result = m_Text->SetVideoCardInfo(videoCard, videoMemory, m_Direct3D->GetDeviceContext());
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not set video card info in the text object.", L"Error", MB_OK);
-		return false;
-	}
-
 	// Create the terrain shader object.
 	m_TerrainShader = new TerrainShaderClass;
 	if(!m_TerrainShader)
@@ -295,6 +304,53 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
 		return false;
 	}
+
+	// Create the bitmap object.
+	m_TextBackdrop = new ScreenObjectClass;
+	if (!m_TextBackdrop)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = m_TextBackdrop->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/textbackdrop.dds", 100, 400);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the bitmap object.
+	m_Winner = new ScreenObjectClass;
+	if (!m_Winner)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = m_Winner->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/winner.dds", 495, 185);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+
+	// Create the bitmap object.
+	m_Loser = new ScreenObjectClass;
+	if (!m_Loser)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = m_Loser->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/youlose.dds", 495, 185);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
 
 	// Create the render to texture object.
 	m_RearViewTexture = new RenderTextureClass;
@@ -478,12 +534,173 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	// Create the horizontal blur shader object.
+	m_HorizontalBlurShader = new HorizontalBlurShaderClass;
+	if (!m_HorizontalBlurShader)
+	{
+		return false;
+	}
+
+	// Initialize the horizontal blur shader object.
+	result = m_HorizontalBlurShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the horizontal blur shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the vertical blur shader object.
+	m_VerticalBlurShader = new VerticalBlurShaderClass;
+	if (!m_VerticalBlurShader)
+	{
+		return false;
+	}
+
+	// Initialize the vertical blur shader object.
+	result = m_VerticalBlurShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the vertical blur shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the down sample render to texture object.
+	m_DownSampleTexure = new RenderTextureClass;
+	if (!m_DownSampleTexure)
+	{
+		return false;
+	}
+
+	// Initialize the down sample render to texture object.
+	result = m_DownSampleTexure->Initialize(m_Direct3D->GetDevice(), downSampleWidth, downSampleHeight, SCREEN_DEPTH, SCREEN_NEAR);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the down sample render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the horizontal blur render to texture object.
+	m_HorizontalBlurTexture = new RenderTextureClass;
+	if (!m_HorizontalBlurTexture)
+	{
+		return false;
+	}
+
+	// Initialize the horizontal blur render to texture object.
+	result = m_HorizontalBlurTexture->Initialize(m_Direct3D->GetDevice(), downSampleWidth, downSampleHeight, SCREEN_DEPTH, SCREEN_NEAR);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the horizontal blur render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the vertical blur render to texture object.
+	m_VerticalBlurTexture = new RenderTextureClass;
+	if (!m_VerticalBlurTexture)
+	{
+		return false;
+	}
+
+	// Initialize the vertical blur render to texture object.
+	result = m_VerticalBlurTexture->Initialize(m_Direct3D->GetDevice(), downSampleWidth, downSampleHeight, SCREEN_DEPTH, SCREEN_NEAR);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the vertical blur render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the up sample render to texture object.
+	m_UpSampleTexure = new RenderTextureClass;
+	if (!m_UpSampleTexure)
+	{
+		return false;
+	}
+
+	// Initialize the up sample render to texture object.
+	result = m_UpSampleTexure->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the up sample render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the small ortho window object.
+	m_SmallWindow = new OrthoWindowClass;
+	if (!m_SmallWindow)
+	{
+		return false;
+	}
+
+	// Initialize the small ortho window object.
+	result = m_SmallWindow->Initialize(m_Direct3D->GetDevice(), downSampleWidth, downSampleHeight);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the small ortho window object.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 
 void ApplicationClass::Shutdown()
 {
+	// Release the small ortho window object.
+	if (m_SmallWindow)
+	{
+		m_SmallWindow->Shutdown();
+		delete m_SmallWindow;
+		m_SmallWindow = 0;
+	}
+
+	// Release the up sample render to texture object.
+	if (m_UpSampleTexure)
+	{
+		m_UpSampleTexure->Shutdown();
+		delete m_UpSampleTexure;
+		m_UpSampleTexure = 0;
+	}
+
+	// Release the vertical blur render to texture object.
+	if (m_VerticalBlurTexture)
+	{
+		m_VerticalBlurTexture->Shutdown();
+		delete m_VerticalBlurTexture;
+		m_VerticalBlurTexture = 0;
+	}
+
+	// Release the horizontal blur render to texture object.
+	if (m_HorizontalBlurTexture)
+	{
+		m_HorizontalBlurTexture->Shutdown();
+		delete m_HorizontalBlurTexture;
+		m_HorizontalBlurTexture = 0;
+	}
+
+	// Release the down sample render to texture object.
+	if (m_DownSampleTexure)
+	{
+		m_DownSampleTexure->Shutdown();
+		delete m_DownSampleTexure;
+		m_DownSampleTexure = 0;
+	}
+
+	// Release the vertical blur shader object.
+	if (m_VerticalBlurShader)
+	{
+		m_VerticalBlurShader->Shutdown();
+		delete m_VerticalBlurShader;
+		m_VerticalBlurShader = 0;
+	}
+
+	// Release the horizontal blur shader object.
+	if (m_HorizontalBlurShader)
+	{
+		m_HorizontalBlurShader->Shutdown();
+		delete m_HorizontalBlurShader;
+		m_HorizontalBlurShader = 0;
+	}
+
 	// Release the depth shader object.
 	if (m_DepthShader)
 	{
@@ -583,6 +800,30 @@ void ApplicationClass::Shutdown()
 		m_RearViewTexture->Shutdown();
 		delete m_RearViewTexture;
 		m_RearViewTexture = 0;
+	}
+
+	// Release the bitmap object.
+	if (m_TextBackdrop)
+	{
+		m_TextBackdrop->Shutdown();
+		delete m_TextBackdrop;
+		m_TextBackdrop = 0;
+	}
+
+	// Release the bitmap object.
+	if (m_Loser)
+	{
+		m_Loser->Shutdown();
+		delete m_Loser;
+		m_Loser = 0;
+	}
+	
+	// Release the bitmap object.
+	if (m_Winner)
+	{
+		m_Winner->Shutdown();
+		delete m_Winner;
+		m_Winner = 0;
 	}
 
 	// Release the bitmap object.
@@ -751,13 +992,6 @@ bool ApplicationClass::Frame()
 	{
 		return false;
 	}
-	
-	// Update the CPU usage value in the text object.
-	result = m_Text->SetCpu(m_Cpu->GetCpuPercentage(), m_Direct3D->GetDeviceContext());
-	if(!result)
-	{
-		return false;
-	}
 
 	// Do the frame input processing.
 	result = HandleInput(m_Timer->GetTime() / 1000);
@@ -824,14 +1058,115 @@ bool ApplicationClass::Frame()
 		prevAICurrentCheckPoint = aiCurrentCheckPoint;
 
 		//////Info Display/////////////////////////////////////////
+		float deltaTime = m_Timer->GetTime() / 1000;
+		playerTimer += deltaTime;
+		aiTimer += deltaTime;
 
-		char info1Buffer[32];
-		sprintf_s(info1Buffer, "Player: %i", playerCurrentCheckPoint);
-		m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+		///Player///
+		switch (playerCurrentCheckPoint) {
+		case 0:
+			playerCP1Timer = playerTimer;
+			break;
+		case 1:
+			playerCP2Timer = playerTimer - playerCP1Timer;
+			break;
+		case 2:
+			playerCP3Timer = playerTimer - playerCP1Timer - playerCP2Timer;
+			break;
+		default:
+			break;
+		}
 
-		char info2Buffer[32];
-		sprintf_s(info2Buffer, "AI: %i", aiCurrentCheckPoint);
-		m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+		char infoBuffer[32];
+		sprintf_s(infoBuffer, "Player");
+		m_Text->UpdateSentence(m_Text->m_sentence3, infoBuffer, 10, 40, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+
+		if (playerCP1Timer != 0.0f) {
+			sprintf_s(infoBuffer, "CP1: %.0f:%.2f", floor((playerCP1Timer / 60)), fmod(playerCP1Timer, 60));
+			m_Text->UpdateSentence(m_Text->m_sentence4, infoBuffer, 10, 60, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+		else {
+			sprintf_s(infoBuffer, "CP1: -:--:--");
+			m_Text->UpdateSentence(m_Text->m_sentence4, infoBuffer, 10, 60, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+
+		if (playerCP2Timer != 0.0f) {
+			sprintf_s(infoBuffer, "CP2: %.0f:%.2f", floor((playerCP2Timer / 60)), fmod(playerCP2Timer, 60));
+			m_Text->UpdateSentence(m_Text->m_sentence5, infoBuffer, 10, 80, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+		else {
+			sprintf_s(infoBuffer, "CP2: -:--:--");
+			m_Text->UpdateSentence(m_Text->m_sentence5, infoBuffer, 10, 80, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+
+		if (playerCP3Timer != 0.0f) {
+			sprintf_s(infoBuffer, "CP3: %.0f:%.2f", floor((playerCP3Timer / 60)), fmod(playerCP3Timer, 60));
+			m_Text->UpdateSentence(m_Text->m_sentence6, infoBuffer, 10, 100, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+		else {
+			sprintf_s(infoBuffer, "CP3: -:--:--");
+			m_Text->UpdateSentence(m_Text->m_sentence6, infoBuffer, 10, 100, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+
+		///Total///
+		sprintf_s(infoBuffer, "Total: %.0f:%.2f", floor((aiTimer / 60)), fmod(aiTimer, 60));
+		m_Text->UpdateSentence(m_Text->m_sentence7, infoBuffer, 10, 140, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+
+
+		///AI///
+
+		switch (aiCurrentCheckPoint) {
+		case 0:
+			aiCP1Timer = aiTimer;
+			break;
+		case 1:
+			aiCP2Timer = aiTimer - aiCP1Timer;
+			break;
+		case 2:
+			aiCP3Timer = aiTimer - aiCP2Timer;
+			break;
+		default:
+			break;
+		}
+
+		sprintf_s(infoBuffer, "Opponent");
+		m_Text->UpdateSentence(m_Text->m_sentence8, infoBuffer, 10, 200, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+
+		if (aiCP1Timer != 0.0f) {
+			sprintf_s(infoBuffer, "CP1: %.0f:%.2f", floor((aiCP1Timer / 60)), fmod(aiCP1Timer, 60));
+			m_Text->UpdateSentence(m_Text->m_sentence9, infoBuffer, 10, 220, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+		else {
+			sprintf_s(infoBuffer, "CP1: -:--:--");
+			m_Text->UpdateSentence(m_Text->m_sentence9, infoBuffer, 10, 220, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+
+		if (aiCP2Timer != 0.0f) {
+			sprintf_s(infoBuffer, "CP2: %.0f:%.2f", floor((aiCP2Timer / 60)), fmod(aiCP2Timer, 60));
+			m_Text->UpdateSentence(m_Text->m_sentence10, infoBuffer, 10, 240, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+		else {
+			sprintf_s(infoBuffer, "CP1: -:--:--");
+			m_Text->UpdateSentence(m_Text->m_sentence10, infoBuffer, 10, 240, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+
+		if (aiCP3Timer != 0.0f) {
+			sprintf_s(infoBuffer, "CP3: %.0f:%.2f", floor((aiCP3Timer / 60)), fmod(aiCP3Timer, 60));
+			m_Text->UpdateSentence(m_Text->m_sentence11, infoBuffer, 10, 260, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+		else {
+			sprintf_s(infoBuffer, "CP1: -:--:--");
+			m_Text->UpdateSentence(m_Text->m_sentence11, infoBuffer, 10, 260, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+		}
+
+		///Total///
+		sprintf_s(infoBuffer, "Total: %.0f:%.2f", floor((aiTimer / 60)), fmod(aiTimer, 60));
+		m_Text->UpdateSentence(m_Text->m_sentence12, infoBuffer, 10, 300, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
+
+
+		///Distance///
+		sprintf_s(infoBuffer, "Distance: %.0fm", m_Racetrack->trackLength);
+		m_Text->UpdateSentence(m_Text->m_sentence13, infoBuffer, 10, 360, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
 
 		// Do the frame processing for the foliage.//////////////
 
@@ -851,20 +1186,13 @@ bool ApplicationClass::Frame()
 	}
 	else if (gameState == 2) {
 		char info1Buffer[32];
-		sprintf_s(info1Buffer, "Game Won!");
-		m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+		sprintf_s(info1Buffer, "Winner!");
+		m_Text->UpdateSentence(m_Text->m_sentence2, info1Buffer, 10, 340, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 	}
 	else if (gameState == 3) {
 		char info1Buffer[32];
-		sprintf_s(info1Buffer, "Game Lost!");
-		m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
-	}
-
-	// Update the position values in the text object.
-	result = m_Text->SetCameraPosition(cameraPosition.x, cameraPosition.y, cameraPosition.z, m_Direct3D->GetDeviceContext());
-	if (!result)
-	{
-		return false;
+		sprintf_s(info1Buffer, "Loser!");
+		m_Text->UpdateSentence(m_Text->m_sentence2, info1Buffer, 10, 340, 1.0f, 0.0f, 0.0f, m_Direct3D->GetDeviceContext());
 	}
 
 	// Render the graphics.
@@ -905,14 +1233,14 @@ bool ApplicationClass::HandleInput(float frameTime)
 		if (keyDown) {
 			char info1Buffer[32];
 			sprintf_s(info1Buffer, "Generating...");
-			m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+			m_Text->UpdateSentence(m_Text->m_sentence3, info1Buffer, 10, 40, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 
 			RenderGraphics();
 
 			m_Terrain->GenerateNewTerrain();
 
 			sprintf_s(info1Buffer, "Searching...");
-			m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+			m_Text->UpdateSentence(m_Text->m_sentence3, info1Buffer, 10, 40, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 
 			RenderGraphics();
 
@@ -923,7 +1251,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 		if (keyDown) {
 			char info1Buffer[32];
 			sprintf_s(info1Buffer, "Searching...");
-			m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+			m_Text->UpdateSentence(m_Text->m_sentence3, info1Buffer, 10, 40, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 
 			RenderGraphics();
 
@@ -938,7 +1266,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 		else {
 			sprintf_s(info1Buffer, "Track found!");
 		}
-		m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+		m_Text->UpdateSentence(m_Text->m_sentence3, info1Buffer, 10, 40, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 
 		char info2Buffer[32];
 		if (!showTrack) {
@@ -947,13 +1275,28 @@ bool ApplicationClass::HandleInput(float frameTime)
 		else {
 			sprintf_s(info2Buffer, "Distance: %.0fm", m_Racetrack->trackLength);
 		}
-		m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+		m_Text->UpdateSentence(m_Text->m_sentence4, info2Buffer, 10, 60, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 
 		keyDown = m_Input->IsSpacePressed();
 
 		if ((keyDown) && (showTrack)) {
 			m_Direct3D->ChangeFieldofView(4.0f, 0.1f, 1000.0f);
 			StartGame();
+		}
+
+		sprintf_s(info1Buffer, "A - New Terrain");
+		m_Text->UpdateSentence(m_Text->m_sentence5, info1Buffer, 10, 100, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+
+		sprintf_s(info1Buffer, "Z - New Track");
+		m_Text->UpdateSentence(m_Text->m_sentence6, info1Buffer, 10, 120, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+
+		if ((keyDown) && (!showTrack)) {
+			sprintf_s(info1Buffer, "ERR: No track!");
+			m_Text->UpdateSentence(m_Text->m_sentence7, info1Buffer, 10, 140, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+		}
+		else {
+			sprintf_s(info1Buffer, "Space - Begin");
+			m_Text->UpdateSentence(m_Text->m_sentence7, info1Buffer, 10, 140, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 		}
 	}
 
@@ -991,7 +1334,8 @@ bool ApplicationClass::RenderGraphics()
 		return false;
 	}
 
-	if (gameState >= 1) {
+	//If the race has started, use the motion blur post-processing3
+	if (gameState == 1) {
 		// Perform a Motion blur on the down sampled render texture.
 		result = RenderDepthToTexture();
 		if (!result)
@@ -1001,6 +1345,37 @@ bool ApplicationClass::RenderGraphics()
 
 		// Perform a Motion blur on the down sampled render texture.
 		result = RenderMotionBlurToTexture();
+		if (!result)
+		{
+			return false;
+		}
+	}
+
+	//If the race has finished, used the full screen blur post processing
+	if (gameState > 1) {
+		// Next down sample the render texture to a smaller sized texture.
+		result = DownSampleTexture();
+		if (!result)
+		{
+			return false;
+		}
+
+		// Perform a horizontal blur on the down sampled render texture.
+		result = RenderHorizontalBlurToTexture();
+		if (!result)
+		{
+			return false;
+		}
+
+		// Now perform a vertical blur on the horizontal blur render texture.
+		result = RenderVerticalBlurToTexture();
+		if (!result)
+		{
+			return false;
+		}
+
+		// Up sample the final blurred render texture to screen size again.
+		result = UpSampleTexture();
 		if (!result)
 		{
 			return false;
@@ -1055,10 +1430,52 @@ bool ApplicationClass::RenderGraphics()
 			return false;
 		}
 	}
+	else if (gameState == 2) {
+		result = m_Winner->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_Winner->GetWidth() / 2), (m_screenHeight / 2) - (m_Winner->GetHeight() / 2));
+		if (!result)
+		{
+			return false;
+		}
+
+		// Render the wingmirror with the texture shader.
+		result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Winner->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_Winner->GetTexture());
+		if (!result)
+		{
+			return false;
+		}
+	}
+	else if (gameState == 3) {
+		result = m_Loser->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_Loser->GetWidth() / 2), (m_screenHeight / 2) - (m_Winner->GetHeight() / 2));
+		if (!result)
+		{
+			return false;
+		}
+
+		// Render the wingmirror with the texture shader.
+		result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Loser->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_Loser->GetTexture());
+		if (!result)
+		{
+			return false;
+		}
+	}
+
+	//Render the text backdrop
+	result = m_TextBackdrop->Render(m_Direct3D->GetDeviceContext(), 0, 0);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the backdrop with the texture shader.
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_TextBackdrop->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_TextBackdrop->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
 
 	// Render the text user interface elements.
 	result = m_Text->Render(m_Direct3D->GetDeviceContext(), m_FontShader, worldMatrix, orthoMatrix);
-	if(!result)
+	if (!result)
 	{
 		return false;
 	}
@@ -1185,7 +1602,7 @@ bool ApplicationClass::Render2DTextureScene()
 	// Put the full screen ortho window vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_FullScreenWindow->Render(m_Direct3D->GetDeviceContext());
 
-	if (gameState >= 1) {
+	if (gameState == 1) {
 		// Render the full screen ortho window using the texture shader and the full screen sized blurred render to texture resource.
 		result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix,
 			m_MotionBlurTexture->GetShaderResourceView());
@@ -1194,10 +1611,19 @@ bool ApplicationClass::Render2DTextureScene()
 			return false;
 		}
 	}
-	else {
+	else if (gameState == 0) {
 		// Render the full screen ortho window using the texture shader and the full screen sized blurred render to texture resource.
 		result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix,
 			m_RenderTexture->GetShaderResourceView());
+		if (!result)
+		{
+			return false;
+		}
+	}
+	else if (gameState > 1) {
+		// Render the full screen ortho window using the texture shader and the full screen sized blurred render to texture resource.
+		result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix,
+			m_UpSampleTexure->GetShaderResourceView());
 		if (!result)
 		{
 			return false;
@@ -1238,7 +1664,7 @@ bool ApplicationClass::StartGame()
 	return false;
 	}
 
-	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos + D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos + D3DXVECTOR3(0.0f, m_Collision->GetHeight(m_PlayerCar), 0.0f));
 
 	// Initialize the input object.
 	result = m_AICar->Initialize("data/c_main.txt", L"data/cars.dds", m_AICarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
@@ -1248,7 +1674,7 @@ bool ApplicationClass::StartGame()
 	return false;
 	}
 
-	m_AICar->SetPosition(m_Racetrack->opponentRacingLine[1] + D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+	m_AICar->SetPosition(m_Racetrack->opponentRacingLine[1] + D3DXVECTOR3(0.0f, m_Collision->GetHeight(m_PlayerCar), 0.0f));
 	m_AICar->SetRacingLine(m_Racetrack->opponentRacingLine);
 
 	// Initialize the foliage object.
@@ -1499,6 +1925,175 @@ bool ApplicationClass::RenderToRearViewTexture()
 
 	// Reset the render target back to the original back buffer and not the render to texture anymore.
 	m_Direct3D->SetBackBufferRenderTarget();
+
+	return true;
+}
+
+bool ApplicationClass::DownSampleTexture()
+{
+	D3DXMATRIX orthoMatrix;
+	bool result;
+
+	// Set the render target to be the render to texture.
+	m_DownSampleTexure->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// Clear the render to texture.
+	m_DownSampleTexure->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 1.0f, 0.0f, 1.0f);
+
+	// Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
+	m_DownSampleTexure->GetOrthoMatrix(orthoMatrix);
+
+	// Turn off the Z buffer to begin all 2D rendering.
+	m_Direct3D->TurnZBufferOff();
+
+	// Put the small ortho window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_SmallWindow->Render(m_Direct3D->GetDeviceContext());
+
+	// Render the small ortho window using the texture shader and the render to texture of the scene as the texture resource.
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_SmallWindow->GetIndexCount(), identity, screenViewMatrix, orthoMatrix,
+		m_RenderTexture->GetShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	m_Direct3D->TurnZBufferOn();
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// Reset the viewport back to the original.
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
+bool ApplicationClass::RenderHorizontalBlurToTexture()
+{
+	D3DXMATRIX orthoMatrix;
+	float screenSizeX;
+	bool result;
+
+	// Store the screen width in a float that will be used in the horizontal blur shader.
+	screenSizeX = (float)m_HorizontalBlurTexture->GetTextureWidth();
+
+	// Set the render target to be the render to texture.
+	m_HorizontalBlurTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// Clear the render to texture.
+	m_HorizontalBlurTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// Get the ortho matrix from the render to texture since texture has different dimensions.
+	m_HorizontalBlurTexture->GetOrthoMatrix(orthoMatrix);
+
+	// Turn off the Z buffer to begin all 2D rendering.
+	m_Direct3D->TurnZBufferOff();
+
+	// Put the small ortho window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_SmallWindow->Render(m_Direct3D->GetDeviceContext());
+
+	// Render the small ortho window using the horizontal blur shader and the down sampled render to texture resource.
+	result = m_HorizontalBlurShader->Render(m_Direct3D->GetDeviceContext(), m_SmallWindow->GetIndexCount(), identity, screenViewMatrix, orthoMatrix,
+		m_DownSampleTexure->GetShaderResourceView(), screenSizeX);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	m_Direct3D->TurnZBufferOn();
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// Reset the viewport back to the original.
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
+bool ApplicationClass::RenderVerticalBlurToTexture()
+{
+	D3DXMATRIX orthoMatrix;
+	float screenSizeY;
+	bool result;
+
+
+	// Store the screen height in a float that will be used in the vertical blur shader.
+	screenSizeY = (float)m_VerticalBlurTexture->GetTextureHeight();
+
+	// Set the render target to be the render to texture.
+	m_VerticalBlurTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// Clear the render to texture.
+	m_VerticalBlurTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// Get the ortho matrix from the render to texture since texture has different dimensions.
+	m_VerticalBlurTexture->GetOrthoMatrix(orthoMatrix);
+
+	// Turn off the Z buffer to begin all 2D rendering.
+	m_Direct3D->TurnZBufferOff();
+
+	// Put the small ortho window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_SmallWindow->Render(m_Direct3D->GetDeviceContext());
+
+	// Render the small ortho window using the vertical blur shader and the horizontal blurred render to texture resource.
+	result = m_VerticalBlurShader->Render(m_Direct3D->GetDeviceContext(), m_SmallWindow->GetIndexCount(), identity, screenViewMatrix, orthoMatrix,
+		m_HorizontalBlurTexture->GetShaderResourceView(), screenSizeY);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	m_Direct3D->TurnZBufferOn();
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// Reset the viewport back to the original.
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
+bool ApplicationClass::UpSampleTexture()
+{
+	D3DXMATRIX orthoMatrix;
+	bool result;
+
+	// Set the render target to be the render to texture.
+	m_UpSampleTexure->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// Clear the render to texture.
+	m_UpSampleTexure->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// Get the ortho matrix from the render to texture since texture has different dimensions.
+	m_UpSampleTexure->GetOrthoMatrix(orthoMatrix);
+
+	// Turn off the Z buffer to begin all 2D rendering.
+	m_Direct3D->TurnZBufferOff();
+
+	// Put the full screen ortho window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_FullScreenWindow->Render(m_Direct3D->GetDeviceContext());
+
+	// Render the full screen ortho window using the texture shader and the small sized final blurred render to texture resource.
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), identity, screenViewMatrix, orthoMatrix,
+		m_VerticalBlurTexture->GetShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	m_Direct3D->TurnZBufferOn();
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// Reset the viewport back to the original.
+	m_Direct3D->ResetViewport();
 
 	return true;
 }

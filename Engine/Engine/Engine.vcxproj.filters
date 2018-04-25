@@ -114,6 +114,12 @@
     <ClCompile Include="depthshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="horizontalblurshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="verticalblurshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -212,6 +218,12 @@
     <ClInclude Include="depthshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="horizontalblurshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="verticalblurshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="foliageps.hlsl">
@@ -260,6 +272,18 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="motionblurvs.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="horizontalblurps.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="horizontalblurvs.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="verticalblurps.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="verticalblurvs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

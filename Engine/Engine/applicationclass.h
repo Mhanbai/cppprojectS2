@@ -45,6 +45,8 @@ const float SCREEN_NEAR = 0.1f;
 #include "foliageclass.h"
 #include "foliageshaderclass.h"
 #include "depthshaderclass.h"
+#include "horizontalblurshaderclass.h"
+#include "verticalblurshaderclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -70,6 +72,10 @@ private:
 	bool RenderSceneToTexture();
 	bool RenderDepthToTexture();
 	bool RenderMotionBlurToTexture();
+	bool DownSampleTexture();
+	bool RenderHorizontalBlurToTexture();
+	bool RenderVerticalBlurToTexture();
+	bool UpSampleTexture();
 	bool Render2DTextureScene();
 	bool StartGame();
 
@@ -96,7 +102,7 @@ private:
 	ModelClass* m_PlayerCarModel;
 	Car* m_AICar;
 	ModelClass* m_AICarModel;
-	ScreenObjectClass* m_WingMirror;
+	ScreenObjectClass *m_WingMirror, *m_TextBackdrop, *m_Winner, *m_Loser;
 	TextureShaderClass* m_TextureShader;
 	D3DXMATRIX screenViewMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -106,13 +112,16 @@ private:
 	ScreenObjectClass* m_RearView;
 	CollisionMap* m_Collision;
 	MotionBlurShaderClass* m_MotionBlurShader;
-	RenderTextureClass *m_RenderTexture, *m_MotionBlurTexture, *m_DepthTexture;
-	OrthoWindowClass *m_FullScreenWindow;
+	RenderTextureClass *m_RenderTexture, *m_MotionBlurTexture, *m_DepthTexture, *m_DownSampleTexure, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_UpSampleTexure;
+	OrthoWindowClass *m_SmallWindow, *m_FullScreenWindow;
 	FoliageClass* m_BushFoliage;
 	FoliageClass* m_TreeFoliage;
 	FoliageShaderClass* m_FoliageShader;
 	D3DXMATRIX currViewMatrix, currProjMatrix, prevViewMatrix, prevProjMatrix;
 	DepthShaderClass* m_DepthShader;
+	HorizontalBlurShaderClass* m_HorizontalBlurShader;
+	VerticalBlurShaderClass* m_VerticalBlurShader;
+	D3DXMATRIX identity;
 
 	//Variable to save car position in case of collision
 	D3DXVECTOR3 playerCarPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -132,6 +141,16 @@ private:
 	int aiCurrentCheckPoint = 0;
 	int prevPlayerCurrentCheckPoint = 0;
 	int prevAICurrentCheckPoint = 0;
+
+	float playerTimer = 0.0f;
+	float playerCP1Timer = 0.0f;
+	float playerCP2Timer = 0.0f;
+	float playerCP3Timer = 0.0f;
+
+	float aiTimer = 0.0f;
+	float aiCP1Timer = 0.0f;
+	float aiCP2Timer = 0.0f;
+	float aiCP3Timer = 0.0f;
 
 	bool raceOver = false;
 };

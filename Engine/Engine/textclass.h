@@ -40,14 +40,11 @@ public:
 	void Shutdown();
 	bool Render(ID3D11DeviceContext*, FontShaderClass*, D3DXMATRIX, D3DXMATRIX);
 
-	bool SetVideoCardInfo(char*, int, ID3D11DeviceContext*);
 	bool SetFps(int, ID3D11DeviceContext*);
-	bool SetCpu(int, ID3D11DeviceContext*);
-	bool SetCameraPosition(float, float, float, ID3D11DeviceContext*);
-	bool DisplayInfo (float info1, float info2, float info3, ID3D11DeviceContext* deviceContext);
 	bool UpdateSentence(SentenceType*, char*, int, int, float, float, float, ID3D11DeviceContext*);
-	SentenceType *m_sentence1, *m_sentence2, *m_sentence3, *m_sentence4, *m_sentence5;
-	SentenceType *m_sentence6, *m_sentence7, *m_sentence8, *m_sentence9, *m_sentence10;
+	SentenceType *m_sentence1, *m_sentence2, *m_sentence3, *m_sentence4, *m_sentence5, 
+					*m_sentence6, *m_sentence7, *m_sentence8, *m_sentence9, *m_sentence10, 
+						*m_sentence11, *m_sentence12, *m_sentence13;
 
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);

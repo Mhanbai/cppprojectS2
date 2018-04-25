@@ -17,6 +17,9 @@ TextClass::TextClass()
 	m_sentence8 = 0;
 	m_sentence9 = 0;
 	m_sentence10 = 0;
+	m_sentence11 = 0;
+	m_sentence12 = 0;
+	m_sentence13 = 0;
 }
 
 
@@ -59,7 +62,7 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	}
 
 	// Initialize the first sentence.
-	result = InitializeSentence(&m_sentence1, 150, device);
+	result = InitializeSentence(&m_sentence1, 32, device);
 	if(!result)
 	{
 		return false;
@@ -128,6 +131,27 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 		return false;
 	}
 
+	// Initialize the eleventh sentence.
+	result = InitializeSentence(&m_sentence11, 16, device);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Initialize the twelfth sentence.
+	result = InitializeSentence(&m_sentence12, 16, device);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Initialize the twelfth sentence.
+	result = InitializeSentence(&m_sentence13, 16, device);
+	if (!result)
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -153,6 +177,9 @@ void TextClass::Shutdown()
 	ReleaseSentence(&m_sentence8);
 	ReleaseSentence(&m_sentence9);
 	ReleaseSentence(&m_sentence10);
+	ReleaseSentence(&m_sentence11);
+	ReleaseSentence(&m_sentence12);
+	ReleaseSentence(&m_sentence13);
 
 	return;
 }
@@ -220,6 +247,24 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, FontShaderClass* Font
 
 	result = RenderSentence(m_sentence10, deviceContext, FontShader, worldMatrix, orthoMatrix);
 	if(!result)
+	{
+		return false;
+	}
+
+	result = RenderSentence(m_sentence11, deviceContext, FontShader, worldMatrix, orthoMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	result = RenderSentence(m_sentence12, deviceContext, FontShader, worldMatrix, orthoMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	result = RenderSentence(m_sentence13, deviceContext, FontShader, worldMatrix, orthoMatrix);
+	if (!result)
 	{
 		return false;
 	}
@@ -460,51 +505,6 @@ bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* devi
 	return true;
 }
 
-
-bool TextClass::SetVideoCardInfo(char* videoCardName, int videoCardMemory, ID3D11DeviceContext* deviceContext)
-{
-	char dataString[150];
-	bool result;
-	char tempString[16];
-	char memoryString[32];
-
-
-	// Setup the video card name string.
-	strcpy_s(dataString, "Video Card: ");
-	strcat_s(dataString, videoCardName);
-
-	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence1, dataString, 10, 10, 1.0f, 1.0f, 1.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}
-
-	// Truncate the memory value to prevent buffer over flow.
-	if(videoCardMemory > 9999999)
-	{
-		videoCardMemory = 9999999;
-	}
-
-	// Convert the video memory integer value to a string format.
-	_itoa_s(videoCardMemory, tempString, 10);
-
-	// Setup the video memory string.
-	strcpy_s(memoryString, "Video Memory: ");
-	strcat_s(memoryString, tempString);
-	strcat_s(memoryString, " MB");
-
-	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence2, memoryString, 10, 30, 1.0f, 1.0f, 1.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-
 bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 {
 	char tempString[16];
@@ -526,138 +526,20 @@ bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 	strcat_s(fpsString, tempString);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence3, fpsString, 10, 70, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(m_sentence1, fpsString, 10, 10, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;
 	}
 
-	return true;
-}
+	// Setup the underline string.
+	strcpy_s(fpsString, "-----------");
 
-
-bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
-{
-	char tempString[16];
-	char cpuString[16];
-	bool result;
-
-
-	// Convert the cpu integer to string format.
-	_itoa_s(cpu, tempString, 10);
-
-	// Setup the cpu string.
-	strcpy_s(cpuString, "Cpu: ");
-	strcat_s(cpuString, tempString);
-	strcat_s(cpuString, "%");
-
-	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence4, cpuString, 10, 90, 0.0f, 1.0f, 0.0f, deviceContext);
-	if(!result)
+	result = UpdateSentence(m_sentence2, fpsString, 10, 20, 0.0f, 1.0f, 0.0f, deviceContext);
+	if (!result)
 	{
 		return false;
 	}
 
-	return true;
-}
-
-
-bool TextClass::SetCameraPosition(float posX, float posY, float posZ, ID3D11DeviceContext* deviceContext)
-{
-	int positionX, positionY, positionZ;
-	char tempString[16];
-	char dataString[16];
-	bool result;
-
-
-	// Convert the position from floating point to integer.
-	positionX = (int)posX;
-	positionY = (int)posY;
-	positionZ = (int)posZ;
-
-	// Truncate the position if it exceeds either 9999 or -9999.
-	if(positionX > 9999) { positionX = 9999; }
-	if(positionY > 9999) { positionY = 9999; }
-	if(positionZ > 9999) { positionZ = 9999; }
-
-	if(positionX < -9999) { positionX = -9999; }
-	if(positionY < -9999) { positionY = -9999; }
-	if(positionZ < -9999) { positionZ = -9999; }
-
-	// Setup the X position string.
-	_itoa_s(positionX, tempString, 10);
-	strcpy_s(dataString, "X: ");
-	strcat_s(dataString, tempString);
-
-	result = UpdateSentence(m_sentence5, dataString, 10, 130, 0.0f, 1.0f, 0.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}
-	
-	// Setup the Y position string.
-	_itoa_s(positionY, tempString, 10);
-	strcpy_s(dataString, "Y: ");
-	strcat_s(dataString, tempString);
-
-	result = UpdateSentence(m_sentence6, dataString, 10, 150, 0.0f, 1.0f, 0.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}
-
-	// Setup the Z position string.
-	_itoa_s(positionZ, tempString, 10);
-	strcpy_s(dataString, "Z: ");
-	strcat_s(dataString, tempString);
-
-	result = UpdateSentence(m_sentence7, dataString, 10, 170, 0.0f, 1.0f, 0.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-
-bool TextClass::DisplayInfo(float info1, float info2, float info3, ID3D11DeviceContext* deviceContext)
-{
-	/*char tempString[32];
-	char dataString[32];
-	bool result;
-
-	// Update info 1
-	_itoa_s(info1, tempString, 20);
-	strcpy_s(dataString, "");
-	strcat_s(dataString, tempString);
-
-	result = UpdateSentence(m_sentence8, dataString, 10, 210, 0.0f, 1.0f, 0.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}
-
-	// Update info 2
-	_itoa_s(info2, tempString, 20);
-	strcpy_s(dataString, "");
-	strcat_s(dataString, tempString);
-
-	result = UpdateSentence(m_sentence9, dataString, 10, 230, 0.0f, 1.0f, 0.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}
-
-	// Update info 3
-	_itoa_s(info3, tempString, 20);
-	strcpy_s(dataString, "");
-	strcat_s(dataString, tempString);
-
-	result = UpdateSentence(m_sentence10, dataString, 10, 250, 0.0f, 1.0f, 0.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}*/
 	return true;
 }

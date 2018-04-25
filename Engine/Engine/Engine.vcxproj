@@ -86,6 +86,7 @@
     <ClCompile Include="depthshaderclass.cpp" />
     <ClCompile Include="foliageclass.cpp" />
     <ClCompile Include="foliageshaderclass.cpp" />
+    <ClCompile Include="horizontalblurshaderclass.cpp" />
     <ClCompile Include="motionblurshaderclass.cpp" />
     <ClCompile Include="orthowindowclass.cpp" />
     <ClCompile Include="screenobjectclass.cpp" />
@@ -114,6 +115,7 @@
     <ClCompile Include="timerclass.cpp" />
     <ClCompile Include="trackclass.cpp" />
     <ClCompile Include="modelshaderclass.cpp" />
+    <ClCompile Include="verticalblurshaderclass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h" />
@@ -121,6 +123,7 @@
     <ClInclude Include="depthshaderclass.h" />
     <ClInclude Include="foliageclass.h" />
     <ClInclude Include="foliageshaderclass.h" />
+    <ClInclude Include="horizontalblurshaderclass.h" />
     <ClInclude Include="motionblurshaderclass.h" />
     <ClInclude Include="orthowindowclass.h" />
     <ClInclude Include="screenobjectclass.h" />
@@ -148,12 +151,15 @@
     <ClInclude Include="timerclass.h" />
     <ClInclude Include="trackclass.h" />
     <ClInclude Include="modelshaderclass.h" />
+    <ClInclude Include="verticalblurshaderclass.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="foliageps.hlsl" />
     <None Include="foliagevs.hlsl" />
     <None Include="fontps.hlsl" />
     <None Include="fontvs.hlsl" />
+    <None Include="horizontalblurps.hlsl" />
+    <None Include="horizontalblurvs.hlsl" />
     <None Include="lightps.hlsl" />
     <None Include="lightvs.hlsl" />
     <None Include="motionblurps.hlsl" />
@@ -166,6 +172,8 @@
     <None Include="modelvs.hlsl" />
     <None Include="textureps.hlsl" />
     <None Include="texturevs.hlsl" />
+    <None Include="verticalblurps.hlsl" />
+    <None Include="verticalblurvs.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
