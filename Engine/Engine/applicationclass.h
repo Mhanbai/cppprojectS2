@@ -128,6 +128,8 @@ private:
 
 	ModelClass* m_flags;
 	int checkPointFlags;
+	int playerCurrentCheckPoint = 0;
+	int aiCurrentCheckPoint = 0;
 };
 
 #endif

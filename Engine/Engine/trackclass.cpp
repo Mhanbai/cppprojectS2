@@ -364,6 +364,9 @@ bool TrackClass::DeleteTrack()
 	opponentRacingLine.clear();
 	opponentRacingLine.shrink_to_fit();
 
+	checkPoints.clear();
+	checkPoints.shrink_to_fit();
+
 	playerStartPos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	carsStartDirection = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 

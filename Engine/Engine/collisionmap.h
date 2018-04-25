@@ -89,9 +89,6 @@ private:
 	std::vector<Triangle> terrainCheck15;
 	std::vector<Triangle> terrainCheck16;
 	std::vector<Triangle> trackCheck;
-
-	//Car corners
-	D3DXVECTOR3 UL, UR, BR, BL;
 };
 
 #endif

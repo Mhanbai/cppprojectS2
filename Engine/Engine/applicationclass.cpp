@@ -253,7 +253,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the light object.
-	m_Light->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
+	m_Light->SetAmbientColor(0.25f, 0.25f, 0.25f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(0.0f,-1.0f, 0.0f);
 
@@ -860,16 +860,27 @@ bool ApplicationClass::Frame()
 			m_PlayerCar->SetPosition(D3DXVECTOR3(playerCarPos.x, m_Collision->GetHeight(m_PlayerCar), playerCarPos.z));
 		}
 
-		char info2Buffer[32];
-		sprintf_s(info2Buffer, "CP: %i", m_Collision->CheckPoint(m_PlayerCar));
-		m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
-
-		//m_AICar->OpponentFrame(m_Timer->GetTime() / 1000);
+		m_AICar->OpponentFrame(m_Timer->GetTime() / 1000);
 		D3DXVECTOR3 aiCarPos = m_AICar->GetPosition();
 		m_AICar->SetPosition(D3DXVECTOR3(aiCarPos.x, m_Collision->GetHeight(m_AICar), aiCarPos.z));
 
 		m_Camera->Follow(playerCarPos, m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
 		m_Camera->Render();
+
+		//Gameplay code///////////////////////////////////////////
+		playerCurrentCheckPoint = max(playerCurrentCheckPoint, m_Collision->CheckPoint(m_PlayerCar));
+		aiCurrentCheckPoint = max(aiCurrentCheckPoint, m_Collision->CheckPoint(m_AICar));
+
+
+
+
+		char info1Buffer[32];
+		sprintf_s(info1Buffer, "Player: %i", playerCurrentCheckPoint);
+		m_Text->UpdateSentence(m_Text->m_sentence9, info1Buffer, 10, 230, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
+
+		char info2Buffer[32];
+		sprintf_s(info2Buffer, "AI: %i", aiCurrentCheckPoint);
+		m_Text->UpdateSentence(m_Text->m_sentence10, info2Buffer, 10, 250, 0.0f, 1.0f, 0.0f, m_Direct3D->GetDeviceContext());
 
 		cameraPosition = m_Camera->GetPosition();
 		// Do the frame processing for the foliage.
@@ -1405,8 +1416,8 @@ bool ApplicationClass::StartGame()
 
 	m_Terrain->DeleteVertices();
 
-	checkPointFlags = m_Racetrack->noOfCheckpoints * 2;
-	m_flags = new ModelClass[checkPointFlags];
+	checkPointFlags = (m_Racetrack->noOfCheckpoints * 2) - 2;
+	m_flags = new ModelClass[checkPointFlags + 1];
 	D3DXVECTOR3 vectorBetween;
 
 	for (int i = 0; i < checkPointFlags; i++) {
@@ -1427,6 +1438,12 @@ bool ApplicationClass::StartGame()
 			m_flags[i].Transform(m_Collision->checkPointFlags[i], angleOffset);
 		}
 	}
+
+	m_flags[checkPointFlags].Initialize(m_Direct3D->GetDevice(), "data/finish.txt", L"data/finish.dds");
+	m_flags[checkPointFlags].Scale(0.2f);
+	vectorBetween = D3DXVECTOR3(m_Racetrack->checkPoints[m_Racetrack->noOfCheckpoints - 1].bottomLeft - m_Racetrack->checkPoints[m_Racetrack->noOfCheckpoints - 1].bottomRight);
+	float angleOffset = atan2(vectorBetween.z, vectorBetween.x);
+	m_flags[checkPointFlags].Transform((m_Racetrack->checkPoints[m_Racetrack->noOfCheckpoints - 1].bottomLeft) - (vectorBetween * 0.5f), angleOffset);
 }
 
 bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
@@ -1514,7 +1531,7 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 			return false;
 		}
 
-		for (int i = 0; i < checkPointFlags; i++) {
+		for (int i = 0; i < checkPointFlags + 1; i++) {
 			m_flags[i].Render(m_Direct3D->GetDeviceContext());
 
 			result = m_ModelShader->Render(m_Direct3D->GetDeviceContext(), m_flags[i].GetIndexCount(), m_flags[i].GetWorldMatrix(), viewMatrix, projectionMatrix,

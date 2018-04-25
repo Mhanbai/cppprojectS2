@@ -136,10 +136,10 @@ bool CollisionMap::CheckCollision(Car * car)
 
 	float halfWidth = (car->m_Model->GetWidth() / 2) * car->scale;
 	float halfLength = (car->m_Model->GetLength() / 2) * car->scale;
-	UL = carPos + (car->GetLeftVector() * halfWidth) + (car->GetForwardVector() * halfLength);
-	BL = UL + (-car->GetForwardVector() * (halfLength * 2));
-	UR = UL + (car->GetRightVector() * (halfWidth * 2));
-	BR = UR + (-car->GetForwardVector() * (halfLength * 2));
+	D3DXVECTOR3 UL = carPos + (car->GetLeftVector() * halfWidth) + (car->GetForwardVector() * halfLength);
+	D3DXVECTOR3 BL = UL + (-car->GetForwardVector() * (halfLength * 2));
+	D3DXVECTOR3 UR = UL + (car->GetRightVector() * (halfWidth * 2));
+	D3DXVECTOR3 BR = UR + (-car->GetForwardVector() * (halfLength * 2));
 
 	switch (pos) {
 	case 1:
@@ -405,6 +405,14 @@ bool CollisionMap::CheckCollision(Car * car)
 
 int CollisionMap::CheckPoint(Car * car)
 {
+	D3DXVECTOR3 carPos = car->GetPosition();
+	float halfWidth = (car->m_Model->GetWidth() / 2) * car->scale;
+	float halfLength = (car->m_Model->GetLength() / 2) * car->scale;
+	D3DXVECTOR3 UL = carPos + (car->GetLeftVector() * halfWidth) + (car->GetForwardVector() * halfLength);
+	D3DXVECTOR3 BL = UL + (-car->GetForwardVector() * (halfLength * 2));
+	D3DXVECTOR3 UR = UL + (car->GetRightVector() * (halfWidth * 2));
+	D3DXVECTOR3 BR = UR + (-car->GetForwardVector() * (halfLength * 2));
+
 	int cpCollided = -1;
 	for (int i = 0; i < checkPointsCheck.size(); i++) {
 		if ((checkPointsCheck[i].isWithin(UR)) || (checkPointsCheck[i].isWithin(UL)) || (checkPointsCheck[i].isWithin(BL)) || (checkPointsCheck[i].isWithin(BR))) {
@@ -419,7 +427,7 @@ int CollisionMap::CheckPoint(Car * car)
 
 	for (int i = 0; i < noOfCheckpoints; i++) {
 		if ((cpCollided >= (i * 2)) && (cpCollided < ((i + 1) * 2))) {
-			return i;
+			return i + 1;
 		}
 	}
 }
