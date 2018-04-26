@@ -102,7 +102,7 @@ private:
 	ModelClass* m_PlayerCarModel;
 	Car* m_AICar;
 	ModelClass* m_AICarModel;
-	ScreenObjectClass *m_WingMirror, *m_TextBackdrop, *m_Winner, *m_Loser;
+	ScreenObjectClass *m_WingMirror, *m_TextBackdrop, *m_Winner, *m_Loser, *m_1, *m_2, *m_3;
 	TextureShaderClass* m_TextureShader;
 	D3DXMATRIX screenViewMatrix = D3DXMATRIX(1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -134,6 +134,8 @@ private:
 	int m_screenHeight;
 
 	bool showTrack = true;
+	bool countdownDone = false;
+	float countdownTimer = 0.0f;
 
 	ModelClass* m_flags;
 	int checkPointFlags;

@@ -24,6 +24,9 @@ ApplicationClass::ApplicationClass()
 	m_LightShader = 0;
 	m_TextureShader = 0;
 	m_WingMirror = 0;
+	m_1 = 0;
+	m_2 = 0;
+	m_3 = 0;
 	m_Winner = 0;
 	m_Loser = 0;
 	m_TextBackdrop = 0;
@@ -289,6 +292,68 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		MessageBox(hwnd, L"Could not initialize the sky dome shader object.", L"Error", MB_OK);
 		return false;
 	}
+
+
+	// Create the bitmap object.
+	m_Winner = new ScreenObjectClass;
+	if (!m_Winner)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = m_Winner->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/winner.dds", 495, 185);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the bitmap object.
+	m_1 = new ScreenObjectClass;
+	if (!m_1)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = m_1->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/1.dds", 89, 135);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the bitmap object.
+	m_2 = new ScreenObjectClass;
+	if (!m_1)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = m_2->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/2.dds", 126, 136);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the bitmap object.
+	m_3 = new ScreenObjectClass;
+	if (!m_3)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = m_3->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/3.dds", 122, 137);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
 
 	// Create the bitmap object.
 	m_WingMirror = new ScreenObjectClass;
@@ -787,6 +852,30 @@ void ApplicationClass::Shutdown()
 	}
 
 	// Release the rearview window object.
+	if (m_3)
+	{
+		m_3->Shutdown();
+		delete m_3;
+		m_3 = 0;
+	}
+
+	// Release the rearview window object.
+	if (m_2)
+	{
+		m_2->Shutdown();
+		delete m_2;
+		m_2 = 0;
+	}
+
+	// Release the rearview window object.
+	if (m_1)
+	{
+		m_1->Shutdown();
+		delete m_1;
+		m_1 = 0;
+	}
+
+	// Release the rearview window object.
 	if (m_RearView)
 	{
 		m_RearView->Shutdown();
@@ -1006,7 +1095,18 @@ bool ApplicationClass::Frame()
 		m_Camera->SetRotation(90.0f, 0.0f, 0.0f);
 		m_Camera->RenderPreScene();
 		cameraPosition = m_Camera->GetPosition();
-	} else if (gameState == 1) {
+	}
+	else if ((gameState == 1) && (!countdownDone)) {
+		//Set camera to follow player
+		m_Camera->Follow(m_PlayerCar->GetPosition(), m_PlayerCar->GetForwardVector(), m_Timer->GetTime() / 1000);
+		m_Camera->Render();
+
+		countdownTimer += m_Timer->GetTime() / 1000;
+		if (countdownTimer > 3.0f) {
+			countdownDone = true;
+		}
+	}
+	else if ((gameState == 1) && (countdownDone)) {
 #		//Gameplay code///////////////////////////////////////////
 
 		//Player Car Frame
@@ -1211,7 +1311,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 	bool keyDown, result;
 	float posX, posY, posZ, rotX, rotY, rotZ;
 
-	if (gameState == 1) {
+	if ((gameState == 1) && (countdownDone)) {
 		keyDown = false;
 
 		keyDown = m_Input->IsLeftPressed();
@@ -1428,6 +1528,51 @@ bool ApplicationClass::RenderGraphics()
 		if (!result)
 		{
 			return false;
+		}
+
+		if (!countdownDone) {
+			if ((countdownTimer >= 0.0f) && (countdownTimer < 1.0f)) {
+				result = m_3->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_3->GetWidth() / 2), (m_screenHeight / 2) - (m_3->GetHeight() / 2));
+				if (!result)
+				{
+					return false;
+				}
+
+				// Render the wingmirror with the texture shader.
+				result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_3->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_3->GetTexture());
+				if (!result)
+				{
+					return false;
+				}
+			}
+			else if ((countdownTimer >= 1.0f) && (countdownTimer < 2.0f)) {
+				result = m_2->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_2->GetWidth() / 2), (m_screenHeight / 2) - (m_2->GetHeight() / 2));
+				if (!result)
+				{
+					return false;
+				}
+
+				// Render the wingmirror with the texture shader.
+				result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_2->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_2->GetTexture());
+				if (!result)
+				{
+					return false;
+				}
+			}
+			else if ((countdownTimer >= 2.0f) && (countdownTimer < 3.0f)) {
+				result = m_1->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_1->GetWidth() / 2), (m_screenHeight / 2) - (m_1->GetHeight() / 2));
+				if (!result)
+				{
+					return false;
+				}
+
+				// Render the wingmirror with the texture shader.
+				result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_1->GetIndexCount(), worldMatrix, screenViewMatrix, orthoMatrix, m_1->GetTexture());
+				if (!result)
+				{
+					return false;
+				}
+			}
 		}
 	}
 	else if (gameState == 2) {
@@ -1664,7 +1809,8 @@ bool ApplicationClass::StartGame()
 	return false;
 	}
 
-	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos + D3DXVECTOR3(0.0f, m_Collision->GetHeight(m_PlayerCar), 0.0f));
+	m_PlayerCar->SetPosition(m_Racetrack->playerStartPos + D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+	m_PlayerCar->SetPosition(D3DXVECTOR3 (m_PlayerCar->GetPosition().x, m_Collision->GetHeight(m_PlayerCar), m_PlayerCar->GetPosition().z));
 
 	// Initialize the input object.
 	result = m_AICar->Initialize("data/c_main.txt", L"data/cars.dds", m_AICarModel, m_Direct3D->GetDevice(), m_Racetrack->carsStartDirection, m_Text, m_Direct3D->GetDeviceContext());
@@ -1674,7 +1820,8 @@ bool ApplicationClass::StartGame()
 	return false;
 	}
 
-	m_AICar->SetPosition(m_Racetrack->opponentRacingLine[1] + D3DXVECTOR3(0.0f, m_Collision->GetHeight(m_PlayerCar), 0.0f));
+	m_AICar->SetPosition(m_Racetrack->opponentRacingLine[1] + D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+	m_AICar->SetPosition(D3DXVECTOR3(m_AICar->GetPosition().x, m_Collision->GetHeight(m_AICar), m_AICar->GetPosition().z));
 	m_AICar->SetRacingLine(m_Racetrack->opponentRacingLine);
 
 	// Initialize the foliage object.
