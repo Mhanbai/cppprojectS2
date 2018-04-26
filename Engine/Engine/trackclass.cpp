@@ -22,7 +22,7 @@ bool TrackClass::InitializeTrack(ID3D11Device* device, TerrainClass* terrain_in,
 
 	LoadTexture(device, textureFilename);
 
-	trackGenerated = GenerateTrack();
+	GenerateTrack();
 
 	return trackGenerated;
 }
@@ -322,6 +322,8 @@ bool TrackClass::GenerateTrack()
 			if (i == (trackPoints.size() - 10)) {
 				checkPoints.push_back(CheckPointBox(bottomLeft, nextNodeLeft, nextNodeRight, bottomRight));
 			}
+
+			trackGenerated = true;
 		}
 
 
