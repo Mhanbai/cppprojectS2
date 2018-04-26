@@ -76,7 +76,7 @@ void Car::Frame(float deltaTime)
 
 	//This handles both gear changing and car noise
 	if (speed < (gearRange)) {
-		gear = 0.2f;
+		gear = 0.3f;
 	}
 	else if ((speed >= (gearRange)) && (speed < (gearRange * 2))) {
 		gear = 0.4f;
@@ -176,19 +176,54 @@ void Car::Frame(float deltaTime)
 void Car::OpponentFrame(float deltaTime)
 {
 	float pid;
-	float speed = 3.0f;
 
-	if (position.y == 0.0f) {
-		speed = 1.0f;
+	//The speed of the car is equivalent to the magnitude of the velocity vector
+	speed = (D3DXVec3Length(&velocity));
+
+	//This handles both gear changing and car noise
+	if (speed < (gearRange)) {
+		gear = 0.3f;
+	}
+	else if ((speed >= (gearRange)) && (speed < (gearRange * 2))) {
+		gear = 0.4f;
+	}
+	else if ((speed >= (gearRange * 2)) && (speed < (gearRange * 3))) {
+		gear = 0.6f;
+	}
+	else if ((speed >= (gearRange * 3)) && (speed < (gearRange * 4))) {
+		gear = 0.8f;
 	}
 	else {
-		speed = 3.0f;
+		gear = 1.0f;
+	}
+
+	if (position.y == 0.0f) {
+		gear = 0.3f;
 	}
 
 	D3DXVec3Subtract(&forwardVector, &m_RacingLine[currentNode + 1], &m_RacingLine[currentNode]);
+	D3DXVec3Normalize(&forwardVectorNormalized, &forwardVector);
+	float accelerationFactor = 2.0f + (speed * gear);
 
-	position += forwardVector * deltaTime * speed;
-	emptyNode += forwardVector * deltaTime * speed;
+	//Calculate new right vector from forward vector
+	D3DXVec3Normalize(&forwardVectorNormalized, &forwardVector);
+	D3DXVec3Cross(&rightVector, &forwardVectorNormalized, &upVector);
+
+	//Lateral friction stops the car from drifting as if it is on ice
+	lateralVelocity = rightVector * D3DXVec3Dot(&velocity, &rightVector);
+	lateralFriction = -lateralVelocity * lateralFrictionFactor;
+
+	acceleration = forwardVectorNormalized * accelerationFactor;
+	friction = -velocity * frictionFactor;
+	velocity += (friction + lateralFriction) * deltaTime;
+
+	//Increase velocity by acceleration
+	if (speed < topSpeed) {
+		velocity += acceleration * deltaTime;
+	}
+
+	position = position + velocity * deltaTime;
+	emptyNode = emptyNode + velocity * deltaTime;
 
 	if (D3DXVec3Length(&emptyNode) > D3DXVec3Length(&forwardVector)) {
 		currentNode++;
@@ -223,23 +258,12 @@ void Car::OpponentFrame(float deltaTime)
 	//Steering angle equals error + inegral + derivative clamped between 1 and -1
 	pid = (error * kp) + (integral * ki) + (derivative * kd);
 
-	position += tangentLine * pid * speed * deltaTime;
+	position += tangentLine * pid * 3.0f * deltaTime;
 
 	angleDelta = atan2(forwardVector.z, forwardVector.x) - atan2(previousForwardVector.z, previousForwardVector.x);
 	previousForwardVector = forwardVector;
 
-	if (angleDelta != 0.0f) {
-		angleTracker = angleDelta / 20;
-		counter = 0;
-	}
-
-	if (counter < 20) {
-		m_Model->Transform(position, -angleTracker);
-		counter++;
-	}
-	else {
-		m_Model->Transform(position, 0.0f);
-	}
+	m_Model->Transform(position, -angleDelta);
 
 	char info1Buffer[32];
 	sprintf_s(info1Buffer, "POS: %.4f", position.y);

@@ -19,6 +19,8 @@ ApplicationClass::ApplicationClass()
 	m_Light = 0;
 	m_SkyDome = 0;
 	m_SkyDomeShader = 0;
+	m_SkyPlane = 0;
+	m_SkyPlaneShader = 0;
 	m_Racetrack = 0;
 	m_ModelShader = 0;
 	m_LightShader = 0;
@@ -42,7 +44,6 @@ ApplicationClass::ApplicationClass()
 	m_MotionBlurTexture = 0;
 	m_FullScreenWindow = 0;
 	m_BushFoliage = 0;
-	m_TreeFoliage = 0;
 	m_FoliageShader = 0;
 	m_DepthShader = 0;
 	m_DepthTexture = 0;
@@ -292,6 +293,37 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		MessageBox(hwnd, L"Could not initialize the sky dome shader object.", L"Error", MB_OK);
 		return false;
 	}
+
+	// Create the sky plane object.
+	m_SkyPlane = new SkyPlaneClass;
+	if (!m_SkyPlane)
+	{
+		return false;
+	}
+
+	// Initialize the sky plane object.
+	result = m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/cloud001.dds", L"../Engine/data/cloud002.dds");
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the sky plane object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the sky plane shader object.
+	m_SkyPlaneShader = new SkyPlaneShaderClass;
+	if (!m_SkyPlaneShader)
+	{
+		return false;
+	}
+
+	// Initialize the sky plane shader object.
+	result = m_SkyPlaneShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the sky plane shader object.", L"Error", MB_OK);
+		return false;
+	}
+
 
 
 	// Create the bitmap object.
@@ -576,13 +608,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	{
 		return false;
 	}
-	
-	// Create the tree foliage object.
-	m_TreeFoliage = new FoliageClass;
-	if (!m_TreeFoliage)
-	{
-		return false;
-	}
 
 	// Create the depth shader object.
 	m_DepthShader = new DepthShaderClass;
@@ -789,14 +814,6 @@ void ApplicationClass::Shutdown()
 		m_BushFoliage = 0;
 	}
 
-	// Release the foliage object.
-	if (m_TreeFoliage)
-	{
-		m_TreeFoliage->Shutdown();
-		delete m_TreeFoliage;
-		m_TreeFoliage = 0;
-	}
-
 	// Release the full screen ortho window object.
 	if (m_FullScreenWindow)
 	{
@@ -947,6 +964,22 @@ void ApplicationClass::Shutdown()
 		m_ModelShader = 0;
 	}
 
+	// Release the sky plane shader object.
+	if (m_SkyPlaneShader)
+	{
+		m_SkyPlaneShader->Shutdown();
+		delete m_SkyPlaneShader;
+		m_SkyPlaneShader = 0;
+	}
+
+	// Release the sky plane object.
+	if (m_SkyPlane)
+	{
+		m_SkyPlane->Shutdown();
+		delete m_SkyPlane;
+		m_SkyPlane = 0;
+	}
+	
 	// Release the sky dome shader object.
 	if (m_SkyDomeShader)
 	{
@@ -1090,7 +1123,7 @@ bool ApplicationClass::Frame()
 	}
 
 	if (gameState == 0) {
-		m_Direct3D->ChangeFieldofView(1.5f, 0.1f, 1200.0f);
+		m_Direct3D->ChangeProjection(1.5f, 0.1f, 1200.0f);
 		m_Camera->SetPosition(terrainWidth / 2, 350.0f, terrainHeight / 2);
 		m_Camera->SetRotation(90.0f, 0.0f, 0.0f);
 		m_Camera->RenderPreScene();
@@ -1223,7 +1256,7 @@ bool ApplicationClass::Frame()
 			aiCP2Timer = aiTimer - aiCP1Timer;
 			break;
 		case 2:
-			aiCP3Timer = aiTimer - aiCP2Timer;
+			aiCP3Timer = aiTimer - aiCP1Timer - aiCP2Timer;
 			break;
 		default:
 			break;
@@ -1255,7 +1288,7 @@ bool ApplicationClass::Frame()
 			m_Text->UpdateSentence(m_Text->m_sentence11, infoBuffer, 10, 260, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
 		}
 		else {
-			sprintf_s(infoBuffer, "CP1: -:--:--");
+			sprintf_s(infoBuffer, "CP3: -:--:--");
 			m_Text->UpdateSentence(m_Text->m_sentence11, infoBuffer, 10, 260, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
 		}
 
@@ -1278,11 +1311,8 @@ bool ApplicationClass::Frame()
 			return false;
 		}
 
-		result = m_TreeFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
-		if (!result)
-		{
-			return false;
-		}
+		// Do the sky plane frame processing.
+		m_SkyPlane->Frame();
 	}
 	else if (gameState == 2) {
 		char info1Buffer[32];
@@ -1380,7 +1410,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 		keyDown = m_Input->IsSpacePressed();
 
 		if ((keyDown) && (showTrack)) {
-			m_Direct3D->ChangeFieldofView(4.0f, 0.1f, 1000.0f);
+			m_Direct3D->ChangeProjection(4.0f, 0.1f, 1000.0f);
 			StartGame();
 		}
 
@@ -1503,7 +1533,7 @@ bool ApplicationClass::RenderGraphics()
 
 	if (gameState == 1) {
 		// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
-		result = m_WingMirror->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_WingMirror->GetWidth() / 2), 20);
+		result = m_WingMirror->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_WingMirror->GetWidth() / 2), 20, false);
 		if (!result)
 		{
 			return false;
@@ -1516,7 +1546,7 @@ bool ApplicationClass::RenderGraphics()
 			return false;
 		}
 
-		result = m_RearView->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_RearView->GetWidth() / 2), 25);
+		result = m_RearView->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_RearView->GetWidth() / 2), 25, true);
 		if (!result)
 		{
 			return false;
@@ -1576,7 +1606,7 @@ bool ApplicationClass::RenderGraphics()
 		}
 	}
 	else if (gameState == 2) {
-		result = m_Winner->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_Winner->GetWidth() / 2), (m_screenHeight / 2) - (m_Winner->GetHeight() / 2));
+		result = m_Winner->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_Winner->GetWidth() / 2), (m_screenHeight / 2) - (m_Winner->GetHeight() / 2), false);
 		if (!result)
 		{
 			return false;
@@ -1590,7 +1620,7 @@ bool ApplicationClass::RenderGraphics()
 		}
 	}
 	else if (gameState == 3) {
-		result = m_Loser->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_Loser->GetWidth() / 2), (m_screenHeight / 2) - (m_Winner->GetHeight() / 2));
+		result = m_Loser->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_Loser->GetWidth() / 2), (m_screenHeight / 2) - (m_Winner->GetHeight() / 2), false);
 		if (!result)
 		{
 			return false;
@@ -1605,7 +1635,7 @@ bool ApplicationClass::RenderGraphics()
 	}
 
 	//Render the text backdrop
-	result = m_TextBackdrop->Render(m_Direct3D->GetDeviceContext(), 0, 0);
+	result = m_TextBackdrop->Render(m_Direct3D->GetDeviceContext(), 0, 0, false);
 	if (!result)
 	{
 		return false;
@@ -1825,15 +1855,8 @@ bool ApplicationClass::StartGame()
 	m_AICar->SetRacingLine(m_Racetrack->opponentRacingLine);
 
 	// Initialize the foliage object.
-	result = m_BushFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/foliage.dds", m_Terrain, 0.01f, 0.03f, -5.0f, 3.0f, 1.0f, 4.0f, 1.0f, 3);
-	if (!result)
-	{
-	MessageBox(m_hwnd, L"Could not initialize the foliage object.", L"Error", MB_OK);
-	return false;
-	}
-
-	// Initialize the foliage object.
-	result = m_TreeFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/tree.dds", m_Terrain, 0.02f, 0.04f, -5.0f, 2.0f, 10.0f, 15.0f, 2.0f, 32);
+	//															WCHAR* textureFilename,		   terrain_in,	minSlope_in, maxSlope_in,	minHeight_in,	maxHeight_in,	minScale_in,	maxScale_in,	heightScale_in, frequency_in)
+	result = m_BushFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/foliage.dds", m_Terrain,	0.001f,		 0.02f,			-5.0f,			3.0f,			2.0f,			5.0f,			1.0f,			7);
 	if (!result)
 	{
 	MessageBox(m_hwnd, L"Could not initialize the foliage object.", L"Error", MB_OK);
@@ -1901,6 +1924,18 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 	m_SkyDomeShader->Render(m_Direct3D->GetDeviceContext(), m_SkyDome->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
 		m_SkyDome->GetApexColor(), m_SkyDome->GetCenterColor());
 
+	// Enable additive blending so the clouds blend with the sky dome color.
+	m_Direct3D->EnableAdditiveBlendState();
+
+	// Render the sky plane using the sky plane shader.
+	m_SkyPlane->Render(m_Direct3D->GetDeviceContext());
+
+	m_SkyPlaneShader->Render(m_Direct3D->GetDeviceContext(), m_SkyPlane->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_SkyPlane->GetCloudTexture1(), m_SkyPlane->GetCloudTexture2(), m_SkyPlane->GetTranslation(0), m_SkyPlane->GetTranslation(1),
+		m_SkyPlane->GetTranslation(2), m_SkyPlane->GetTranslation(3), m_SkyPlane->GetBrightness());
+
+	m_Direct3D->TurnOffAlphaBlending();
+
 	// Turn back face culling back on.
 	m_Direct3D->TurnOnCulling();
 
@@ -1937,7 +1972,7 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 		}
 	}
 
-	if (gameState == 1) {
+	if (gameState >= 1) {
 
 		m_PlayerCarModel->Render(m_Direct3D->GetDeviceContext());
 
@@ -1975,15 +2010,6 @@ bool ApplicationClass::RenderScene(D3DXMATRIX viewMatrix, D3DXMATRIX projectionM
 		m_BushFoliage->Render(m_Direct3D->GetDeviceContext());
 
 		result = m_FoliageShader->Render(m_Direct3D->GetDeviceContext(), m_BushFoliage->GetVertexCount(), m_BushFoliage->GetInstanceCount(), viewMatrix, projectionMatrix, m_BushFoliage->GetTexture());
-		if (!result)
-		{
-			return false;
-		}
-
-		// Render the foliage.
-		m_TreeFoliage->Render(m_Direct3D->GetDeviceContext());
-
-		result = m_FoliageShader->Render(m_Direct3D->GetDeviceContext(), m_TreeFoliage->GetVertexCount(), m_TreeFoliage->GetInstanceCount(), viewMatrix, projectionMatrix, m_TreeFoliage->GetTexture());
 		if (!result)
 		{
 			return false;
@@ -2055,7 +2081,9 @@ bool ApplicationClass::RenderToRearViewTexture()
 	D3DXMATRIX viewMatrix, projectionMatrix;
 
 	m_Camera->GetReverseViewMatrix(viewMatrix);
+	m_Direct3D->ChangeProjection(8.0f, 0.1f, 1200.0f, m_screenWidth / 2.67f, m_screenHeight / 6.0f);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->ChangeProjection(4.0f, 0.1f, 1200.0f);
 
 	// Set the render target to be the render to texture.
 	m_RearViewTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());

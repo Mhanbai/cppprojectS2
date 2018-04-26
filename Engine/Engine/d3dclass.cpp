@@ -22,6 +22,7 @@ D3DClass::D3DClass()
 	m_alphaEnableBlendingState = 0;
 	m_alphaDisableBlendingState = 0;
 	m_alphaEnableBlendingState2 = 0;
+	m_alphaEnableBlendingState3 = 0;
 }
 
 
@@ -478,6 +479,23 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		return false;
 	}
 
+	// Create a secondary alpha blend state description.
+	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+	// Create the blend state using the description.
+	result = m_device->CreateBlendState(&blendStateDescription, &m_alphaEnableBlendingState3);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -488,6 +506,12 @@ void D3DClass::Shutdown()
 	if (m_swapChain)
 	{
 		m_swapChain->SetFullscreenState(false, NULL);
+	}
+
+	if (m_alphaEnableBlendingState3)
+	{
+		m_alphaEnableBlendingState3->Release();
+		m_alphaEnableBlendingState3 = 0;
 	}
 
 	if (m_alphaEnableBlendingState2)
@@ -769,11 +793,21 @@ void D3DClass::ResetViewport()
 	return;
 }
 
-void D3DClass::ChangeFieldofView(float FOV, float screenNear, float screenDepth)
+void D3DClass::ChangeProjection(float FOV, float screenNear, float screenDepth)
 {
 	// Setup the projection matrix.
 	float fieldOfView = (float)D3DX_PI / FOV;
 	float screenAspect = (float)m_screenWidth / (float)m_screenHeight;
+
+	// Create the projection matrix for 3D rendering.
+	D3DXMatrixPerspectiveFovLH(&m_projectionMatrix, fieldOfView, screenAspect, m_screenNear, m_screenDepth);
+}
+
+void D3DClass::ChangeProjection(float FOV, float screenNear, float screenDepth, float width, float height)
+{
+	// Setup the projection matrix.
+	float fieldOfView = (float)D3DX_PI / FOV;
+	float screenAspect = width /height;
 
 	// Create the projection matrix for 3D rendering.
 	D3DXMatrixPerspectiveFovLH(&m_projectionMatrix, fieldOfView, screenAspect, m_screenNear, m_screenDepth);
@@ -792,6 +826,23 @@ void D3DClass::EnableAlphaToCoverageBlending()
 
 	// Turn on the alpha blending.
 	m_deviceContext->OMSetBlendState(m_alphaEnableBlendingState2, blendFactor, 0xffffffff);
+
+	return;
+}
+
+void D3DClass::EnableAdditiveBlendState()
+{
+	float blendFactor[4];
+
+
+	// Setup the blend factor.
+	blendFactor[0] = 0.0f;
+	blendFactor[1] = 0.0f;
+	blendFactor[2] = 0.0f;
+	blendFactor[3] = 0.0f;
+
+	// Turn on the alpha blending.
+	m_deviceContext->OMSetBlendState(m_alphaEnableBlendingState3, blendFactor, 0xffffffff);
 
 	return;
 }

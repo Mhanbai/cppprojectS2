@@ -63,8 +63,10 @@ public:
 	ID3D11DepthStencilView* GetDepthStencilView();
 	void SetBackBufferRenderTarget();
 
-	void ChangeFieldofView(float FOV, float screenNear, float screenDepth);
+	void ChangeProjection(float FOV, float screenNear, float screenDepth);
+	void ChangeProjection(float FOV, float screenNear, float screenDepth, float width, float height);
 	void EnableAlphaToCoverageBlending();
+	void EnableAdditiveBlendState();
 
 private:
 	bool m_vsync_enabled;
@@ -86,8 +88,9 @@ private:
 	D3D11_VIEWPORT m_viewport;
 	ID3D11DepthStencilState* m_depthDisabledStencilState;
 	ID3D11BlendState* m_alphaEnableBlendingState;
-	ID3D11BlendState* m_alphaDisableBlendingState;
 	ID3D11BlendState* m_alphaEnableBlendingState2;
+	ID3D11BlendState* m_alphaEnableBlendingState3;
+	ID3D11BlendState* m_alphaDisableBlendingState;
 
 	float m_screenWidth, m_screenHeight, m_screenDepth, m_screenNear;
 };
