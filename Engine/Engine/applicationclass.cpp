@@ -1562,7 +1562,7 @@ bool ApplicationClass::RenderGraphics()
 
 		if (!countdownDone) {
 			if ((countdownTimer >= 0.0f) && (countdownTimer < 1.0f)) {
-				result = m_3->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_3->GetWidth() / 2), (m_screenHeight / 2) - (m_3->GetHeight() / 2));
+				result = m_3->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_3->GetWidth() / 2), (m_screenHeight / 2) - (m_3->GetHeight() / 2), false);
 				if (!result)
 				{
 					return false;
@@ -1576,7 +1576,7 @@ bool ApplicationClass::RenderGraphics()
 				}
 			}
 			else if ((countdownTimer >= 1.0f) && (countdownTimer < 2.0f)) {
-				result = m_2->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_2->GetWidth() / 2), (m_screenHeight / 2) - (m_2->GetHeight() / 2));
+				result = m_2->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_2->GetWidth() / 2), (m_screenHeight / 2) - (m_2->GetHeight() / 2), false);
 				if (!result)
 				{
 					return false;
@@ -1590,7 +1590,7 @@ bool ApplicationClass::RenderGraphics()
 				}
 			}
 			else if ((countdownTimer >= 2.0f) && (countdownTimer < 3.0f)) {
-				result = m_1->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_1->GetWidth() / 2), (m_screenHeight / 2) - (m_1->GetHeight() / 2));
+				result = m_1->Render(m_Direct3D->GetDeviceContext(), (m_screenWidth / 2) - (m_1->GetWidth() / 2), (m_screenHeight / 2) - (m_1->GetHeight() / 2), false);
 				if (!result)
 				{
 					return false;
