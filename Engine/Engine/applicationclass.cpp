@@ -1155,7 +1155,7 @@ bool ApplicationClass::Frame()
 			aiCP2Timer = aiTimer - aiCP1Timer;
 			break;
 		case 2:
-			aiCP3Timer = aiTimer - aiCP2Timer;
+			aiCP3Timer = aiTimer - aiCP1Timer - aiCP2Timer;
 			break;
 		default:
 			break;
