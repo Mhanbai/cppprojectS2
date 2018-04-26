@@ -120,6 +120,12 @@
     <ClCompile Include="verticalblurshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="skyplaneclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="skyplaneshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -224,6 +230,12 @@
     <ClInclude Include="verticalblurshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="skyplaneclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skyplaneshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="foliageps.hlsl">
@@ -284,6 +296,12 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="verticalblurvs.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="skyplaneps.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="skyplanevs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

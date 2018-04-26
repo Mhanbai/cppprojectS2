@@ -106,6 +106,8 @@
     <ClCompile Include="simplexnoisegenerator.cpp" />
     <ClCompile Include="skydomeclass.cpp" />
     <ClCompile Include="skydomeshaderclass.cpp" />
+    <ClCompile Include="skyplaneclass.cpp" />
+    <ClCompile Include="skyplaneshaderclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="terrainclass.cpp" />
     <ClCompile Include="terrainshaderclass.cpp" />
@@ -142,6 +144,8 @@
     <ClInclude Include="simplexnoisegenerator.h" />
     <ClInclude Include="skydomeclass.h" />
     <ClInclude Include="skydomeshaderclass.h" />
+    <ClInclude Include="skyplaneclass.h" />
+    <ClInclude Include="skyplaneshaderclass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="terrainclass.h" />
     <ClInclude Include="terrainshaderclass.h" />
@@ -166,6 +170,8 @@
     <None Include="motionblurvs.hlsl" />
     <None Include="skydomeps.hlsl" />
     <None Include="skydomevs.hlsl" />
+    <None Include="skyplaneps.hlsl" />
+    <None Include="skyplanevs.hlsl" />
     <None Include="terrainps.hlsl" />
     <None Include="terrainvs.hlsl" />
     <None Include="modelps.hlsl" />

@@ -90,12 +90,12 @@ private:
 	int checkPoint = 0;
 	float integral = 0.0f;
 	float previousError = 0.0f;
-	float kp = 0.5f;
-	float ki = 0.2f;
+	float kp = 1.0f;
+	float ki = 0.4f;
 	float kd = 0.1f;
 
 	//Velocity, friction, steering etc...
-	D3DXVECTOR3 velocity;
+	D3DXVECTOR3 velocity = D3DXVECTOR3 (0.0f, 0.0f, 0.0f);
 	D3DXVECTOR3 friction;
 	D3DXVECTOR3 acceleration;
 	float speed;

@@ -31,6 +31,8 @@ const float SCREEN_NEAR = 0.1f;
 #include "simplexnoisegenerator.h"
 #include "skydomeclass.h"
 #include "skydomeshaderclass.h"
+#include "skyplaneclass.h"
+#include "skyplaneshaderclass.h"
 #include "trackclass.h"
 #include "modelshaderclass.h"
 #include "lightshaderclass.h"
@@ -95,6 +97,8 @@ private:
 	SimplexNoiseGenerator m_NoiseGenerator;
 	SkyDomeClass* m_SkyDome;
 	SkyDomeShaderClass* m_SkyDomeShader;
+	SkyPlaneClass *m_SkyPlane;
+	SkyPlaneShaderClass* m_SkyPlaneShader;
 	TrackClass* m_Racetrack;
 	ModelShaderClass* m_ModelShader;
 	LightShaderClass* m_LightShader;
@@ -115,7 +119,6 @@ private:
 	RenderTextureClass *m_RenderTexture, *m_MotionBlurTexture, *m_DepthTexture, *m_DownSampleTexure, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_UpSampleTexure;
 	OrthoWindowClass *m_SmallWindow, *m_FullScreenWindow;
 	FoliageClass* m_BushFoliage;
-	FoliageClass* m_TreeFoliage;
 	FoliageShaderClass* m_FoliageShader;
 	D3DXMATRIX currViewMatrix, currProjMatrix, prevViewMatrix, prevProjMatrix;
 	DepthShaderClass* m_DepthShader;
