@@ -77,7 +77,6 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	downSampleWidth = screenWidth / 2;
 	downSampleHeight = screenHeight / 2;
 
-	float cameraX, cameraY, cameraZ;
 	char videoCard[128];
 	int videoMemory;
 
@@ -395,7 +394,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the bitmap object.
-	result = m_WingMirror->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/wingmirror.dds", screenWidth / 2.5f, screenHeight / 5.6f);
+	result = m_WingMirror->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/wingmirror.dds", int(screenWidth / 2.5f), int(screenHeight / 5.6f));
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -471,7 +470,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the debug window object.////////////////////////////////////////////////////////////////////////////////////////////////////
-	result = m_RearView->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, screenWidth / 2.67f, screenHeight / 6.0f);
+	result = m_RearView->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, int(screenWidth / 2.67f), int(screenHeight / 6.0f));
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
@@ -1137,7 +1136,7 @@ bool ApplicationClass::Frame()
 
 	if (gameState == 0) {
 		m_Direct3D->ChangeProjection(1.5f, 0.1f, 1200.0f);
-		m_Camera->SetPosition(terrainWidth / 2, 350.0f, terrainHeight / 2);
+		m_Camera->SetPosition(float(terrainWidth / 2.0f), 350.0f, float(terrainHeight / 2.0f));
 		m_Camera->SetRotation(90.0f, 0.0f, 0.0f);
 		m_Camera->RenderPreScene();
 		cameraPosition = m_Camera->GetPosition();
@@ -1313,19 +1312,6 @@ bool ApplicationClass::Frame()
 		///Distance///
 		sprintf_s(infoBuffer, "Distance: %.0fm", m_Racetrack->trackLength);
 		m_Text->UpdateSentence(m_Text->m_sentence13, infoBuffer, 10, 360, 1.0f, 1.0f, 1.0f, m_Direct3D->GetDeviceContext());
-
-		// Do the frame processing for the foliage.//////////////
-
-		cameraPosition = m_Camera->GetPosition();
-
-		result = m_BushFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
-		if (!result)
-		{
-			return false;
-		}
-
-		// Do the sky plane frame processing.
-		m_SkyPlane->Frame();
 	}
 	else if (gameState == 2) {
 		char info1Buffer[32];
@@ -1336,6 +1322,21 @@ bool ApplicationClass::Frame()
 		char info1Buffer[32];
 		sprintf_s(info1Buffer, "Loser!");
 		m_Text->UpdateSentence(m_Text->m_sentence2, info1Buffer, 10, 340, 1.0f, 0.0f, 0.0f, m_Direct3D->GetDeviceContext());
+	}
+
+
+	if (gameState >= 1) {
+		// Do the frame processing for the foliage
+		cameraPosition = m_Camera->GetPosition();
+
+		result = m_BushFoliage->Frame(-cameraPosition, m_Direct3D->GetDeviceContext());
+		if (!result)
+		{
+			return false;
+		}
+
+		// Do the sky plane frame processing.
+		m_SkyPlane->Frame();
 	}
 
 	// Render the graphics.
@@ -1351,8 +1352,7 @@ bool ApplicationClass::Frame()
 
 bool ApplicationClass::HandleInput(float frameTime)
 {
-	bool keyDown, result;
-	float posX, posY, posZ, rotX, rotY, rotZ;
+	bool keyDown;
 
 	if ((gameState == 1) && (countdownDone)) {
 		keyDown = false;
@@ -1682,8 +1682,6 @@ bool ApplicationClass::RenderGraphics()
 
 bool ApplicationClass::RenderSceneToTexture()
 {
-	bool result;
-
 	// Set the render target to be the render to texture.
 	m_RenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
 
@@ -1711,7 +1709,6 @@ bool ApplicationClass::RenderSceneToTexture()
 bool ApplicationClass::RenderDepthToTexture()
 {
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix;
-	bool result;
 
 	// Set the render target to be the render to texture.
 	m_DepthTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());

@@ -64,7 +64,7 @@ public:
 
 	bool colliding = false;
 	void SetColliding(bool set);
-	float scale = 0.3;
+	float scale = 0.3f;
 
 	int currentCheckPoint = 0;
 

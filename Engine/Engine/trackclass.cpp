@@ -210,7 +210,7 @@ bool TrackClass::GenerateTrack()
 		//Keep trying to find a path to an end node
 		while (ExplorePath(startNode) == false) {
 			//If a path cannot be found, clear all important variables and lists
-			for (int i = 0; i < nodes.size(); i++) {
+			for (unsigned int i = 0; i < nodes.size(); i++) {
 				nodes[i].parent = -1;
 				nodes[i].distanceEstimate = 99999999999.9f;
 			}
@@ -233,7 +233,7 @@ bool TrackClass::GenerateTrack()
 
 	if (pathSuccess) {
 		//Find catmul rom spline between points to use for the track///////////////////////////////////////////////
-		for (int i = 0; i < nodesOnPath.size() - 3; i++) {
+		for (unsigned int i = 0; i < nodesOnPath.size() - 3; i++) {
 			D3DXVECTOR3 pointToAdd;
 			D3DXVECTOR3 point1 = nodesOnPath[i];
 			D3DXVECTOR3 point2 = nodesOnPath[i + 1];
@@ -260,7 +260,7 @@ bool TrackClass::GenerateTrack()
 		float ROAD_WIDTH = 4.0f;
 		float ROAD_HEIGHT = 0.2f;
 
-		for (int i = 0; i < trackPoints.size(); i++) {
+		for (unsigned int i = 0; i < trackPoints.size(); i++) {
 			//Dont do this if we're on the last node
 			if (i != (trackPoints.size() - 1)) {
 				//Find forward vector for node
@@ -470,6 +470,8 @@ bool TrackClass::ExplorePath(int currentNode)
 	else {
 		return true;
 	}
+
+	return true;
 }
 
 bool TrackClass::BuildPath(int endNode)
@@ -503,12 +505,9 @@ D3DXVECTOR3 TrackClass::CalculateNormal(D3DXVECTOR3 triPoint1, D3DXVECTOR3 triPo
 bool TrackClass::InitializeBuffers(ID3D11Device* device)
 {
 	unsigned long* indices;
-	int i, j;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
-	int index1, index2, index3, index4;
-	float tu, tv;
 	int m_indexCount;
 
 
@@ -538,7 +537,7 @@ bool TrackClass::InitializeBuffers(ID3D11Device* device)
 	D3DXVECTOR3 normal;
 	int vInc = 0;
 
-	for (int i = 0; i < ((trackPoints.size() - 1) * 4); i+=4) {
+	for (unsigned int i = 0; i < ((trackPoints.size() - 1) * 4); i+=4) {
 		int BL1 = i;		//Bottom Left first point
 		int BL2 = BL1 + 4;	//Bottom Left second point
 		int TL1 = i + 1;	//Top Left first point
@@ -773,6 +772,8 @@ bool TrackClass::LoadTexture(ID3D11Device* device, WCHAR* textureFilename)
 	{
 		return false;
 	}
+
+	return true;
 }
 
 void TrackClass::ShutdownBuffers()
