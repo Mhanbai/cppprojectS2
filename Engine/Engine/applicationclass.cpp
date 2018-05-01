@@ -302,7 +302,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the sky plane object.
-	result = m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/cloud001.dds", L"../Engine/data/cloud002.dds");
+	result = m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"data/cloud001.dds", L"data/cloud002.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the sky plane object.", L"Error", MB_OK);
@@ -334,7 +334,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the bitmap object.
-	result = m_Winner->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/winner.dds", 495, 185);
+	result = m_Winner->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/winner.dds", 495, 185);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -349,7 +349,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the bitmap object.
-	result = m_1->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/1.dds", 89, 135);
+	result = m_1->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/1.dds", 89, 135);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -364,7 +364,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the bitmap object.
-	result = m_2->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/2.dds", 126, 136);
+	result = m_2->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/2.dds", 126, 136);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -379,7 +379,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the bitmap object.
-	result = m_3->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/3.dds", 122, 137);
+	result = m_3->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/3.dds", 122, 137);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -395,7 +395,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the bitmap object.
-	result = m_WingMirror->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/wingmirror.dds", screenWidth / 2.5f, screenHeight / 5.6f);
+	result = m_WingMirror->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/wingmirror.dds", screenWidth / 2.5f, screenHeight / 5.6f);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -410,7 +410,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the bitmap object.
-	result = m_TextBackdrop->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/textbackdrop.dds", 100, 400);
+	result = m_TextBackdrop->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/textbackdrop.dds", 100, 400);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -425,7 +425,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the bitmap object.
-	result = m_Winner->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/winner.dds", 495, 185);
+	result = m_Winner->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/winner.dds", 495, 185);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -441,7 +441,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the bitmap object.
-	result = m_Loser->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/youlose.dds", 495, 185);
+	result = m_Loser->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"data/youlose.dds", 495, 185);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -568,7 +568,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), &m_NoiseGenerator, terrainWidth, terrainHeight,
-		L"../Engine/data/grass.dds", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds");
+		L"data/grass.dds", L"data/slope.dds", L"data/rock.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
@@ -581,7 +581,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	showTrack = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"../Engine/data/track.dds");
+	showTrack = m_Racetrack->InitializeTrack(m_Direct3D->GetDevice(), m_Terrain, 1024, 1024, L"data/track.dds");
 
 	m_Collision = new CollisionMap;
 	if (!m_Collision) {
@@ -799,19 +799,53 @@ void ApplicationClass::Shutdown()
 		m_DepthShader = 0;
 	}
 
-	if (m_FoliageShader)
-	{
-		m_FoliageShader->Shutdown();
-		delete m_FoliageShader;
-		m_FoliageShader = 0;
-	}
-
 	// Release the foliage object.
 	if (m_BushFoliage)
 	{
 		m_BushFoliage->Shutdown();
 		delete m_BushFoliage;
 		m_BushFoliage = 0;
+	}
+
+	if (m_AICar)
+	{
+		m_AICar->Shutdown();
+		delete m_AICar;
+		m_AICar = 0;
+	}
+
+	if (m_PlayerCar)
+	{
+		m_PlayerCar->Shutdown();
+		delete m_PlayerCar;
+		m_PlayerCar = 0;
+	}
+
+	if (m_Collision) {
+		m_Collision->ShutDown();
+		delete m_Collision;
+		m_Collision = 0;
+	}
+
+	if (m_Racetrack) {
+		m_Racetrack->Shutdown();
+		delete m_Racetrack;
+		m_Racetrack = 0;
+	}
+
+	// Release the terrain object.
+	if (m_Terrain)
+	{
+		m_Terrain->Shutdown();
+		delete m_Terrain;
+		m_Terrain = 0;
+	}
+
+	if (m_FoliageShader)
+	{
+		m_FoliageShader->Shutdown();
+		delete m_FoliageShader;
+		m_FoliageShader = 0;
 	}
 
 	// Release the full screen ortho window object.
@@ -854,18 +888,53 @@ void ApplicationClass::Shutdown()
 		m_MotionBlurShader = 0;
 	}
 
-	if (m_AICar)
+	// Release the rearview window object.
+	if (m_RearView)
 	{
-		m_AICar->Shutdown();
-		delete m_AICar;
-		m_AICar = 0;
+		m_RearView->Shutdown();
+		delete m_RearView;
+		m_RearView = 0;
 	}
 
-	if (m_PlayerCar)
+	// Release the render to texture object.
+	if (m_RearViewTexture)
 	{
-		m_PlayerCar->Shutdown();
-		delete m_PlayerCar;
-		m_PlayerCar = 0;
+		m_RearViewTexture->Shutdown();
+		delete m_RearViewTexture;
+		m_RearViewTexture = 0;
+	}
+
+	// Release the bitmap object.
+	if (m_Loser)
+	{
+		m_Loser->Shutdown();
+		delete m_Loser;
+		m_Loser = 0;
+	}
+
+	// Release the bitmap object.
+	if (m_Winner)
+	{
+		m_Winner->Shutdown();
+		delete m_Winner;
+		m_Winner = 0;
+	}
+
+
+	// Release the bitmap object.
+	if (m_TextBackdrop)
+	{
+		m_TextBackdrop->Shutdown();
+		delete m_TextBackdrop;
+		m_TextBackdrop = 0;
+	}
+	
+	// Release the bitmap object.
+	if (m_WingMirror)
+	{
+		m_WingMirror->Shutdown();
+		delete m_WingMirror;
+		m_WingMirror = 0;
 	}
 
 	// Release the rearview window object.
@@ -892,52 +961,59 @@ void ApplicationClass::Shutdown()
 		m_1 = 0;
 	}
 
-	// Release the rearview window object.
-	if (m_RearView)
+	// Release the sky plane shader object.
+	if (m_SkyPlaneShader)
 	{
-		m_RearView->Shutdown();
-		delete m_RearView;
-		m_RearView = 0;
+		m_SkyPlaneShader->Shutdown();
+		delete m_SkyPlaneShader;
+		m_SkyPlaneShader = 0;
 	}
 
-	// Release the render to texture object.
-	if (m_RearViewTexture)
+	// Release the sky plane object.
+	if (m_SkyPlane)
 	{
-		m_RearViewTexture->Shutdown();
-		delete m_RearViewTexture;
-		m_RearViewTexture = 0;
+		m_SkyPlane->Shutdown();
+		delete m_SkyPlane;
+		m_SkyPlane = 0;
 	}
 
-	// Release the bitmap object.
-	if (m_TextBackdrop)
+	// Release the sky dome shader object.
+	if (m_SkyDomeShader)
 	{
-		m_TextBackdrop->Shutdown();
-		delete m_TextBackdrop;
-		m_TextBackdrop = 0;
+		m_SkyDomeShader->Shutdown();
+		delete m_SkyDomeShader;
+		m_SkyDomeShader = 0;
 	}
 
-	// Release the bitmap object.
-	if (m_Loser)
+	// Release the sky dome object.
+	if (m_SkyDome)
 	{
-		m_Loser->Shutdown();
-		delete m_Loser;
-		m_Loser = 0;
-	}
-	
-	// Release the bitmap object.
-	if (m_Winner)
-	{
-		m_Winner->Shutdown();
-		delete m_Winner;
-		m_Winner = 0;
+		m_SkyDome->Shutdown();
+		delete m_SkyDome;
+		m_SkyDome = 0;
 	}
 
-	// Release the bitmap object.
-	if (m_WingMirror)
+	// Release the light object.
+	if (m_Light)
 	{
-		m_WingMirror->Shutdown();
-		delete m_WingMirror;
-		m_WingMirror = 0;
+		delete m_Light;
+		m_Light = 0;
+	}
+
+	// Release the terrain shader object.
+	if (m_TerrainShader)
+	{
+		m_TerrainShader->Shutdown();
+		delete m_TerrainShader;
+		m_TerrainShader = 0;
+	}
+
+	// Release the text object.
+	if (m_Text)
+	{
+		m_Text->Shutdown();
+		delete m_Text;
+		m_Text = 0;
 	}
 
 	// Release the texture shader object.
@@ -962,61 +1038,6 @@ void ApplicationClass::Shutdown()
 		m_ModelShader->Shutdown();
 		delete m_ModelShader;
 		m_ModelShader = 0;
-	}
-
-	// Release the sky plane shader object.
-	if (m_SkyPlaneShader)
-	{
-		m_SkyPlaneShader->Shutdown();
-		delete m_SkyPlaneShader;
-		m_SkyPlaneShader = 0;
-	}
-
-	// Release the sky plane object.
-	if (m_SkyPlane)
-	{
-		m_SkyPlane->Shutdown();
-		delete m_SkyPlane;
-		m_SkyPlane = 0;
-	}
-	
-	// Release the sky dome shader object.
-	if (m_SkyDomeShader)
-	{
-		m_SkyDomeShader->Shutdown();
-		delete m_SkyDomeShader;
-		m_SkyDomeShader = 0;
-	}
-
-	// Release the sky dome object.
-	if (m_SkyDome)
-	{
-		m_SkyDome->Shutdown();
-		delete m_SkyDome;
-		m_SkyDome = 0;
-	}
-
-	// Release the light object.
-	if(m_Light)
-	{
-		delete m_Light;
-		m_Light = 0;
-	}
-
-	// Release the terrain shader object.
-	if(m_TerrainShader)
-	{
-		m_TerrainShader->Shutdown();
-		delete m_TerrainShader;
-		m_TerrainShader = 0;
-	}
-
-	// Release the text object.
-	if(m_Text)
-	{
-		m_Text->Shutdown();
-		delete m_Text;
-		m_Text = 0;
 	}
 
 	// Release the font shader object.
@@ -1047,14 +1068,6 @@ void ApplicationClass::Shutdown()
 	{
 		delete m_Timer;
 		m_Timer = 0;
-	}
-
-	// Release the terrain object.
-	if(m_Terrain)
-	{
-		m_Terrain->Shutdown();
-		delete m_Terrain;
-		m_Terrain = 0;
 	}
 
 	// Release the camera object.
@@ -1856,7 +1869,7 @@ bool ApplicationClass::StartGame()
 
 	// Initialize the foliage object.
 	//															WCHAR* textureFilename,		   terrain_in,	minSlope_in, maxSlope_in,	minHeight_in,	maxHeight_in,	minScale_in,	maxScale_in,	heightScale_in, frequency_in)
-	result = m_BushFoliage->Initialize(m_Direct3D->GetDevice(), L"../Engine/data/foliage.dds", m_Terrain,	0.001f,		 0.02f,			-5.0f,			3.0f,			2.0f,			5.0f,			1.0f,			7);
+	result = m_BushFoliage->Initialize(m_Direct3D->GetDevice(), L"data/foliage.dds", m_Terrain,	0.001f,		 0.02f,			-5.0f,			3.0f,			2.0f,			5.0f,			1.0f,			7);
 	if (!result)
 	{
 	MessageBox(m_hwnd, L"Could not initialize the foliage object.", L"Error", MB_OK);

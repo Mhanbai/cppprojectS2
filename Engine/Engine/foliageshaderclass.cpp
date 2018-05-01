@@ -30,7 +30,7 @@ bool FoliageShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/foliagevs.hlsl", L"../Engine/foliageps.hlsl");
+	result = InitializeShader(device, hwnd, L"foliagevs.hlsl", L"foliageps.hlsl");
 	if(!result)
 	{
 		return false;

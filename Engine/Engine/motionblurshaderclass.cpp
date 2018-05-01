@@ -31,7 +31,7 @@ bool MotionBlurShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/motionblurvs.hlsl", L"../Engine/motionblurps.hlsl");
+	result = InitializeShader(device, hwnd, L"motionblurvs.hlsl", L"motionblurps.hlsl");
 	if(!result)
 	{
 		return false;

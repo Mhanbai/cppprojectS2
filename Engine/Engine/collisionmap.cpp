@@ -12,6 +12,52 @@ CollisionMap::~CollisionMap()
 {
 }
 
+void CollisionMap::ShutDown()
+{
+	m_Terrain = 0;
+	m_Racetrack = 0;
+
+	//Clear vectors
+	checkPointsCheck.clear();
+	terrainCheck1.clear();
+	terrainCheck2.clear();
+	terrainCheck3.clear();
+	terrainCheck4.clear();
+	terrainCheck5.clear();
+	terrainCheck6.clear();
+	terrainCheck7.clear();
+	terrainCheck8.clear();
+	terrainCheck9.clear();
+	terrainCheck10.clear();
+	terrainCheck11.clear();
+	terrainCheck12.clear();
+	terrainCheck13.clear();
+	terrainCheck14.clear();
+	terrainCheck15.clear();
+	terrainCheck16.clear();
+	trackCheck.clear();
+
+	//Shrink to fit
+	checkPointsCheck.shrink_to_fit();
+	terrainCheck1.shrink_to_fit();
+	terrainCheck2.shrink_to_fit();
+	terrainCheck3.shrink_to_fit();
+	terrainCheck4.shrink_to_fit();
+	terrainCheck5.shrink_to_fit();
+	terrainCheck6.shrink_to_fit();
+	terrainCheck7.shrink_to_fit();
+	terrainCheck8.shrink_to_fit();
+	terrainCheck9.shrink_to_fit();
+	terrainCheck10.shrink_to_fit();
+	terrainCheck11.shrink_to_fit();
+	terrainCheck12.shrink_to_fit();
+	terrainCheck13.shrink_to_fit();
+	terrainCheck14.shrink_to_fit();
+	terrainCheck15.shrink_to_fit();
+	terrainCheck16.shrink_to_fit();
+	trackCheck.shrink_to_fit();
+}
+
 bool CollisionMap::Initialize(ID3D11Device* m_device, TerrainClass * terrain_in, TrackClass* track_in)
 {
 	m_Terrain = terrain_in;

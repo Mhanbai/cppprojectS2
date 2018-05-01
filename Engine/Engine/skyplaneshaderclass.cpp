@@ -31,7 +31,7 @@ bool SkyPlaneShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/skyplanevs.hlsl", L"../Engine/skyplaneps.hlsl");
+	result = InitializeShader(device, hwnd, L"skyplanevs.hlsl", L"skyplaneps.hlsl");
 	if(!result)
 	{
 		return false;

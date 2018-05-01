@@ -31,7 +31,7 @@ bool FontShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/fontvs.hlsl", L"../Engine/fontps.hlsl");
+	result = InitializeShader(device, hwnd, L"fontvs.hlsl", L"fontps.hlsl");
 	if(!result)
 	{
 		return false;

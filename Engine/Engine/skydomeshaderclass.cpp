@@ -30,7 +30,7 @@ bool SkyDomeShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/skydomevs.hlsl", L"../Engine/skydomeps.hlsl");
+	result = InitializeShader(device, hwnd, L"skydomevs.hlsl", L"skydomeps.hlsl");
 	if(!result)
 	{
 		return false;
